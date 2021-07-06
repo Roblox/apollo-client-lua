@@ -1,7 +1,7 @@
 -- ROBLOX deviation: no upstream tests
 
 return function()
-	local rootWorkspace = script.Parent.Parent
+	local rootWorkspace = script.Parent.Parent.Parent.Parent
 	local PackagesWorkspace = rootWorkspace.Parent
 
 	local JestRoblox = require(PackagesWorkspace.Dev.JestRoblox)

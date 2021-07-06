@@ -2,9 +2,13 @@
 
 --[[ ROBLOX TODO: Unhandled node for type: ExportAllDeclaration ]]
 --[[ export * from './ApolloConsumer'; ]]
---[[ ROBLOX TODO: Unhandled node for type: ExportAllDeclaration ]]
---[[ export * from './ApolloProvider'; ]]
 
 local ApolloContext = require(script.ApolloContext)
+local ApolloConsumer = require(script.ApolloConsumer)
+local ApolloProvider = require(script.ApolloProvider)
 
-return { ApolloContext = ApolloContext }
+return {
+	ApolloContext = ApolloContext,
+	ApolloConsumer = ApolloConsumer,
+	ApolloProvider = ApolloProvider,
+}
