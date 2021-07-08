@@ -1,5 +1,8 @@
 -- upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.6/src/core/index.ts
 
+-- ROBLOX TODO: adding this line due to changes from rc6 to rc17
+-- import { DEV } from "../utilities";
+
 --[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
 --[[ export {
   ApolloClientOptions,
@@ -87,7 +90,7 @@
 --[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
 --[[ export { setVerbosity as setLogVerbosity } ]]
 
--- setVerbosity("log")
+-- setVerbosity(DEV ? "log" : "silent")
 
 --[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
 --[[ export {
