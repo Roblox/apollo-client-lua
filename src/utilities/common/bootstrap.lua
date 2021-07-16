@@ -1,11 +1,11 @@
 -- ROBLOX deviation: this doesn't have an upstream
 
-local rootWorkspace = script.Parent.Parent.Parent.Parent.Parent
-local PackagesWorkspace = rootWorkspace.Packages
-local React = require(PackagesWorkspace.Roact)
+local rootWorkspace = script.Parent.Parent.Parent.Parent
+local React = require(rootWorkspace.Roact)
+local ReactRoblox = require(rootWorkspace.ReactRoblox)
 
 local function bootstrap(rootInstance, component, props)
-	local root = React.createLegacyRoot(rootInstance)
+	local root = ReactRoblox.createLegacyRoot(rootInstance)
 	root:render(React.createElement(component, props))
 	return function()
 		root:unmount()

@@ -61,16 +61,17 @@ export type Record<T, U> = { [T]: U }
 
 -- ROBLOX deviation: we're implementing TypedDocumentNode inline instead of importing it from a library
 -- original: export { TypedDocumentNode } from '@graphql-typed-document-node/core';
-export type TypedDocumentNode<Result, Variables> = DocumentNode & {
-	__apiType: ((Variables) -> Result)?,
-}
+export type TypedDocumentNode<Result, Variables> = DocumentNode & { __apiType: ((Variables) -> Result)? }
 
 export type DefaultContext = Record<string, any>
 
 export type QueryListener = (QueryInfo) -> nil
 
-export type OnQueryUpdated<TResult> =
-	(ObservableQuery<any>, Cache_DiffResult<any>, Cache_DiffResult<any> | nil) -> bool | TResult
+export type OnQueryUpdated<TResult> = (
+	ObservableQuery<any>,
+	Cache_DiffResult<any>,
+	Cache_DiffResult<any> | nil
+) -> bool | TResult
 
 export type RefetchQueryDescriptor = string | DocumentNode
 export type InternalRefetchQueryDescriptor = RefetchQueryDescriptor | QueryOptions
@@ -202,26 +203,22 @@ export type ApolloQueryResult<T> = {
 }
 
 -- This is part of the public API, people write these functions in `updateQueries`.
-export type MutationQueryReducer<T> = (Record<string, any>, {
-	mutationResult: FetchResult<T>,
-	queryName: string | nil,
-	queryVariables: Record<string, any>,
-}) -> Record<string, any>
+export type MutationQueryReducer<T> = (
+	Record<string, any>,
+	{ mutationResult: FetchResult<T>, queryName: string | nil, queryVariables: Record<string, any> }
+) -> Record<string, any>
 
-export type MutationQueryReducersMap<T> = {
-	[string]: MutationQueryReducer<T>,
-}
+export type MutationQueryReducersMap<T> = { [string]: MutationQueryReducer<T> }
 
 -- ROBLOX deviation: Luau doesn't have Omit type util so we need to be more verbose
 -- Omit<FetchResult<TData>, 'context'>
-export type MutationUpdaterFunction<TData, TVariables, TContext, TCache> = (TCache, FetchResultWithoutContext<TData>, {
-	context: TContext?,
-	variables: TVariables?,
-}) -> nil
+export type MutationUpdaterFunction<TData, TVariables, TContext, TCache> = (
+	TCache,
+	FetchResultWithoutContext<TData>,
+	{ context: TContext?, variables: TVariables? }
+) -> nil
 export type MutationUpdaterFunction = any
 
-export type Resolvers = {
-	[string]: { [string]: Resolver },
-}
+export type Resolvers = { [string]: { [string]: Resolver } }
 
 return {}

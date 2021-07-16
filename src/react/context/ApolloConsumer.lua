@@ -8,9 +8,7 @@ local React = require(packagesWorkspace.Roact)
 local getApolloContext = require(script.Parent.ApolloContext).getApolloContext
 local invariant = require(srcWorkspace.jsutils.invariant).invariant
 
-export type ApolloConsumerProps = {
-	children: (ApolloClient<object>) -> React.ReactChild | null,
-}
+export type ApolloConsumerProps = { children: (ApolloClient<object>) -> React.ReactChild | null }
 
 function ApolloConsumer(props: ApolloConsumerProps)
 	local ApolloContext = getApolloContext()
