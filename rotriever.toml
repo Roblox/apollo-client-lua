@@ -6,6 +6,7 @@ content_root = "src"
 
 [dependencies]
 Roact = { git = "https://github.com/roblox/roact-alignment.git", rev = "293eaac" }
+GraphQL = { git = "https://github.com/Roblox/graphql-lua.git", branch = "master" }
 
 [dev_dependencies]
 JestRoblox = "github.com/roblox/jest-roblox@0.7.1"
