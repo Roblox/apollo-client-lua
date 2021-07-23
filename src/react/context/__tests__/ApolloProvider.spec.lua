@@ -96,7 +96,7 @@ return function()
 				return nil
 			end
 			local testApolloProvider = function()
-				return React.createElement(ApolloProvider, { client = client }, TestChild)
+				return React.createElement(ApolloProvider, { client = client }, React.createElement(TestChild))
 			end
 			stop = bootstrap(rootInstance, testApolloProvider)
 		end)
@@ -109,7 +109,7 @@ return function()
 				return nil
 			end
 			local testApolloProvider = function()
-				return React.createElement(ApolloProvider, { client = clientToCheck }, TestChild)
+				return React.createElement(ApolloProvider, { client = clientToCheck }, React.createElement(TestChild))
 			end
 			stop = bootstrap(rootInstance, testApolloProvider)
 			clientToCheck = ApolloClient.new()
