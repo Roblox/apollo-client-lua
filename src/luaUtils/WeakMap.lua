@@ -5,10 +5,11 @@ export type WeakMap<T, V> = {
 }
 
 local WeakMap = {}
+WeakMap.__index = WeakMap
 
 function WeakMap.new(): WeakMap
-	local weakMap = {}
-	return setmetatable({ _weakMap = weakMap }, { __mode = "v", __index = WeakMap })
+	local weakMap = setmetatable({}, { __mode = "k" })
+	return setmetatable({ _weakMap = weakMap }, WeakMap)
 end
 
 function WeakMap:get(key)
