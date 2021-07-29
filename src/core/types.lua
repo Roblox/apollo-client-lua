@@ -2,15 +2,21 @@
 
 local srcWorkspace = script.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
+
+local LuauPolyfill = require(rootWorkspace.Dev.LuauPolyfill)
+local Array = LuauPolyfill.Array
+type Array<T> = Array<T>
+
 local GraphQL = require(rootWorkspace.GraphQL)
 type DocumentNode = GraphQL.DocumentNode
-type GraphQLError = GraphQL.GraphQLError
+-- ROBLOX devation: The GraphQLError type is not exported in graphql-lua
+type GraphQLError = { [string]: any }
 
 -- ROBLOX deviation: need to define Promise type for use below
 type Promise<T> = any
 
 -- ROBLOX deviation: need to define Map type for use below
-type Map<T> = any
+type Map<T, U> = { [any]: any }
 
 -- ROBLOX deviation: only used during upstreams generic type restriction for RefetchQueriesOptions
 -- local ApolloCache = require(script.Parent.Parent.cache).ApolloCache
@@ -40,7 +46,7 @@ type Resolver = any
 
 -- ROBLOX TODO: use import when ObservableQuery is implemented
 -- local ObservableQuery = require(script.Parent.ObservableQuery).ObservableQuery
-type ObservableQuery = any
+type ObservableQuery<T> = any
 
 -- ROBLOX TODO: use import when QueryOptions is implemented
 -- local QueryOptions = require(script.Parent.watchQueryOptions).QueryOptions
@@ -71,7 +77,7 @@ export type OnQueryUpdated<TResult> = (
 	ObservableQuery<any>,
 	Cache_DiffResult<any>,
 	Cache_DiffResult<any> | nil
-) -> bool | TResult
+) -> boolean | TResult
 
 export type RefetchQueryDescriptor = string | DocumentNode
 export type InternalRefetchQueryDescriptor = RefetchQueryDescriptor | QueryOptions
@@ -147,7 +153,7 @@ export type RefetchQueriesOptions<TCache, TResult> = {
 --
 --     : TResult[];
 
-export type RefetchQueriesPromiseResults<TResult> = Array<any>
+export type RefetchQueriesPromiseResults<TResult> = Array<TResult>
 
 -- The result of client.refetchQueries is thenable/awaitable, if you just want
 -- an array of fully resolved results, but you can also access the raw results
@@ -179,7 +185,6 @@ export type InternalRefetchQueriesOptions<TCache, TResult> = RefetchQueriesOptio
 	-- exposed in the public client.refetchQueries API (above).
 	removeOptimistic: string?,
 }
-export type InternalRefetchQueriesOptions<TCache, TResult> = any
 
 export type InternalRefetchQueriesResult<TResult> = TResult | Promise<ApolloQueryResult<any>>
 
@@ -217,7 +222,6 @@ export type MutationUpdaterFunction<TData, TVariables, TContext, TCache> = (
 	FetchResultWithoutContext<TData>,
 	{ context: TContext?, variables: TVariables? }
 ) -> nil
-export type MutationUpdaterFunction = any
 
 export type Resolvers = { [string]: { [string]: Resolver } }
 

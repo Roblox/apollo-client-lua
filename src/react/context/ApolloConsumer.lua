@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.6/src/react/context/ApolloConsumer.tsx
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/react/context/ApolloConsumer.tsx
 
 local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
@@ -8,9 +8,12 @@ local React = require(packagesWorkspace.Roact)
 local getApolloContext = require(script.Parent.ApolloContext).getApolloContext
 local invariant = require(srcWorkspace.jsutils.invariant).invariant
 
-export type ApolloConsumerProps = { children: (ApolloClient<object>) -> React.ReactChild | null }
+local apolloClientModule = require(srcWorkspace.core.ApolloClient)
+type ApolloClient<TCacheShape> = apolloClientModule.ApolloClient<TCacheShape>
 
-function ApolloConsumer(props: ApolloConsumerProps)
+export type ApolloConsumerProps<TCacheShape> = { children: (ApolloClient<TCacheShape>) -> React.ReactChild | null }
+
+function ApolloConsumer(props: ApolloConsumerProps<{ [string]: any }>)
 	local ApolloContext = getApolloContext()
 	return React.createElement(ApolloContext.Consumer, nil, function(context)
 		invariant(

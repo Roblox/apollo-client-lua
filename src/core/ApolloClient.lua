@@ -1,34 +1,51 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.6/src/core/ApolloClient.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/core/ApolloClient.ts
+
+local srcWorkspace = script.Parent.Parent
+local rootWorkspace = srcWorkspace.Parent
+
+local LuauPolyfill = require(rootWorkspace.Dev.LuauPolyfill)
+local Array = LuauPolyfill.Array
+type Array<T> = Array<T>
+
+local GraphQL = require(rootWorkspace.GraphQL)
+type ExecutionResult = GraphQL.ExecutionResult
+type DocumentNode = GraphQL.DocumentNode
 
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
---[[ import { ExecutionResult, DocumentNode } from 'graphql'; ]]
---[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import { invariant, InvariantError } from 'ts-invariant'; ]]
+
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import { ApolloLink, FetchResult, GraphQLRequest, execute } from '../link/core'; ]]
+type ApolloLink = { [string]: any }
+
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import { ApolloCache, DataProxy } from '../cache'; ]]
+type ApolloCache<TCacheShape> = { [string]: any }
+
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import { Observable, compact } from '../utilities'; ]]
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import { version } from '../version'; ]]
+
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import { HttpLink, UriFunction } from '../link/http'; ]]
+type UriFunction = ({ [string]: any }) -> string
+
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import { QueryManager } from './QueryManager'; ]]
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import { ObservableQuery } from './ObservableQuery'; ]]
---[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
---[[ import {
-  ApolloQueryResult,
-  DefaultContext,
-  OperationVariables,
-  Resolvers,
-  RefetchQueriesOptions,
-  RefetchQueriesResult,
-  InternalRefetchQueriesResult,
-  RefetchQueriesInclude,
-} from './types'; ]]
+
+local coreTypesModule = require(srcWorkspace.core.types)
+type ApolloQueryResult<T> = coreTypesModule.ApolloQueryResult<T>
+type DefaultContext = coreTypesModule.DefaultContext
+type OperationVariables = coreTypesModule.OperationVariables
+type Resolvers = coreTypesModule.Resolvers
+type RefetchQueriesOptions<TCache, TResult> = coreTypesModule.RefetchQueriesOptions<TCache, TResult>
+type RefetchQueriesResult<TResult> = coreTypesModule.RefetchQueriesResult<TResult>
+type InternalRefetchQueriesResult<TResult> = coreTypesModule.InternalRefetchQueriesResult<TResult>
+type RefetchQueriesInclude = coreTypesModule.RefetchQueriesInclude
+
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import {
   QueryOptions,
@@ -37,22 +54,29 @@
   SubscriptionOptions,
   WatchQueryFetchPolicy,
 } from './watchQueryOptions'; ]]
+
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import {
   LocalState,
   FragmentMatcher,
 } from './LocalState'; ]]
---[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
---[[ export interface DefaultOptions {
-  watchQuery?: Partial<WatchQueryOptions<any, any>>;
-  query?: Partial<QueryOptions<any, any>>;
-  mutate?: Partial<MutationOptions<any, any, any>>;
-} ]]
+-- ROBLOX todo: import fragment matcher when we convert ./LocalState
+type FragmentMatcher = (rootValue: any, typeCondition: string, context: any) -> boolean
+
+-- ROBLOX TODO: convert DefaultOptions when we implement these types
+-- export type DefaultOptions = {
+--   watchQuery: Partial<WatchQueryOptions<any, any>>,
+--   query: Partial<QueryOptions<any, any>>,
+--   mutate: Partial<MutationOptions<any, any, any>>,
+-- }
+export type DefaultOptions = { [string]: any }
+
 local hasSuggestedDevtools = false
 export type ApolloClientOptions<TCacheShape> = {
 	uri: string? | UriFunction?,
 	credentials: string?,
-	headers: Record<string, string>?,
+	-- headers: Record<string, string>?,
+	headers: { [string]: string }?,
 	link: ApolloLink?,
 	cache: ApolloCache<TCacheShape>,
 	ssrForceFetchDelay: number?,
@@ -99,7 +123,15 @@ type OptionsUnion = any
   private localState: LocalState<TCacheShape>;
 ]]
 
-export type ApolloClient = {}
+export type ApolloClient<TCacheShape> = {
+	link: ApolloLink,
+	cache: ApolloCache<TCacheShape>,
+	disableNetworkFetches: boolean,
+	version: string,
+	queryDeduplication: boolean,
+	defaultOptions: DefaultOptions,
+	typeDefs: string? | Array<string>? | DocumentNode? | Array<DocumentNode>?,
+}
 
 local ApolloClient = {}
 ApolloClient.__index = ApolloClient
@@ -143,7 +175,7 @@ ApolloClient.__index = ApolloClient
    */
 ]]
 
-function ApolloClient.new(options: ApolloClientOptions): ApolloClient
+function ApolloClient.new(options: ApolloClientOptions<{ [string]: any }>)
 	local self = setmetatable({}, ApolloClient)
 
 	--[[
