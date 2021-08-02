@@ -5,7 +5,7 @@ local rootWorkspace = srcWorkspace.parent
 local LuauPolyfill = require(srcWorkspace.Dev.LuauPolyfill)
 local Boolean = LuauPolyfill.Boolean
 
-local React = require(rootWorkspace.Roact)
+local React = require(rootWorkspace.React)
 local useRef = React.useRef
 local exports = {}
 -- was used for a equal() comparison

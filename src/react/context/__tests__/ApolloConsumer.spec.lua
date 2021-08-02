@@ -12,7 +12,7 @@ return function()
 	local LuauPolyfill = require(packagesWorkspace.Dev.LuauPolyfill)
 	local Array = LuauPolyfill.Array
 
-	local React = require(packagesWorkspace.Roact)
+	local React = require(packagesWorkspace.React)
 
 	local ApolloClient = require(rootWorkspace.core).ApolloClient
 

@@ -8,7 +8,7 @@ return function()
 	local LuauPolyfill = require(PackagesWorkspace.Dev.LuauPolyfill)
 	local Array = LuauPolyfill.Array
 
-	local React = require(PackagesWorkspace.Roact)
+	local React = require(PackagesWorkspace.React)
 	local useState = React.useState
 	local bootstrap = require(script.Parent.Parent.bootstrap)
 

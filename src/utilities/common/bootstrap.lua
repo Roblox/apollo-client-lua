@@ -1,7 +1,7 @@
 -- ROBLOX deviation: this doesn't have an upstream
 
 local rootWorkspace = script.Parent.Parent.Parent.Parent
-local React = require(rootWorkspace.Roact)
+local React = require(rootWorkspace.React)
 local ReactRoblox = require(rootWorkspace.ReactRoblox)
 
 local function bootstrap(rootInstance, component, props)

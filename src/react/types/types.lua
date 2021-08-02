@@ -10,7 +10,7 @@ type Promise<T> = any
 type JSX_Element = any
 type ZenObservable_Subscription = any
 
-local RoactModule = require(rootWorkspace.Roact)
+local RoactModule = require(rootWorkspace.React)
 type ReactNode = RoactModule.ReactNode
 local GraphQLModule = require(rootWorkspace.GraphQL)
 type DocumentNode = GraphQLModule.DocumentNode

@@ -3,7 +3,7 @@
 local rootWorkspace = script.Parent.Parent.Parent
 local packagesWorkspace = rootWorkspace.Parent.Parent.Packages
 
-local React = require(packagesWorkspace.Roact)
+local React = require(packagesWorkspace.React)
 local WeakMap = require(rootWorkspace.luaUtils.WeakMap)
 local cache = WeakMap.new()
 

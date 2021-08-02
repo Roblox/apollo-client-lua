@@ -4,7 +4,7 @@ local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 local packagesWorkspace = rootWorkspace.Parent.Packages
 
-local React = require(packagesWorkspace.Roact)
+local React = require(packagesWorkspace.React)
 local getApolloContext = require(script.Parent.ApolloContext).getApolloContext
 local invariant = require(srcWorkspace.jsutils.invariant).invariant
 
