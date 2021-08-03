@@ -4,8 +4,7 @@ local srcWorkspace = script.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 
 local LuauPolyfill = require(rootWorkspace.Dev.LuauPolyfill)
-local Array = LuauPolyfill.Array
-type Array<T> = Array<T>
+type Array<T> = LuauPolyfill.Array<T>
 
 local GraphQL = require(rootWorkspace.GraphQL)
 type ExecutionResult = GraphQL.ExecutionResult
@@ -71,14 +70,15 @@ type FragmentMatcher = (rootValue: any, typeCondition: string, context: any) -> 
 -- }
 export type DefaultOptions = { [string]: any }
 
-local hasSuggestedDevtools = false
+local _hasSuggestedDevtools = false
 export type ApolloClientOptions<TCacheShape> = {
 	uri: string? | UriFunction?,
 	credentials: string?,
 	-- headers: Record<string, string>?,
 	headers: { [string]: string }?,
 	link: ApolloLink?,
-	cache: ApolloCache<TCacheShape>,
+	-- ROBLOX deviation: TEMPORARILY setting cache to potentially nil until we convert InMemoryCache
+	cache: ApolloCache<TCacheShape>?,
 	ssrForceFetchDelay: number?,
 	ssrMode: boolean?,
 	connectToDevTools: boolean?,

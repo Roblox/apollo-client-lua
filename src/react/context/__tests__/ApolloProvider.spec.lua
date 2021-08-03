@@ -1,4 +1,5 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.6/src/react/context/__tests__/ApolloProvider.test.tsx
+--!nocheck
 
 return function()
 	local rootWorkspace = script.Parent.Parent.Parent.Parent
@@ -22,9 +23,9 @@ return function()
 	local getApolloContext = ApolloContextModule.ApolloContext.getApolloContext
 
 	describe("<ApolloProvider /> Component", function()
-		local client = ApolloClient.new()
+		local client = ApolloClient.new({ cache = nil })
 		local rootInstance
-		local stop
+		local stop: (() -> ())?
 		local TestTextLabelElement = React.createElement("TextLabel", { Text = "Test" })
 
 		beforeEach(function()
@@ -33,7 +34,7 @@ return function()
 		end)
 
 		afterEach(function()
-			if stop ~= nil then
+			if typeof(stop) == "function" then
 				stop()
 			end
 		end)
@@ -46,7 +47,7 @@ return function()
 			local descendants = rootInstance:GetDescendants()
 			local count = #Array.filter(descendants, function(item)
 				return item.Name == "TextLabel"
-			end)
+			end, nil)
 			jestExpect(count).toBe(1)
 		end)
 
@@ -58,7 +59,7 @@ return function()
 			local descendants = rootInstance:GetDescendants()
 			local count = #Array.filter(descendants, function(item)
 				return item.Name == "TextLabel"
-			end)
+			end, nil)
 			jestExpect(count).toBe(1)
 		end)
 
@@ -85,13 +86,13 @@ return function()
 			local descendants = rootInstance:GetDescendants()
 			local count = #Array.filter(descendants, function(item)
 				return item.Name == "TextLabel"
-			end)
+			end, nil)
 			jestExpect(count).toBe(1)
 		end)
 
 		it("should add the client to the children context", function()
 			local TestChild = function()
-				local context = useContext(getApolloContext())
+				local context = useContext(getApolloContext(), nil, nil)
 				jestExpect(context.client).toBe(client)
 				return nil
 			end
@@ -104,7 +105,7 @@ return function()
 		it("should update props when the client changes", function()
 			local clientToCheck = client
 			local TestChild = function()
-				local context = useContext(getApolloContext())
+				local context = useContext(getApolloContext(), nil, nil)
 				jestExpect(context.client).toBe(clientToCheck)
 				return nil
 			end
@@ -112,7 +113,7 @@ return function()
 				return React.createElement(ApolloProvider, { client = clientToCheck }, React.createElement(TestChild))
 			end
 			stop = bootstrap(rootInstance, testApolloProvider)
-			clientToCheck = ApolloClient.new()
+			clientToCheck = ApolloClient.new({ cache = nil })
 			local stopRerender = bootstrap(rootInstance, testApolloProvider)
 			stopRerender()
 		end)

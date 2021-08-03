@@ -1,4 +1,5 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.6/src/react/context/ApolloContext.ts
+--!nonstrict
 
 local rootWorkspace = script.Parent.Parent.Parent
 local packagesWorkspace = rootWorkspace.Parent.Parent.Packages

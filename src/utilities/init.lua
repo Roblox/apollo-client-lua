@@ -7,7 +7,7 @@ local invariant = require(srcWorkspace.jsutils.invariant).invariant
 -- invariant("boolean" == typeof(DEV), DEV)
 -- local invariant = require(Packages["ts-invariant"]).invariant
 local DEV = require(script.globals).DEV
-invariant("boolean" == typeof(DEV), DEV)
+invariant("boolean" == typeof(DEV), tostring(DEV))
 exports.DEV = DEV
 -- ROBLOX deviation: add polyfills for JS Primitives
 local LuauPolyfill = require(Packages.Dev.LuauPolyfill)

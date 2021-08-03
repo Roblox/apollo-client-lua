@@ -22,7 +22,7 @@ return function()
 				for i = 1, textLabelCount do
 					table.insert(
 						textLabels,
-						React.createElement("TextLabel", { Text = string.format("TextLabel #%s", i) })
+						React.createElement("TextLabel", { Text = string.format("TextLabel #%s", tostring(i)) })
 					)
 				end
 				return textLabels
@@ -53,7 +53,7 @@ return function()
 			local descendants = rootInstance:GetDescendants()
 			local count = #Array.filter(descendants, function(item)
 				return item.Name == "TextLabel"
-			end)
+			end, nil)
 			jestExpect(count).toBe(11)
 		end)
 	end)

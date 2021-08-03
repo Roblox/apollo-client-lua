@@ -6,6 +6,7 @@ content_root = "src"
 
 [dependencies]
 React = { git = "https://github.com/roblox/roact-alignment.git", package = "React" }
+Shared = { git = "https://github.com/roblox/roact-alignment.git", package = "Shared" }
 ReactRoblox = { git = "https://github.com/roblox/roact-alignment.git", package = "ReactRoblox" }
 GraphQL = { git = "https://github.com/Roblox/graphql-lua.git", branch = "master" }
 

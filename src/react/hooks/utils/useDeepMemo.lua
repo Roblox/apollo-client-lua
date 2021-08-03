@@ -1,8 +1,8 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/react/hooks/utils/useDeepMemo.ts
 
-local srcWorkspace = script.Parent.Parent.Parent.Parent.Parent
+local srcWorkspace = script.Parent.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.parent
-local LuauPolyfill = require(srcWorkspace.Dev.LuauPolyfill)
+local LuauPolyfill = require(rootWorkspace.Dev.LuauPolyfill)
 local Boolean = LuauPolyfill.Boolean
 
 local React = require(rootWorkspace.React)
@@ -12,7 +12,7 @@ local exports = {}
 -- local equal = require(Packages.@wry.equality).equal
 
 local function useDeepMemo(memoFn: any, key: any): any
-	local ref = useRef()
+	local ref = useRef(nil)
 	if
 		Boolean.toJSBoolean(
 			Boolean.toJSBoolean(not Boolean.toJSBoolean(ref.current)) and not Boolean.toJSBoolean(ref.current)

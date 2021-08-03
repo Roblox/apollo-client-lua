@@ -11,7 +11,9 @@ local invariant = require(srcWorkspace.jsutils.invariant).invariant
 local apolloClientModule = require(srcWorkspace.core.ApolloClient)
 type ApolloClient<TCacheShape> = apolloClientModule.ApolloClient<TCacheShape>
 
-export type ApolloConsumerProps<TCacheShape> = { children: (ApolloClient<TCacheShape>) -> React.ReactChild | null }
+local SharedModule = require(rootWorkspace.Shared)
+type ReactChild = SharedModule.ReactElement | string | number
+export type ApolloConsumerProps<TCacheShape> = { children: (ApolloClient<TCacheShape>) -> ReactChild | nil }
 
 function ApolloConsumer(props: ApolloConsumerProps<{ [string]: any }>)
 	local ApolloContext = getApolloContext()

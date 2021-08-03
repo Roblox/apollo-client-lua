@@ -6,7 +6,7 @@ return function()
 	local JestRoblox = require(rootWorkspace.Dev.JestRoblox)
 	local jestExpect = JestRoblox.Globals.expect
 
-	local typesModule = require(script.Parent.Parent.types)
+	local _typesModule = require(script.Parent.Parent.types)
 
 	describe("types module", function()
 		it("empty test", function()

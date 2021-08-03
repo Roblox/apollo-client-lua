@@ -1,3 +1,5 @@
+--!nonstrict
+
 local findOr = require(script.Parent.findOr)
 local slice = require(script.Parent.slice)
 
@@ -6,7 +8,7 @@ type Array<T> = { [number]: T }
 type Pattern = string | Array<string>
 
 local function split(str: string, _patterns: Pattern?)
-	local patterns
+	local patterns: (string | { string })?
 	if _patterns == nil then
 		return { str }
 	end
@@ -28,7 +30,7 @@ local function split(str: string, _patterns: Pattern?)
 			table.insert(result, slice(str, init, match.index))
 			init = match.index + utf8.len(match.match)
 		else
-			table.insert(result, slice(str, init))
+			table.insert(result, slice(str, init, nil))
 		end
 		if match ~= nil then
 			lastMatch = match

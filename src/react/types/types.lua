@@ -5,82 +5,84 @@ local rootWorkspace = srcWorkspace.Parent
 type Record<T, U> = { [T]: U }
 type Array<T> = { [number]: T }
 type Object = { [string]: any }
--- ROBLOX deviation: Promise isn't supported
-type Promise<T> = any
+
+-- ROBLOX deviation: need to define Promise type for use below
+local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
+type Promise<T> = PromiseTypeModule.Promise<T>
+
 type JSX_Element = any
 type ZenObservable_Subscription = any
 
-local RoactModule = require(rootWorkspace.React)
-type ReactNode = RoactModule.ReactNode
+local SharedModule = require(rootWorkspace.Shared)
+type ReactNode = SharedModule.ReactNodeList
 local GraphQLModule = require(rootWorkspace.GraphQL)
 type DocumentNode = GraphQLModule.DocumentNode
--- ROBLOX TODO: use import when TypedDocumentNode is imported
--- local TypedDocumentNode = require(Packages.@graphql-typed-document-node.core).TypedDocumentNode
-type TypedDocumentNode<TData, TVariables> = any
-local coreModule = require(srcWorkspace.core)
+
+local coreTypesModule = require(srcWorkspace.core.types)
+type TypedDocumentNode<Result, Variables> = coreTypesModule.TypedDocumentNode<Result, Variables>
 
 -- ROBLOX TODO: use import when Observable is imported
 -- local Observable = require(script.Parent.Parent.Parent.utilities).Observable
-type Observable<T> = any
+type Observable<T> = { [string]: any }
 
 -- ROBLOX TODO: use import when FetchResult is imported
 -- local FetchResult = require(script.Parent.Parent.Parent.link.core).FetchResult
-type FetchResult<TData> = any
+type FetchResult<TData> = { [string]: any }
 
 -- ROBLOX TODO use import when ApolloError is imported
 -- local ApolloError = require(script.Parent.Parent.Parent.errors).ApolloError
-type ApolloError = any
+type ApolloError = { [string]: any }
 
 -- ROBLOX TODO: use import when ApolloCache is imported
 -- local ApolloCache = coreModule.ApolloCache
-type ApolloCache = any
+type ApolloCache<T> = { [string]: any }
 
 local apolloClientModule = require(srcWorkspace.core.ApolloClient)
 type ApolloClient<TCacheShape> = apolloClientModule.ApolloClient<TCacheShape>
 
 -- ROBLOX TODO use import when ApolloQueryResult is imported
 -- local ApolloQueryResult = coreModule.ApolloQueryResult
-type ApolloQueryResult<TData> = any
+type ApolloQueryResult<TData> = { [string]: any }
 
 -- ROBLOX TODO use import when DefaultContext is imported
 -- local DefaultContext = coreModule.DefaultContext
-type DefaultContext = any
+type DefaultContext = { [string]: any }
 
 -- ROBLOX TODO use import when FetchMoreOptions is imported
 -- local FetchMoreOptions = coreModule.FetchMoreOptions
-type FetchMoreOptions<TData, TVariables> = any
+type FetchMoreOptions<TData, TVariables> = { [string]: any }
 
 -- ROBLOX TODO use import when FetchMoreQueryOptions is imported
 -- local FetchMoreQueryOptions = coreModule.FetchMoreQueryOptions
-type FetchMoreQueryOptions<TVariables, TData> = any
+type FetchMoreQueryOptions<TVariables, TData> = { [string]: any }
 
 -- ROBLOX TODO use import when FetchPolicy is imported
 -- local FetchPolicy = coreModule.FetchPolicy
-type FetchPolicy = any
+type FetchPolicy = { [string]: any }
 
 -- ROBLOX TODO use import when MutationOptions is imported
 -- local MutationOptions = coreModule.MutationOptions
-type MutationOptions<TData, TVariables, TContext, TCache> = any
+type MutationOptions<TData, TVariables, TContext, TCache> = { [string]: any }
 
 -- ROBLOX TODO: use import when NetworkStatus is imported
 -- local NetworkStatus = coreModule.NetworkStatus
-type NetworkStatus = any
+type NetworkStatus = { [string]: any }
 
 -- ROBLOX TODO use import when ObservableQuery is implemented
 -- local ObservableQuery = coreModule.ObservableQuery
-type ObservableQuery = any
+type ObservableQuery = { [string]: any }
 
 -- ROBLOX TODO use import when OperationVariables is imported
 -- local OperationVariables = coreModule.OperationVariables
-type OperationVariables = any
+type OperationVariables = { [string]: any }
 
 -- ROBLOX TODO use import when InternalRefetchQueriesInclude is imported
 -- local InternalRefetchQueriesInclude = coreModule.InternalRefetchQueriesInclude
-type InternalRefetchQueriesInclude = any
+type InternalRefetchQueriesInclude = { [string]: any }
 
 -- ROBLOX TODO use import when WatchQueryOptions is imported
 -- local WatchQueryOptions = coreModule.WatchQueryOptions
-type WatchQueryOptions = any
+type WatchQueryOptions = { [string]: any }
 
 --[[ Common types ]]
 
@@ -118,12 +120,15 @@ type ObservableQueryPick<TData, TVariables> = {
 	variables: any,
 }
 
+-- ROBLOX todo: this implementation is throwing a type error
+-- upstream: https://github.com/apollographql/apollo-client/blob/3161e31538c33f3aafb18f955fbee0e6e7a0b0c0/src/react/types/types.ts#L51-L71
 export type ObservableQueryFields<TData, TVariables> = ObservableQueryPick<TData, TVariables> & {
 	fetchMore: ((
 		FetchMoreQueryOptions<TVariables, TData> & FetchMoreOptions<TData, TVariables>
 	) -> Promise<ApolloQueryResult<TData>>) & ((
-		{ query: (DocumentNode | TypedDocumentNode<TData, TVariables>)? } & FetchMoreQueryOptions<TVariables2, TData> & FetchMoreOptions<TData2, TVariables2>
-	) -> Promise<ApolloQueryResult<TData2>>),
+			-- ROBLOX deviation: dont have function generics
+{ query: (DocumentNode | TypedDocumentNode<TData, TVariables>)? } & FetchMoreQueryOptions<any, TData> & FetchMoreOptions<any, any>
+	) -> Promise<ApolloQueryResult<any>>),
 }
 
 --[[ ROBLOX deviation: there are no default generic params in Luau: `<TData = any, TVariables = OperationVariables>` ]]
@@ -239,18 +244,23 @@ export type MutationResult<TData> = {
 }
 
 --[[ ROBLOX deviation: there are no default generic params in Luau: `<TData = any, TVariables = OperationVariables, TContext = DefaultContext, TCache extends ApolloCache<any> = ApolloCache<any>,` ]]
+type defaultTData = any
+type defaultTVariables = OperationVariables
+type defaultTContext = DefaultContext
+type defaultTCache = ApolloCache<any>
 export type MutationFunction<TData, TVariables, TContext, TCache> = (
-	MutationFunctionOptions<TData, TVariables, TContext, TCache>?
-) -> Promise<FetchResult<TData>>
+	MutationFunctionOptions<defaultTData, defaultTVariables, defaultTContext, defaultTCache>?
+) -> Promise<FetchResult<defaultTData>>
 
 --[[ ROBLOX deviation: there are no default generic params in Luau: `<TData = any, TVariables = OperationVariables, TContext = DefaultContext, TCache extends ApolloCache<any> = ApolloCache<any>,` ]]
-export type MutationHookOptions<TData, TVariables> = BaseMutationOptions<TData, TVariables, TContext, TCache> & {
-	mutation: (DocumentNode | TypedDocumentNode<TData, TVariables>)?,
+
+export type MutationHookOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<defaultTData, defaultTVariables, defaultTContext, defaultTCache> & {
+	mutation: (DocumentNode | TypedDocumentNode<defaultTData, defaultTVariables>)?,
 }
 
 --[[ ROBLOX deviation: there are no default generic params in Luau: `<TData, TVariables extends OperationVariables, TContext extends DefaultContext, TCache extends ApolloCache<any>,` ]]
-export type MutationDataOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<TData, TVariables, TContext, TCache> & { BaseMutationOptions<TData, TVariables, TContext, TCache> & {
-	mutation: DocumentNode | TypedDocumentNode<TData, TVariables>,
+export type MutationDataOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<defaultTData, defaultTVariables, defaultTContext, defaultTCache> & { BaseMutationOptions<TData, TVariables, TContext, TCache> & {
+	mutation: DocumentNode | TypedDocumentNode<defaultTData, defaultTVariables>,
 } }
 
 --[[ ROBLOX deviation: no way to type a tuple in Luau. Adding a similar concept of a tuple as a return type of function.
@@ -301,6 +311,6 @@ export type SubscriptionDataOptions<TData, TVariables> = BaseSubscriptionOptions
 	children: (nil | ((SubscriptionResult<TData>) -> JSX_Element | nil))?,
 }
 
-export type SubscriptionCurrentObservable = { query: Observable<T>?, subscription: ZenObservable_Subscription? }
+export type SubscriptionCurrentObservable = { query: Observable<any>?, subscription: ZenObservable_Subscription? }
 
 return {}

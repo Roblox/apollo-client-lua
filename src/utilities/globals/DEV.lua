@@ -41,6 +41,7 @@ local function getDEV()
 		if hasReturned then
 			return result
 		end
+		return false
 	end
 end
 exports.default = getDEV()

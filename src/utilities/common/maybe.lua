@@ -1,6 +1,7 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/utilities/common/maybe.ts
+-- ROBLOX deviation: this was to support webpack logic, logic which is needed in luau
 local exports = {}
-local function maybe(thunk: () -> T): (T | nil)
+-- ROBLOX todo: this is supposed to be a generic function
+local function maybe(thunk: () -> any): (any | nil)
 	do --[[ ROBLOX COMMENT: try-catch block conversion ]]
 		local _ok, result, hasReturned = xpcall(function()
 			return thunk(), true
@@ -9,6 +10,7 @@ local function maybe(thunk: () -> T): (T | nil)
 			return result
 		end
 	end
+	return nil
 end
 exports.maybe = maybe
 return exports

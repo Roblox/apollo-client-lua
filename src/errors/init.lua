@@ -15,12 +15,12 @@ local Boolean, Array, Error = LuauPolyfill.Boolean, LuauPolyfill.Array, LuauPoly
 
 local invariant = require(srcWorkspace.jsutils.invariant).invariant
 local DEV = require(srcWorkspace.utilities).DEV
-invariant("boolean" == typeof(DEV), DEV)
+invariant("boolean" == typeof(DEV), tostring(DEV))
 
 -- ROBLOX deviation: The GraphQLError type is not exported in graphql-lua
 type GraphQLError = { [string]: any }
 
-local isNonEmptyArray = require(srcWorkspace.utilities).isNonEmptyArray
+local isNonEmptyArray = require(srcWorkspace.utilities.common.arrays).isNonEmptyArray
 
 --[[ ROBLOX TODO: replace when available]]
 -- local ServerParseError = require(srcWorkspace.link.http).ServerParseError
@@ -62,8 +62,8 @@ local function generateErrorMessage(err: ApolloError)
 			message ..= ("%s\n"):format(errorMessage)
 		end
 	end
-	if Boolean.toJSBoolean(err.networkError) then
-		message ..= ("%s\n"):format(err.networkError.message)
+	if err.networkError ~= nil then
+		message ..= ("%s\n"):format((err.networkError :: any).message)
 	end
 	message = string.gsub(message, "\n$", "")
 	return message
@@ -71,6 +71,7 @@ end
 
 export type ApolloError = {
 	message: string,
+	stack: string?,
 	graphQLErrors: Array<GraphQLError>,
 	clientErrors: Array<Error>,
 	networkError: Error | ServerParserError | ServerError | nil,
@@ -87,6 +88,7 @@ type ApolloErrorConstructorArg = {
 	graphQLErrors: Array<GraphQLError>?,
 	clientErrors: Array<Error>?,
 	networkError: (Error | ServerParserError | ServerError | nil)?,
+	errorMessage: string?,
 	extraInfo: any?,
 }
 

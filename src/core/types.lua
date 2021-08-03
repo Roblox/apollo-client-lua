@@ -4,8 +4,7 @@ local srcWorkspace = script.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 
 local LuauPolyfill = require(rootWorkspace.Dev.LuauPolyfill)
-local Array = LuauPolyfill.Array
-type Array<T> = Array<T>
+type Array<T> = LuauPolyfill.Array<T>
 
 local GraphQL = require(rootWorkspace.GraphQL)
 type DocumentNode = GraphQL.DocumentNode
@@ -13,7 +12,8 @@ type DocumentNode = GraphQL.DocumentNode
 type GraphQLError = { [string]: any }
 
 -- ROBLOX deviation: need to define Promise type for use below
-type Promise<T> = any
+local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
+type Promise<T> = PromiseTypeModule.Promise<T>
 
 -- ROBLOX deviation: need to define Map type for use below
 type Map<T, U> = { [any]: any }

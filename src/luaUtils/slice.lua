@@ -1,7 +1,10 @@
-local function slice(str, startIndexStr, lastIndexStr)
-	local strLen = utf8.len(str)
+--!nonstrict
 
-	if startIndexStr + utf8.len(str) < 0 then
+local function slice(str: string, startIndexStr: string | number, lastIndexStr: (string | number)?): string
+	local strLen = utf8.len(str)
+	assert(type(startIndexStr) == "number", "startIndexStr should be a number")
+
+	if tonumber(startIndexStr) + strLen < 0 then
 		-- then |start index| is greater than string length
 		startIndexStr = 1
 	end
@@ -11,7 +14,10 @@ local function slice(str, startIndexStr, lastIndexStr)
 	end
 
 	-- if no last index length set, go to str length + 1
-	lastIndexStr = lastIndexStr or strLen + 1
+	if lastIndexStr == nil then
+		lastIndexStr = strLen + 1
+	end
+	assert(type(lastIndexStr) == "number", "lastIndexStr should be a number")
 
 	if lastIndexStr > strLen then
 		lastIndexStr = strLen + 1

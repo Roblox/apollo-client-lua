@@ -1,6 +1,7 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/utilities/common/global.ts
+-- ROBLOX deviation: this was to support webpack logic, logic which is needed in luau
 local exports = {}
-local maybe = require(script.Parent.maybe).maybe
+--
+local _maybe = require(script.Parent.maybe).maybe
 -- ROBLOX deviation: Roblox doesn't have a concept of window or process.env. _G is the replacement.
 --[[
 export default (
@@ -14,8 +15,6 @@ export default (
 };
 ]]
 
-exports.default = maybe(function()
-	return _G
-end)
+exports.default = _G
 
 return exports

@@ -4,9 +4,9 @@ local rootWorkspace = script.Parent.Parent.Parent.Parent
 local React = require(rootWorkspace.React)
 local ReactRoblox = require(rootWorkspace.ReactRoblox)
 
-local function bootstrap(rootInstance, component, props)
+local function bootstrap(rootInstance, component)
 	local root = ReactRoblox.createLegacyRoot(rootInstance)
-	root:render(React.createElement(component, props))
+	root:render(React.createElement(component))
 	return function()
 		root:unmount()
 		rootInstance.Parent = nil

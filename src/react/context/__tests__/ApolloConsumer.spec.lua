@@ -1,4 +1,5 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.6/src/react/context/__tests__/ApolloConsumer.test.tsx
+--!nocheck
 
 return function()
 	local rootWorkspace = script.Parent.Parent.Parent.Parent
@@ -18,16 +19,16 @@ return function()
 
 	local ContextModule = require(rootWorkspace.react.context)
 
-	local ApolloContext = ContextModule.ApolloContext
-	local getApolloContext = ApolloContext.getApolloContext
+	local ApolloContextModule = ContextModule.ApolloContext
+	local getApolloContext = ApolloContextModule.getApolloContext
 
 	local ApolloConsumer = ContextModule.ApolloConsumer
 	local ApolloProvider = ContextModule.ApolloProvider
 
 	describe("<ApolloConsumer /> component", function()
-		local client = ApolloClient.new()
+		local client = ApolloClient.new({ cache = nil })
 		local rootInstance
-		local stop
+		local stop: (() -> ())?
 
 		beforeEach(function()
 			rootInstance = Instance.new("Folder")
@@ -35,7 +36,7 @@ return function()
 		end)
 
 		afterEach(function()
-			if stop ~= nil then
+			if typeof(stop) == "function" then
 				stop()
 			end
 		end)
@@ -65,7 +66,7 @@ return function()
 			local descendants = rootInstance:GetDescendants()
 			local count = #Array.filter(descendants, function(item)
 				return item.Name == "TextLabel"
-			end)
+			end, nil)
 			jestExpect(count).toBe(1)
 		end)
 
