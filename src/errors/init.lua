@@ -17,8 +17,8 @@ local invariant = require(srcWorkspace.jsutils.invariant).invariant
 local DEV = require(srcWorkspace.utilities).DEV
 invariant("boolean" == typeof(DEV), tostring(DEV))
 
--- ROBLOX deviation: The GraphQLError type is not exported in graphql-lua
-type GraphQLError = { [string]: any }
+local GraphQL = require(Packages.GraphQL)
+type GraphQLError = GraphQL.GraphQLError
 
 local isNonEmptyArray = require(srcWorkspace.utilities.common.arrays).isNonEmptyArray
 

@@ -8,8 +8,7 @@ type Array<T> = LuauPolyfill.Array<T>
 
 local GraphQL = require(rootWorkspace.GraphQL)
 type DocumentNode = GraphQL.DocumentNode
--- ROBLOX devation: The GraphQLError type is not exported in graphql-lua
-type GraphQLError = { [string]: any }
+type GraphQLError = GraphQL.GraphQLError
 
 -- ROBLOX deviation: need to define Promise type for use below
 local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
