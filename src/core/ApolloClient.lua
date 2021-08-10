@@ -1,9 +1,10 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/core/ApolloClient.ts
-
+local exports = {}
 local srcWorkspace = script.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 
 local LuauPolyfill = require(rootWorkspace.Dev.LuauPolyfill)
+local Boolean, Object = LuauPolyfill.Boolean, LuauPolyfill.Object
 type Array<T> = LuauPolyfill.Array<T>
 
 local GraphQL = require(rootWorkspace.GraphQL)
@@ -23,6 +24,7 @@ type ApolloCache<TCacheShape> = { [string]: any }
 
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import { Observable, compact } from '../utilities'; ]]
+local compact = require(srcWorkspace.utilities).compact
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import { version } from '../version'; ]]
 
@@ -92,20 +94,18 @@ export type ApolloClientOptions<TCacheShape> = {
 	version: string?,
 }
 type OptionsUnion = any
---[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
---[[ export function mergeOptions<
-  TOptions extends OptionsUnion<any, any, any>
->(
-  defaults: Partial<TOptions>,
-  options: TOptions,
-): TOptions {
-  return compact(defaults, options, options.variables && {
-    variables: {
-      ...defaults.variables,
-      ...options.variables,
-    },
-  });
-} ]]
+
+local function mergeOptions(defaults: any, options: any): any
+	return compact(
+		defaults,
+		options,
+		Boolean.toJSBoolean(options.variables)
+				and { variables = Object.assign({}, defaults.variables, options.variables) }
+			or options.variables
+	)
+end
+exports.mergeOptions = mergeOptions
+
 --[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
 --[[ export class ApolloClient<TCacheShape> implements DataProxy {
   public link: ApolloLink;
@@ -677,7 +677,6 @@ end
     this.link = this.queryManager.link = newLink;
   }
 } ]]
+exports.ApolloClient = ApolloClient
 
-return {
-	ApolloClient = ApolloClient,
-}
+return exports

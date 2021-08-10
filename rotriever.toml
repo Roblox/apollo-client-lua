@@ -13,3 +13,5 @@ GraphQL = { git = "https://github.com/Roblox/graphql-lua.git", branch = "master"
 [dev_dependencies]
 JestRoblox = "github.com/roblox/jest-roblox@=1.1.2"
 LuauPolyfill = "github.com/roblox/luau-polyfill@0.2.0"
+LuauRegExp = "github.com/Roblox/luau-regexp@0.1.0"
+GraphQLTag = "github.com/thisdot/graphql-tag-lua@0.1.0"

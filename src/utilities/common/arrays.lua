@@ -5,7 +5,7 @@ local Packages = srcWorkspace.Parent
 local LuauPolyfill = require(Packages.Dev.LuauPolyfill)
 local Array = LuauPolyfill.Array
 
-local function isNonEmptyArray(value: any): any
+local function isNonEmptyArray(value: any): boolean
 	return (function()
 		if Array.isArray(value) then
 			return #value > 0 --[[ ROBLOX CHECK: operator '>' works only if either both arguments are strings or both are a number ]]

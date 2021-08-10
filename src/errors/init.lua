@@ -20,7 +20,7 @@ invariant("boolean" == typeof(DEV), tostring(DEV))
 local GraphQL = require(Packages.GraphQL)
 type GraphQLError = GraphQL.GraphQLError
 
-local isNonEmptyArray = require(srcWorkspace.utilities.common.arrays).isNonEmptyArray
+local isNonEmptyArray = require(srcWorkspace.utilities).isNonEmptyArray
 
 --[[ ROBLOX TODO: replace when available]]
 -- local ServerParseError = require(srcWorkspace.link.http).ServerParseError
@@ -42,10 +42,7 @@ exports.isApolloError = isApolloError
 local function generateErrorMessage(err: ApolloError)
 	local message = ""
 	if
-		Boolean.toJSBoolean(
-			Boolean.toJSBoolean(isNonEmptyArray(err.graphQLErrors)) and isNonEmptyArray(err.graphQLErrors)
-				or isNonEmptyArray(err.clientErrors)
-		)
+		isNonEmptyArray(err.graphQLErrors) and isNonEmptyArray(err.graphQLErrors) or isNonEmptyArray(err.clientErrors)
 	then
 		local errors = Array.concat(
 			(Boolean.toJSBoolean(err.graphQLErrors) and err.graphQLErrors or {}),

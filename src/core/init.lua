@@ -1,5 +1,5 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.6/src/core/index.ts
-
+local exports = {}
 -- ROBLOX TODO: adding this line due to changes from rc6 to rc17
 -- import { DEV } from "../utilities";
 
@@ -7,8 +7,11 @@
 --[[ export {
   ApolloClientOptions,
   DefaultOptions,
-  mergeOptions,
 } from './ApolloClient'; ]]
+local ApolloClientModule = require(script.ApolloClient)
+export type ApolloClient<TCacheShape> = ApolloClientModule.ApolloClient<TCacheShape>
+exports.ApolloClient = ApolloClientModule.ApolloClient
+exports.mergeOptions = ApolloClientModule.mergeOptions
 --[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
 --[[ export {
   ObservableQuery,
@@ -101,6 +104,4 @@
   disableExperimentalFragmentVariables,
 } from 'graphql-tag'; ]]
 
-local ApolloClient = require(script.ApolloClient).ApolloClient
-
-return { ApolloClient = ApolloClient }
+return exports

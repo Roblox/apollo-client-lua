@@ -1,5 +1,5 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/utilities/index.ts
-local exports = {}
+local exports: { [string]: any } = {}
 local srcWorkspace = script.Parent
 local Packages = srcWorkspace.Parent
 local invariant = require(srcWorkspace.jsutils.invariant).invariant
@@ -88,7 +88,7 @@ Object.assign(exports, require(script.common.arrays))
 -- Object.assign(exports, require(script.common.objects))
 -- Object.assign(exports, require(script.common.errorHandling))
 Object.assign(exports, require(script.common.canUse))
--- Object.assign(exports, require(script.common.compact))
+Object.assign(exports, require(script.common.compact))
 -- Object.assign(exports, require(script.common.makeUniqueId))
 -- Object.assign(exports, require(script.types.IsStrictlyAny))
 return exports

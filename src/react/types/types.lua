@@ -230,7 +230,7 @@ export type BaseMutationOptions<TData, TVariables, TContext, TCache> = MutationO
 }
 
 --[[ ROBLOX deviation: there are no default generic params in Luau: `<TData, TVariables, TContext, TCache extends ApolloCache<any>,` ]]
-type MutationFunctionOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<TData, TVariables, TContext, TCache> & {
+export type MutationFunctionOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<TData, TVariables, TContext, TCache> & {
 	mutation: (DocumentNode | TypedDocumentNode<TData, TVariables>)?,
 }
 
