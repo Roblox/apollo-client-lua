@@ -6,3 +6,4 @@ rotriever.lock
 *.rbxm
 
 .vscode/launch.json
+.vscode/settings.json
