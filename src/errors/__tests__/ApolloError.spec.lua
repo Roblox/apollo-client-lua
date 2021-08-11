@@ -9,7 +9,7 @@ return function()
 
 	local GraphQLError = require(Packages.GraphQL).GraphQLError
 
-	local splitString = require(srcWorkspace.luaUtils.split)
+	local String = require(Packages.Dev.LuauPolyfill).String
 
 	-- ROBLOX deviation: add polyfills for JS Primitives
 	local LuauPolyfill = require(Packages.Dev.LuauPolyfill)
@@ -36,18 +36,18 @@ return function()
 			local networkError = Error.new("this is an error message")
 			local apolloError = ApolloError.new({ networkError = networkError })
 			jestExpect(apolloError.message).toMatch("this is an error message")
-			jestExpect(#splitString(apolloError.message, "\n")).toBe(1)
+			jestExpect(#String.split(apolloError.message, "\n")).toBe(1)
 		end)
 		it("should add a graphql error to the message", function()
 			local graphQLErrors = { GraphQLError.new("this is an error message") }
 			local apolloError = ApolloError.new({ graphQLErrors = graphQLErrors })
 			jestExpect(apolloError.message).toMatch("this is an error message")
-			jestExpect(#splitString(apolloError.message, "\n")).toBe(1)
+			jestExpect(#String.split(apolloError.message, "\n")).toBe(1)
 		end)
 		it("should add multiple graphql errors to the message", function()
 			local graphQLErrors = { GraphQLError.new("this is new"), GraphQLError.new("this is old") }
 			local apolloError = ApolloError.new({ graphQLErrors = graphQLErrors })
-			local messages = splitString(apolloError.message, "\n")
+			local messages = String.split(apolloError.message, "\n")
 			jestExpect(#messages).toBe(2)
 			jestExpect(messages[1 --[[ ROBLOX adaptation: added 1 to array index ]]]).toMatch("this is new")
 			jestExpect(messages[2 --[[ ROBLOX adaptation: added 1 to array index ]]]).toMatch("this is old")
@@ -59,7 +59,7 @@ return function()
 				graphQLErrors = graphQLErrors,
 				networkError = networkError,
 			})
-			local messages = splitString(apolloError.message, "\n")
+			local messages = String.split(apolloError.message, "\n")
 			jestExpect(#messages).toBe(2)
 			jestExpect(messages[1 --[[ ROBLOX adaptation: added 1 to array index ]]]).toMatch("graphql error message")
 			jestExpect(messages[2 --[[ ROBLOX adaptation: added 1 to array index ]]]).toMatch("network error message")
