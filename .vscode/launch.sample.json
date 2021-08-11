@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+      {
+         "type": "roblox-lrdb",
+          "request": "launch",
+          "name": "Luau Tests",
+          "program": "/<absolute_path_to_cli>",
+          "args": [
+              "run",
+              "--load.project",
+              "tests.project.json",
+              "--debug.on",
+              "--run",
+              "bin/spec.lua"
+          ],
+          "cwd": "${workspaceFolder}",
+          "stopOnEntry": true
+      }
+  ]
+}
