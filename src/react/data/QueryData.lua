@@ -139,7 +139,7 @@ function QueryData:execute()
 	local skip, query: any = ref.skip, ref.query
 	if skip or query ~= self.previous.query then
 		self:removeQuerySubscription()
-		self:removeObservable(not skip)
+		self:removeObservable(not Boolean.toJSBoolean(skip))
 		self.previous.query = query
 	end
 	self:updateObservableQuery()
