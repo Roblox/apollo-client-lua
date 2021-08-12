@@ -3,7 +3,7 @@ local exports = {}
 
 local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
-local LuauPolyfill = require(rootWorkspace.Dev.LuauPolyfill)
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Boolean, Object = LuauPolyfill.Boolean, LuauPolyfill.Object
 type Object = { [string]: any }
 

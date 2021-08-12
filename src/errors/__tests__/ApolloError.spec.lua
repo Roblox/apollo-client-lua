@@ -9,10 +9,10 @@ return function()
 
 	local GraphQLError = require(Packages.GraphQL).GraphQLError
 
-	local String = require(Packages.Dev.LuauPolyfill).String
+	local String = require(Packages.LuauPolyfill).String
 
 	-- ROBLOX deviation: add polyfills for JS Primitives
-	local LuauPolyfill = require(Packages.Dev.LuauPolyfill)
+	local LuauPolyfill = require(Packages.LuauPolyfill)
 	local Error = LuauPolyfill.Error
 
 	describe("ApolloError", function()

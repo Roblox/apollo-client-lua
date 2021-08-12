@@ -10,7 +10,7 @@ return function()
 
 	local bootstrap = require(rootWorkspace.utilities.common.bootstrap)
 
-	local LuauPolyfill = require(packagesWorkspace.Dev.LuauPolyfill)
+	local LuauPolyfill = require(packagesWorkspace.LuauPolyfill)
 	local Array = LuauPolyfill.Array
 
 	local React = require(packagesWorkspace.React)

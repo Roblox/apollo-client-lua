@@ -2,7 +2,7 @@
 local exports = {}
 local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
-local LuauPolyfill = require(rootWorkspace.Dev.LuauPolyfill)
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Boolean = LuauPolyfill.Boolean
 
 local graphQLModule = require(rootWorkspace.GraphQL)
@@ -21,7 +21,7 @@ type CommonOptions<TOptions> = typesModule.CommonOptions<TOptions>
 local OperationData = {}
 OperationData.__index = OperationData
 
-type OperationData<TOptions> = {
+export type OperationData<TOptions> = {
 	isMounted: boolean,
 	previousOptions: CommonOptions<TOptions>,
 	context: any,

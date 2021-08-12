@@ -5,7 +5,7 @@ return function()
 	local JestRoblox = require(PackagesWorkspace.Dev.JestRoblox)
 	local jestExpect = JestRoblox.Globals.expect
 
-	local LuauPolyfill = require(PackagesWorkspace.Dev.LuauPolyfill)
+	local LuauPolyfill = require(PackagesWorkspace.LuauPolyfill)
 	local Array = LuauPolyfill.Array
 
 	local React = require(PackagesWorkspace.React)

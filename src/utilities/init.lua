@@ -10,7 +10,7 @@ local DEV = require(script.globals).DEV
 invariant("boolean" == typeof(DEV), tostring(DEV))
 exports.DEV = DEV
 -- ROBLOX deviation: add polyfills for JS Primitives
-local LuauPolyfill = require(Packages.Dev.LuauPolyfill)
+local LuauPolyfill = require(Packages.LuauPolyfill)
 local Object = LuauPolyfill.Object
 -- local directivesModule = require(script.graphql.directives)
 -- exports.DirectiveInfo = directivesModule.DirectiveInfo

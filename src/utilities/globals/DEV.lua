@@ -2,7 +2,7 @@
 local exports = {}
 local srcWorkspace = script.Parent.Parent.Parent
 local Packages = srcWorkspace.Parent
-local LuauPolyfill = require(Packages.Dev.LuauPolyfill)
+local LuauPolyfill = require(Packages.LuauPolyfill)
 local Boolean = LuauPolyfill.Boolean
 local global = require(script.Parent.Parent.common.global).default
 

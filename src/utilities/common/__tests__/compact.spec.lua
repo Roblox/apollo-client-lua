@@ -2,7 +2,7 @@
 return function()
 	local srcWorkspace = script.Parent.Parent.Parent.Parent
 	local Packages = srcWorkspace.Parent
-	local LuauPolyfill = require(Packages.Dev.LuauPolyfill)
+	local LuauPolyfill = require(Packages.LuauPolyfill)
 	local Object = LuauPolyfill.Object
 	local JestRoblox = require(Packages.Dev.JestRoblox)
 	local jestExpect = JestRoblox.Globals.expect

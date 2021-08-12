@@ -18,8 +18,8 @@ type ReactNode = SharedModule.ReactNodeList
 local GraphQLModule = require(rootWorkspace.GraphQL)
 type DocumentNode = GraphQLModule.DocumentNode
 
-local coreTypesModule = require(srcWorkspace.core.types)
-type TypedDocumentNode<Result, Variables> = coreTypesModule.TypedDocumentNode<Result, Variables>
+local typedDocumentNodesModule = require(srcWorkspace.jsutils.typedDocumentNode)
+type TypedDocumentNode<Result, Variables> = typedDocumentNodesModule.TypedDocumentNode<Result, Variables>
 
 -- ROBLOX TODO: use import when Observable is imported
 -- local Observable = require(script.Parent.Parent.Parent.utilities).Observable

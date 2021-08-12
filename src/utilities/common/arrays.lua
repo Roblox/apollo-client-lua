@@ -2,7 +2,7 @@
 local exports = {}
 local srcWorkspace = script.Parent.Parent.Parent
 local Packages = srcWorkspace.Parent
-local LuauPolyfill = require(Packages.Dev.LuauPolyfill)
+local LuauPolyfill = require(Packages.LuauPolyfill)
 local Array = LuauPolyfill.Array
 
 local function isNonEmptyArray(value: any): boolean

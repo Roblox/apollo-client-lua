@@ -2,7 +2,7 @@
 local exports = {}
 local srcWorkspace = script.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
-local LuauPolyfill = require(rootWorkspace.Dev.LuauPolyfill)
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Array, Boolean = LuauPolyfill.Array, LuauPolyfill.Boolean
 
 local graphqlModule = require(rootWorkspace.GraphQL)

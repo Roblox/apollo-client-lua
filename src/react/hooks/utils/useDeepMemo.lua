@@ -2,7 +2,7 @@
 
 local srcWorkspace = script.Parent.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.parent
-local LuauPolyfill = require(rootWorkspace.Dev.LuauPolyfill)
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Boolean = LuauPolyfill.Boolean
 
 local React = require(rootWorkspace.React)

@@ -4,7 +4,7 @@ local exports = {}
 local srcWorkspace = script.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 
-local LuauPolyfill = require(rootWorkspace.Dev.LuauPolyfill)
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Boolean, Object, setTimeout = LuauPolyfill.Boolean, LuauPolyfill.Object, LuauPolyfill.setTimeout
 
 type Array<T> = LuauPolyfill.Array<T>

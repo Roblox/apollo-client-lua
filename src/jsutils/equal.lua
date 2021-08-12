@@ -1,6 +1,6 @@
 local srcWorkspace = script.Parent.Parent
 local Packages = srcWorkspace.Parent
-local LuauPolyfill = require(Packages.Dev.LuauPolyfill)
+local LuauPolyfill = require(Packages.LuauPolyfill)
 local Array, Object = LuauPolyfill.Array, LuauPolyfill.Object
 
 local function equal(a: any, b: any): boolean

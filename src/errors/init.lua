@@ -10,7 +10,7 @@ type Error = { name: string, message: string, stack: string? }
 local srcWorkspace = script.Parent
 local Packages = srcWorkspace.Parent
 -- ROBLOX deviation: add polyfills for JS Primitives
-local LuauPolyfill = require(Packages.Dev.LuauPolyfill)
+local LuauPolyfill = require(Packages.LuauPolyfill)
 local Boolean, Array, Error = LuauPolyfill.Boolean, LuauPolyfill.Array, LuauPolyfill.Error
 
 local invariant = require(srcWorkspace.jsutils.invariant).invariant

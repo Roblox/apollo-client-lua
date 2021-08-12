@@ -1,6 +1,12 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/core/index.ts
 
 local exports = {}
+local srcWorkspace = script.Parent
+local rootWorkspace = srcWorkspace.Parent
+
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
+local Object = LuauPolyfill.Object
+
 -- ROBLOX TODO: adding this line due to changes from rc6 to rc17
 -- import { DEV } from "../utilities";
 
@@ -13,29 +19,53 @@ local ApolloClientModule = require(script.ApolloClient)
 export type ApolloClient<TCacheShape> = ApolloClientModule.ApolloClient<TCacheShape>
 exports.ApolloClient = ApolloClientModule.ApolloClient
 exports.mergeOptions = ApolloClientModule.mergeOptions
+
+local ObservableQueryModule = require(script.ObservableQuery)
+-- exports.ObservableQuery = ObservableQueryModule.ObservableQuery
+export type ObservableQuery<TData, TVariables> = ObservableQueryModule.ObservableQuery<TData, TVariables>
+-- exports.FetchMoreOptions = ObservableQueryModule.FetchMoreOptions
+-- exports.UpdateQueryOptions = ObservableQueryModule.UpdateQueryOptions
+exports.applyNextFetchPolicy = ObservableQueryModule.applyNextFetchPolicy
 --[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
+local watchQueryOptionsModule = require(script.watchQueryOptions)
+export type QueryOptions<TVariables, TData> = watchQueryOptionsModule.QueryOptions<TVariables, TData>
+export type WatchQueryOptions<TVariables, TData> = watchQueryOptionsModule.WatchQueryOptions<TVariables, TData>
+export type FetchPolicy = watchQueryOptionsModule.FetchPolicy
+export type WatchQueryFetchPolicy = watchQueryOptionsModule.WatchQueryFetchPolicy
+export type ErrorPolicy = watchQueryOptionsModule.ErrorPolicy
+export type FetchMoreQueryOptions<TVariables, TData> = watchQueryOptionsModule.FetchMoreQueryOptions<TVariables, TData>
 --[[ export {
-  ObservableQuery,
-  FetchMoreOptions,
-  UpdateQueryOptions,
-  applyNextFetchPolicy,
-} from './ObservableQuery'; ]]
---[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
---[[ export {
-  QueryOptions,
-  WatchQueryOptions,
   MutationOptions,
   SubscriptionOptions,
-  FetchPolicy,
-  WatchQueryFetchPolicy,
-  ErrorPolicy,
-  FetchMoreQueryOptions,
   SubscribeToMoreOptions,
 } from './watchQueryOptions'; ]]
---[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
---[[ export { NetworkStatus } from './networkStatus'; ]]
---[[ ROBLOX TODO: Unhandled node for type: ExportAllDeclaration ]]
---[[ export * from './types'; ]]
+local networkStatusModule = require(script.networkStatus)
+exports.NetworkStatus = networkStatusModule.NetworkStatus
+export type NetworkStatus = networkStatusModule.NetworkStatus
+local typesModule = require(script.types)
+Object.assign(exports, typesModule)
+export type TypedDocumentNode<Result, Variables> = typesModule.TypedDocumentNode<Result, Variables>
+export type DefaultContext = typesModule.DefaultContext
+export type QueryListener = typesModule.QueryListener
+export type OnQueryUpdated<TResult> = typesModule.OnQueryUpdated<TResult>
+export type RefetchQueryDescriptor = typesModule.RefetchQueryDescriptor
+export type InternalRefetchQueryDescriptor = typesModule.InternalRefetchQueryDescriptor
+export type RefetchQueriesInclude = typesModule.RefetchQueriesInclude
+export type InternalRefetchQueriesInclude = typesModule.InternalRefetchQueriesInclude
+export type RefetchQueriesOptions<TCache, TResult> = typesModule.RefetchQueriesOptions<TCache, TResult>
+export type RefetchQueriesPromiseResults<TResult> = typesModule.RefetchQueriesPromiseResults<TResult>
+export type RefetchQueriesResult<TResult> = typesModule.RefetchQueriesResult<TResult>
+export type InternalRefetchQueriesOptions<TCache, TResult> = typesModule.InternalRefetchQueriesOptions<TCache, TResult>
+export type InternalRefetchQueriesResult<TResult> = typesModule.InternalRefetchQueriesResult<TResult>
+export type InternalRefetchQueriesMap<TResult> = typesModule.InternalRefetchQueriesMap<TResult>
+export type PureQueryOptions = typesModule.PureQueryOptions
+export type OperationVariables = typesModule.OperationVariables
+export type ApolloQueryResult<T> = typesModule.ApolloQueryResult<T>
+export type MutationQueryReducer<T> = typesModule.MutationQueryReducer<T>
+export type MutationQueryReducersMap<T> = typesModule.MutationQueryReducersMap<T>
+export type MutationUpdaterFunction<TData, TVariables, TContext, TCache> =
+	typesModule.MutationUpdaterFunction<TData, TVariables, TContext, TCache>
+export type Resolvers = typesModule.Resolvers
 --[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
 --[[ export {
   Resolver,

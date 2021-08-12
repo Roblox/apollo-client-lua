@@ -3,7 +3,7 @@
 local srcWorkspace = script.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 
-local LuauPolyfill = require(rootWorkspace.Dev.LuauPolyfill)
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 type Array<T> = LuauPolyfill.Array<T>
 
 local GraphQL = require(rootWorkspace.GraphQL)
@@ -47,9 +47,9 @@ type Resolver = any
 -- local ObservableQuery = require(script.Parent.ObservableQuery).ObservableQuery
 type ObservableQuery<T> = any
 
--- ROBLOX TODO: use import when QueryOptions is implemented
--- local QueryOptions = require(script.Parent.watchQueryOptions).QueryOptions
-type QueryOptions = any
+-- ROBLOX comment: moved to different file to solve circular dependency issue
+local watchQueryOptionsModule = require(script.Parent.watchQueryOptions_types)
+type QueryOptions<TVariables, TData> = watchQueryOptionsModule.QueryOptions<TVariables, TData>
 
 -- ROBLOX TODO: use import when Cache namespace is implemented
 -- ROBLOX deviation: Luau doesn't support namespaces
@@ -64,9 +64,8 @@ type Cache_DiffResult<any> = any
 -- ROBLOX deviation: creating typescripts Record<T, U> type
 export type Record<T, U> = { [T]: U }
 
--- ROBLOX deviation: we're implementing TypedDocumentNode inline instead of importing it from a library
--- original: export { TypedDocumentNode } from '@graphql-typed-document-node/core';
-export type TypedDocumentNode<Result, Variables> = DocumentNode & { __apiType: ((Variables) -> Result)? }
+local typedDocumentNodeModule = require(srcWorkspace.jsutils.typedDocumentNode)
+export type TypedDocumentNode<Result, Variables> = typedDocumentNodeModule.TypedDocumentNode<Result, Variables>
 
 export type DefaultContext = Record<string, any>
 
@@ -79,7 +78,7 @@ export type OnQueryUpdated<TResult> = (
 ) -> boolean | TResult
 
 export type RefetchQueryDescriptor = string | DocumentNode
-export type InternalRefetchQueryDescriptor = RefetchQueryDescriptor | QueryOptions
+export type InternalRefetchQueryDescriptor = RefetchQueryDescriptor | QueryOptions<any, any>
 
 -- ROBLOX deviation: type RefetchQueriesIncludeShorthand = "all" | "active"
 type RefetchQueriesIncludeShorthand = string
@@ -190,7 +189,7 @@ export type InternalRefetchQueriesResult<TResult> = TResult | Promise<ApolloQuer
 export type InternalRefetchQueriesMap<TResult> = Map<ObservableQuery<any>, InternalRefetchQueriesResult<TResult>>
 
 -- TODO Remove this unnecessary type in Apollo Client 4.
-export type PureQueryOptions = QueryOptions
+export type PureQueryOptions = QueryOptions<any, any>
 
 export type OperationVariables = Record<string, any>
 
