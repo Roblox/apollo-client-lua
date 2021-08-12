@@ -1,4 +1,5 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.6/src/core/index.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/core/index.ts
+
 local exports = {}
 -- ROBLOX TODO: adding this line due to changes from rc6 to rc17
 -- import { DEV } from "../utilities";

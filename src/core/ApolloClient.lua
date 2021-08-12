@@ -1,18 +1,20 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/core/ApolloClient.ts
+
 local exports = {}
 local srcWorkspace = script.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 
 local LuauPolyfill = require(rootWorkspace.Dev.LuauPolyfill)
-local Boolean, Object = LuauPolyfill.Boolean, LuauPolyfill.Object
+local Boolean, Object, setTimeout = LuauPolyfill.Boolean, LuauPolyfill.Object, LuauPolyfill.setTimeout
+
 type Array<T> = LuauPolyfill.Array<T>
 
 local GraphQL = require(rootWorkspace.GraphQL)
 type ExecutionResult = GraphQL.ExecutionResult
 type DocumentNode = GraphQL.DocumentNode
 
---[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
---[[ import { invariant, InvariantError } from 'ts-invariant'; ]]
+-- ROBLOX TODO: need to remove _ when we use invariant
+local _invariant = require(srcWorkspace.jsutils.invariant).invariant
 
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import { ApolloLink, FetchResult, GraphQLRequest, execute } from '../link/core'; ]]
@@ -25,8 +27,7 @@ type ApolloCache<TCacheShape> = { [string]: any }
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import { Observable, compact } from '../utilities'; ]]
 local compact = require(srcWorkspace.utilities).compact
---[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
---[[ import { version } from '../version'; ]]
+local version_ = require(srcWorkspace.version)
 
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import { HttpLink, UriFunction } from '../link/http'; ]]
@@ -174,75 +175,77 @@ ApolloClient.__index = ApolloClient
    *                you are using.
    */
 ]]
-
-function ApolloClient.new(options: ApolloClientOptions<{ [string]: any }>)
+function ApolloClient.new(options: ApolloClientOptions<{ [string]: any }>): ApolloClient<{ [string]: any }>
 	local self = setmetatable({}, ApolloClient)
 
+	-- ROBLOX TODO: remove _ from these variables when we use them
+	local _uri = options.uri
+	local _credentials = options.credentials
+	local _headers = options.headers
+	local cache = options.cache
+	local ssrMode = options.ssrMode or false
+	local ssrForceFetchDelay = options.ssrForceFetchDelay or 0
+	-- ROBLOX deviation: there is no window object, this defaults to false
+	local _connectToDevTools = options.connectToDevTools or false
+	local queryDeduplication = options.queryDeduplication or true
+	local defaultOptions = options.defaultOptions
+	local _assumeImmutableResults = options.assumeImmutableResults or false
+	local _resolvers = options.resolvers
+	local typeDefs = options.typeDefs
+	local _fragmentMatcher = options.fragmentMatcher
+	local _clientAwarenessName = options.name
+	local _clientAwarenessVersion = options.version
+
+	local link = options.link
+
+	-- ROBLOX TODO: will convert this when we convert ApolloLink and HttpLink
 	--[[
-  const {
-    uri,
-    credentials,
-    headers,
-    cache,
-    ssrMode = false,
-    ssrForceFetchDelay = 0,
-    connectToDevTools =
-      // Expose the client instance as window.__APOLLO_CLIENT__ and call
-      // onBroadcast in queryManager.broadcastQueries to enable browser
-      // devtools, but disable them by default in production.
-      typeof window === 'object' &&
-      !(window as any).__APOLLO_CLIENT__ &&
-      __DEV__,
-    queryDeduplication = true,
-    defaultOptions,
-    assumeImmutableResults = false,
-    resolvers,
-    typeDefs,
-    fragmentMatcher,
-    name: clientAwarenessName,
-    version: clientAwarenessVersion,
-  } = options;
-
-  let { link } = options;
-
   if (!link) {
     link = uri
-      ? new HttpLink({ uri, credentials, headers })
-      : ApolloLink.empty();
+    ? new HttpLink({ uri, credentials, headers })
+    : ApolloLink.empty();
   }
+  ]]
 
-  if (!cache) {
-    throw new InvariantError(
-      "To initialize Apollo Client, you must specify a 'cache' property " +
-      "in the options object. \n" +
-      "For more information, please visit: https://go.apollo.dev/c/docs"
-    );
-  }
+	-- ROBLOX todo: when we convert and use ApolloCache, we can uncomment this
+	-- invariant(
+	-- 	cache,
+	-- 	"To initialize Apollo Client, you must specify a 'cache' property "
+	-- 		.. "in the options object. \n"
+	-- 		.. "For more information, please visit: https://go.apollo.dev/c/docs"
+	-- )
 
-  this.link = link;
-  this.cache = cache;
-  this.disableNetworkFetches = ssrMode || ssrForceFetchDelay > 0;
-  this.queryDeduplication = queryDeduplication;
-  this.defaultOptions = defaultOptions || {};
-  this.typeDefs = typeDefs;
+	self.link = link
+	self.cache = cache
+	self.disableNetworkFetches = ssrMode or (ssrForceFetchDelay > 0)
+	self.queryDeduplication = queryDeduplication
+	self.defaultOptions = defaultOptions or {}
+	self.typeDefs = typeDefs
 
-  if (ssrForceFetchDelay) {
-    setTimeout(
-      () => (this.disableNetworkFetches = false),
-      ssrForceFetchDelay,
-    );
-  }
+	if ssrForceFetchDelay then
+		setTimeout(function()
+			self.disableNetworkFetches = false
+		end, ssrForceFetchDelay)
+	end
 
+	-- ROBLOX deviation: the functions dont need to be bound to lua tables
+	--[[
   this.watchQuery = this.watchQuery.bind(this);
   this.query = this.query.bind(this);
   this.mutate = this.mutate.bind(this);
   this.resetStore = this.resetStore.bind(this);
   this.reFetchObservableQueries = this.reFetchObservableQueries.bind(this);
+  ]]
 
+	-- ROBLOX deviation: no window in Roblox environment
+	--[[
   if (connectToDevTools && typeof window === 'object') {
     (window as any).__APOLLO_CLIENT__ = this;
   }
+  ]]
 
+	-- ROBLOX deviation: no devtools
+	--[[
   /**
     * Suggest installing the devtools for developers who don't have them
     */
@@ -273,16 +276,22 @@ function ApolloClient.new(options: ApolloClientOptions<{ [string]: any }>)
       }
     }
   }
+  ]]
 
-  this.version = version;
+	self.version = version_
 
+	-- ROBLOX TODO: will convert this when we convert LocalState
+	--[[
   this.localState = new LocalState({
     cache,
     client: this,
     resolvers,
     fragmentMatcher,
   });
+  ]]
 
+	-- ROBLOX TODO: will convert this when we convert QueryManager
+	--[[
   this.queryManager = new QueryManager({
     cache: this.cache,
     link: this.link,
@@ -309,7 +318,7 @@ function ApolloClient.new(options: ApolloClientOptions<{ [string]: any }>)
   });
   ]]
 
-	return self
+	return (self :: any) :: ApolloClient<{ [string]: any }>
 end
 
 --[[

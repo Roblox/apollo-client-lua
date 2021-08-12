@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.6/src/react/context/index.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/react/context/index.ts
 
 --[[ ROBLOX TODO: Unhandled node for type: ExportAllDeclaration ]]
 --[[ export * from './ApolloConsumer'; ]]

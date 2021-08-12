@@ -8,6 +8,13 @@ local React = require(packagesWorkspace.React)
 local WeakMap = require(rootWorkspace.luaUtils.WeakMap)
 local cache = WeakMap.new()
 
+-- To make sure Apollo Client doesn't create more than one React context
+-- (which can lead to problems like having an Apollo Client instance added
+-- in one context, then attempting to retrieve it from another different
+-- context), a single Apollo context is created and tracked in global state.
+-- We use React.createContext as the key instead of just React to avoid
+-- ambiguities between default and namespace React imports.
+
 function getApolloContext()
 	local context = cache:get(React.createContext)
 	if context == nil then
@@ -20,5 +27,7 @@ end
 
 return {
 	getApolloContext = getApolloContext,
-	resetApolloContext = getApolloContext,
+	resetApolloContext = function()
+		cache = WeakMap.new()
+	end,
 }
