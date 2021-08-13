@@ -71,7 +71,10 @@ type QueryData<TData, TVariables> = OperationData<QueryDataOptions<TData, TVaria
 local QueryData = setmetatable({}, { __index = OperationData })
 QueryData.__index = QueryData
 
-function QueryData.new(options: QueryDataOptions<any, any>, context: any, onNewData: Function): QueryData<any, any>
+function QueryData.new(
+	ref: { options: QueryDataOptions<any, any>, context: any, onNewData: Function }
+): QueryData<any, any>
+	local options, context, onNewData = ref.options, ref.context, ref.onNewData
 	local self: any = OperationData.new(options, context)
 	self.onNewData = onNewData
 

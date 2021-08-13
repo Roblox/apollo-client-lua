@@ -3,5 +3,5 @@ local exports = {}
 -- exports.SubscriptionData = require(script.SubscriptionData).SubscriptionData
 exports.OperationData = require(script.OperationData).OperationData
 exports.MutationData = require(script.MutationData).MutationData
--- exports.QueryData = require(script.QueryData).QueryData
+exports.QueryData = require(script.QueryData).QueryData
 return exports

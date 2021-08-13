@@ -20,7 +20,7 @@ return function()
 
 	local ApolloContextModule = require(script.Parent.Parent)
 	local ApolloProvider = ApolloContextModule.ApolloProvider
-	local getApolloContext = ApolloContextModule.ApolloContext.getApolloContext
+	local getApolloContext = ApolloContextModule.getApolloContext
 
 	describe("<ApolloProvider /> Component", function()
 		local client = ApolloClient.new({ cache = nil })

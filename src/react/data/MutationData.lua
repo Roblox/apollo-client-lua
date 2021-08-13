@@ -59,13 +59,13 @@ type MutationDataConstructorArgs<TData, TVariables, TContext, TCache> = {
 	setResult: (MutationResultWithoutClient<TData>) -> any,
 }
 
-function MutationData.new(ref: MutationDataConstructorArgs<any, any, any, any>)
+function MutationData.new(ref: MutationDataConstructorArgs<any, any, any, any>): MutationData<any, any, any, any>
 	local self: any = OperationData.new(ref.options, ref.context)
 	self:verifyDocumentType(ref.options.mutation, DocumentType.Mutation)
 	self.result = ref.result
 	self.setResult = ref.setResult
 	self.mostRecentMutationId = 0
-	return setmetatable(self, MutationData)
+	return (setmetatable(self, MutationData) :: any) :: MutationData<any, any, any, any>
 end
 
 function MutationData:execute(result: any)

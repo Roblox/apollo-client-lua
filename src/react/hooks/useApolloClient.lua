@@ -7,7 +7,7 @@ local exports = {}
 
 local React = require(rootWorkspace.React)
 local invariant = require(srcWorkspace.jsutils.invariant).invariant
-local getApolloContext = require(srcWorkspace.react.context).ApolloContext.getApolloContext
+local getApolloContext = require(srcWorkspace.react.context).getApolloContext
 
 local coreModule = require(srcWorkspace.core)
 type ApolloClient<TCacheShape> = coreModule.ApolloClient<TCacheShape>

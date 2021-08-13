@@ -7,8 +7,7 @@ return function()
 	local JestRoblox = require(PackagesWorkspace.Dev.JestRoblox)
 	local jestExpect = JestRoblox.Globals.expect
 
-	local ApolloContext = require(rootWorkspace.react.context).ApolloContext
-	local getApolloContext = ApolloContext.getApolloContext
+	local getApolloContext = require(rootWorkspace.react.context).getApolloContext
 
 	describe("ApolloContext", function()
 		it("should return an empty ApolloContext", function()

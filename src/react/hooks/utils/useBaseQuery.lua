@@ -2,8 +2,8 @@
 local exports = {}
 local srcWorkspace = script.Parent.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
-local Promise = require(rootWorkspace.Promise).Promise
-local LuauPolyfill = require(srcWorkspace.Dev.LuauPolyfill)
+local Promise = require(rootWorkspace.Promise)
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Boolean, Object = LuauPolyfill.Boolean, LuauPolyfill.Object
 
 local React = require(rootWorkspace.React)
@@ -12,7 +12,7 @@ local useEffect = React.useEffect
 local useReducer = React.useReducer
 local useRef = React.useRef
 
-local GraphQLModule = require(srcWorkspace.GraphQL)
+local GraphQLModule = require(rootWorkspace.GraphQL)
 type DocumentNode = GraphQLModule.DocumentNode
 
 local typedDocumentNodeModule = require(srcWorkspace.jsutils.typedDocumentNode)
@@ -41,10 +41,10 @@ local function useBaseQuery(
 	local context = useContext(getApolloContext())
 	local tick, forceUpdate = useReducer(function(x: any)
 		return x + 1
-	end, 0)
+	end, 0, nil)
 	local updatedOptions = Boolean.toJSBoolean(options) and Object.assign({}, options, { query = query })
 		or { query = query }
-	local queryDataRef = useRef()
+	local queryDataRef = useRef(nil)
 	local queryData
 	queryData = Boolean.toJSBoolean(queryDataRef.current) and queryDataRef.current
 		or (function()

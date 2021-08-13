@@ -27,4 +27,6 @@ function ApolloConsumer(props: ApolloConsumerProps<{ [string]: any }>)
 	end)
 end
 
-return ApolloConsumer
+return {
+	ApolloConsumer = ApolloConsumer,
+}

@@ -18,10 +18,7 @@ return function()
 	local ApolloClient = require(rootWorkspace.core).ApolloClient
 
 	local ContextModule = require(rootWorkspace.react.context)
-
-	local ApolloContextModule = ContextModule.ApolloContext
-	local getApolloContext = ApolloContextModule.getApolloContext
-
+	local getApolloContext = ContextModule.getApolloContext
 	local ApolloConsumer = ContextModule.ApolloConsumer
 	local ApolloProvider = ContextModule.ApolloProvider
 

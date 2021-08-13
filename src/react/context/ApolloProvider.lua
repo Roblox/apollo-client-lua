@@ -40,4 +40,6 @@ function ApolloProvider(props: ApolloProviderProps<{ [string]: any }>)
 	end)
 end
 
-return ApolloProvider
+return {
+	ApolloProvider = ApolloProvider,
+}

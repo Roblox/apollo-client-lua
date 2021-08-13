@@ -19,7 +19,7 @@ local bootstrap = require(srcWorkspace.utilities.common.bootstrap)
 local ApolloClient = require(srcWorkspace.core).ApolloClient
 local contextModule = require(srcWorkspace.react.context)
 local ApolloProvider = contextModule.ApolloProvider
-local resetApolloContext = contextModule.ApolloContext.resetApolloContext
+local resetApolloContext = contextModule.resetApolloContext
 local useApolloClient = require(srcWorkspace.react.hooks).useApolloClient
 
 return function()

@@ -1,14 +1,13 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/react/context/index.ts
 
---[[ ROBLOX TODO: Unhandled node for type: ExportAllDeclaration ]]
---[[ export * from './ApolloConsumer'; ]]
+local rootWorkspace = script.Parent.Parent.Parent
+local Object = require(rootWorkspace.LuauPolyfill).Object
 
-local ApolloContext = require(script.ApolloContext)
-local ApolloConsumer = require(script.ApolloConsumer)
-local ApolloProvider = require(script.ApolloProvider)
+local exports = Object.assign(
+	{},
+	require(script.ApolloContext),
+	require(script.ApolloConsumer),
+	require(script.ApolloProvider)
+)
 
-return {
-	ApolloContext = ApolloContext,
-	ApolloConsumer = ApolloConsumer,
-	ApolloProvider = ApolloProvider,
-}
+return exports
