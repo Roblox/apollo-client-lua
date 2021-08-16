@@ -7,17 +7,15 @@ local rootWorkspace = srcWorkspace.Parent
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Object = LuauPolyfill.Object
 
--- ROBLOX TODO: adding this line due to changes from rc6 to rc17
--- import { DEV } from "../utilities";
+-- local DEV = require(srcWorkspace.utilities).DEV
 
---[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
 --[[ export {
   ApolloClientOptions,
-  DefaultOptions,
 } from './ApolloClient'; ]]
 local ApolloClientModule = require(script.ApolloClient)
 export type ApolloClient<TCacheShape> = ApolloClientModule.ApolloClient<TCacheShape>
 exports.ApolloClient = ApolloClientModule.ApolloClient
+export type DefaultOptions = ApolloClientModule.DefaultOptions
 exports.mergeOptions = ApolloClientModule.mergeOptions
 
 local ObservableQueryModule = require(script.ObservableQuery)
@@ -26,7 +24,7 @@ export type ObservableQuery<TData, TVariables> = ObservableQueryModule.Observabl
 -- exports.FetchMoreOptions = ObservableQueryModule.FetchMoreOptions
 -- exports.UpdateQueryOptions = ObservableQueryModule.UpdateQueryOptions
 exports.applyNextFetchPolicy = ObservableQueryModule.applyNextFetchPolicy
---[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
+
 local watchQueryOptionsModule = require(script.watchQueryOptions)
 export type QueryOptions<TVariables, TData> = watchQueryOptionsModule.QueryOptions<TVariables, TData>
 export type WatchQueryOptions<TVariables, TData> = watchQueryOptionsModule.WatchQueryOptions<TVariables, TData>

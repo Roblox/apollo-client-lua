@@ -89,6 +89,6 @@ Object.assign(exports, require(script.common.arrays))
 -- Object.assign(exports, require(script.common.errorHandling))
 Object.assign(exports, require(script.common.canUse))
 Object.assign(exports, require(script.common.compact))
--- Object.assign(exports, require(script.common.makeUniqueId))
+Object.assign(exports, require(script.common.makeUniqueId))
 -- Object.assign(exports, require(script.types.IsStrictlyAny))
 return exports
