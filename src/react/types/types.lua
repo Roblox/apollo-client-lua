@@ -5,6 +5,7 @@ local rootWorkspace = srcWorkspace.Parent
 type Record<T, U> = { [T]: U }
 type Array<T> = { [number]: T }
 type Object = { [string]: any }
+type Tuple<T, V> = Array<T | V>
 
 -- ROBLOX deviation: need to define Promise type for use below
 local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
@@ -202,13 +203,17 @@ type UnexecutedLazyResult<TData, TVariables> = UnexecutedLazyFields & AbsentLazy
 export type LazyQueryResult<TData, TVariables> = UnexecutedLazyResult<TData, TVariables> | QueryResult<TData, TVariables>
 
 --[[ 
-	ROBLOX deviation: no way to type a tuple in Luau. Adding a similar concept of a tuple as a return type of function.
+	ROBLOX deviation: no way to type a tuple in Luau. Using Tuple helper type in case it becomes possible in later versions of Luau
 	original type:
 	export type QueryTuple<TData, TVariables> = [
 	  (options?: QueryLazyOptions<TVariables>) => void,
 	  LazyQueryResult<TData, TVariables>
 	];
 ]]
+export type QueryTupleFirst<TData, TVariables> = (options: QueryLazyOptions<TVariables>?) -> ()
+export type QueryTupleSecond<TData, TVariables> = LazyQueryResult<TData, TVariables>
+export type QueryTuple<TData, TVariables> = Tuple<QueryTupleFirst<TData, TVariables>, QueryTupleSecond<TData, TVariables>>
+
 export type QueryTupleAsReturnType<TData, TVariables> = (
 	...any
 ) -> (((QueryLazyOptions<TVariables>) -> ()), LazyQueryResult<TData, TVariables>)
@@ -244,26 +249,22 @@ export type MutationResult<TData> = {
 }
 
 --[[ ROBLOX deviation: there are no default generic params in Luau: `<TData = any, TVariables = OperationVariables, TContext = DefaultContext, TCache extends ApolloCache<any> = ApolloCache<any>,` ]]
-type defaultTData = any
-type defaultTVariables = OperationVariables
-type defaultTContext = DefaultContext
-type defaultTCache = ApolloCache<any>
 export type MutationFunction<TData, TVariables, TContext, TCache> = (
-	MutationFunctionOptions<defaultTData, defaultTVariables, defaultTContext, defaultTCache>?
-) -> Promise<FetchResult<defaultTData>>
+	MutationFunctionOptions<TData, TVariables, TContext, TCache>?
+) -> Promise<FetchResult<TData>>
 
 --[[ ROBLOX deviation: there are no default generic params in Luau: `<TData = any, TVariables = OperationVariables, TContext = DefaultContext, TCache extends ApolloCache<any> = ApolloCache<any>,` ]]
-
-export type MutationHookOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<defaultTData, defaultTVariables, defaultTContext, defaultTCache> & {
-	mutation: (DocumentNode | TypedDocumentNode<defaultTData, defaultTVariables>)?,
+export type MutationHookOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<TData, TVariables, TContext, TCache> & {
+	mutation: (DocumentNode | TypedDocumentNode<TData, TVariables>)?,
 }
 
 --[[ ROBLOX deviation: there are no default generic params in Luau: `<TData, TVariables extends OperationVariables, TContext extends DefaultContext, TCache extends ApolloCache<any>,` ]]
-export type MutationDataOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<defaultTData, defaultTVariables, defaultTContext, defaultTCache> & { BaseMutationOptions<TData, TVariables, TContext, TCache> & {
-	mutation: DocumentNode | TypedDocumentNode<defaultTData, defaultTVariables>,
-} }
+export type MutationDataOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<TData, TVariables, TContext, TCache> & {
+	mutation: DocumentNode | TypedDocumentNode<TData, TVariables>,
+}
 
---[[ ROBLOX deviation: no way to type a tuple in Luau. Adding a similar concept of a tuple as a return type of function.
+--[[ 
+	ROBLOX deviation: no way to type a tuple in Luau. Using Tuple helper type in case it becomes possible in later versions of Luau
 	original type:
  export type MutationTuple<TData, TVariables, TContext, TCache extends ApolloCache<any>> = [
    (
@@ -272,6 +273,13 @@ export type MutationDataOptions<TData, TVariables, TContext, TCache> = BaseMutat
    MutationResult<TData>
  ];
 ]]
+export type MutationTupleFirst<TData, TVariables, TContext, TCache> = (
+	options: MutationFunctionOptions<TData, TVariables, TContext, TCache>?
+) -> Promise<FetchResult<TData>>
+export type MutationTupleSecond<TData, TVariables, TContext, TCache> = MutationResult<TData>
+export type MutationTuple<TData, TVariables, TContext, TCache> =
+	Tuple<MutationTupleFirst<TData, TVariables, TContext, TCache>, MutationTupleSecond<TData, TVariables, TContext, TCache>>
+
 export type MutationTupleAsReturnType<TData, TVariables, TContext, TCache> =
 	(
 	...any

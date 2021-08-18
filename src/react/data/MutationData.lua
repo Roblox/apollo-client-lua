@@ -15,8 +15,7 @@ type ApolloError = errorsModule.ApolloError
 local typesModule = require(script.Parent.Parent.types.types)
 type MutationDataOptions<TData, TVariables, TContext, TCache> =
 	typesModule.MutationDataOptions<TData, TVariables, TContext, TCache>
-type MutationTupleAsReturnType<TData, TVariables, TContext, TCache> =
-	typesModule.MutationTupleAsReturnType<TData, TVariables, TContext, TCache>
+type MutationTuple<TData, TVariables, TContext, TCache> = typesModule.MutationTuple<TData, TVariables, TContext, TCache>
 type MutationFunctionOptions<TData, TVariables, TContext, TCache> =
 	typesModule.MutationFunctionOptions<TData, TVariables, TContext, TCache>
 type MutationResult<TData> = typesModule.MutationResult<TData>
@@ -47,7 +46,7 @@ type MutationData<TData, TVariables, TContext, TCache> = {
 	execute: (
 		self: MutationData<TData, TVariables, TContext, TCache>,
 		result: MutationResultWithoutClient<TData>
-	) -> MutationTupleAsReturnType<TData, TVariables, TContext, TCache>,
+	) -> MutationTuple<TData, TVariables, TContext, TCache>,
 	afterExecute: (self: MutationData<TData, TVariables, TContext, TCache>) -> (),
 	cleanup: (self: MutationData<TData, TVariables, TContext, TCache>) -> (),
 }
@@ -68,7 +67,7 @@ function MutationData.new(ref: MutationDataConstructorArgs<any, any, any, any>):
 	return (setmetatable(self, MutationData) :: any) :: MutationData<any, any, any, any>
 end
 
-function MutationData:execute(result: any)
+function MutationData:execute(result: any): MutationTuple<any, any, any, any>
 	self.isMounted = true
 	self:verifyDocumentType(self:getOptions().mutation, DocumentType.Mutation)
 	return { self.runMutation, Object.assign(result, { client = self:refreshClient().client }) }

@@ -14,8 +14,7 @@ local cache = WeakMap.new()
 -- context), a single Apollo context is created and tracked in global state.
 -- We use React.createContext as the key instead of just React to avoid
 -- ambiguities between default and namespace React imports.
-
-function getApolloContext()
+local function getApolloContext()
 	local context = cache:get(React.createContext)
 	if context == nil then
 		context = React.createContext({})
