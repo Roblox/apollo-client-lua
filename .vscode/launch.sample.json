@@ -7,13 +7,15 @@
           "name": "Luau Tests",
           "program": "/<absolute_path_to_cli>",
           "args": [
-              "run",
-              "--load.project",
-              "tests.project.json",
-              "--debug.on",
-              "--run",
-              "bin/spec.lua"
-          ],
+            "run",
+            "--load.project",
+            "tests.project.json",
+            "--debug.on",
+            "--fastFlags.overrides",
+            "EnableLoadModule=true",
+            "--run",
+            "bin/spec.lua"
+        ],
           "cwd": "${workspaceFolder}",
           "stopOnEntry": true
       }

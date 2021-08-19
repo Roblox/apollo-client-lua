@@ -15,4 +15,6 @@ Promise = "github.com/evaera/roblox-lua-promise@3.1.0"
 [dev_dependencies]
 JestRoblox = "github.com/roblox/jest-roblox@=1.1.2"
 LuauRegExp = "github.com/Roblox/luau-regexp@0.1.0"
-GraphQLTag = "github.com/thisdot/graphql-tag-lua@2.12.3"
+GraphQLTag = "github.com/Roblox/graphql-tag-lua@2.12.3"
+ReactReconciler = { git = "https://github.com/roblox/roact-alignment.git", package = "ReactReconciler" }
+RoactCompat = { git = "https://github.com/roblox/roact-alignment.git", package = "RoactCompat" }
