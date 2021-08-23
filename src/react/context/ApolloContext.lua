@@ -1,11 +1,10 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.6/src/react/context/ApolloContext.ts
---!nonstrict
 
-local rootWorkspace = script.Parent.Parent.Parent
-local packagesWorkspace = rootWorkspace.Parent.Parent.Packages
+local rootWorkspace = script.Parent.Parent.Parent.Parent
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 
-local React = require(packagesWorkspace.React)
-local WeakMap = require(rootWorkspace.luaUtils.WeakMap)
+local React = require(rootWorkspace.React)
+local WeakMap = LuauPolyfill.WeakMap
 local cache = WeakMap.new()
 
 -- To make sure Apollo Client doesn't create more than one React context

@@ -12,9 +12,8 @@ type VariableDefinitionNode = graphqlModule.VariableDefinitionNode
 type OperationDefinitionNode = graphqlModule.OperationDefinitionNode
 local invariant = require(srcWorkspace.jsutils.invariant).invariant
 
-local mapModule = require(srcWorkspace.luaUtils.Map)
-local Map = mapModule.Map
-type Map<T, V> = mapModule.Map<T, V>
+local Map = LuauPolyfill.Map
+type Map<T, V> = LuauPolyfill.Map<T, V>
 type Array<T> = LuauPolyfill.Array<T>
 
 local DocumentType = {

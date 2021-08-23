@@ -4,7 +4,7 @@ local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Boolean = LuauPolyfill.Boolean
-local Map = require(srcWorkspace.luaUtils.Map).Map
+local Map = LuauPolyfill.Map
 
 local prefixCounts = Map.new()
 local alphabet = {
