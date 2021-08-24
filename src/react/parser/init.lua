@@ -27,7 +27,7 @@ exports.DocumentType = DocumentType
 
 export type IDocumentDefinition = { type: number, name: string, variables: Array<VariableDefinitionNode> }
 
-local cache = Map.new()
+local cache = Map.new(nil)
 local function operationName(type_: DocumentType)
 	local name
 	--[[ ROBLOX comment: switch statement conversion ]]

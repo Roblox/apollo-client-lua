@@ -6,7 +6,7 @@ local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Boolean = LuauPolyfill.Boolean
 local Map = LuauPolyfill.Map
 
-local prefixCounts = Map.new()
+local prefixCounts = Map.new(nil)
 local alphabet = {
 	"0",
 	"1",

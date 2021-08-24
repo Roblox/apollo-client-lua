@@ -1,4 +1,6 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/react/data/QueryData.ts
+--!nocheck
+-- ROBLOX TODO: remove nocheck when CLI handles complex types
 local exports = {}
 local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
@@ -89,6 +91,7 @@ function QueryData.new(
 		if Boolean.toJSBoolean(self.currentObservable) then
 			return self.currentObservable:refetch(variables)
 		end
+		return nil
 	end
 
 	self.obsFetchmore = function(fetchMoreOptions: FetchMoreQueryOptions<any, any> & FetchMoreOptions<any, any>)
@@ -110,12 +113,14 @@ function QueryData.new(
 		if Boolean.toJSBoolean(self.currentObservable) then
 			return self.currentObservable:startPolling(pollInterval)
 		end
+		return nil
 	end
 
 	self.obsStopPolling = function()
 		if Boolean.toJSBoolean(self.currentObservable) then
 			return self.currentObservable:stopPolling()
 		end
+		return nil
 	end
 
 	-- ROBLOX deviation: there are no default generic params in Luau:

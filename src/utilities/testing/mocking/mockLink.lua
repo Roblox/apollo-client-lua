@@ -46,7 +46,8 @@ function replaceUndefined(source, replacement)
 	return res
 end
 
-local function stringifyForDisplay(value: any): string
+-- ROBLOX TODO: remove _ prefix when function is used
+local function _stringifyForDisplay(value: any): string
 	local undefId = makeUniqueId("stringifyForDisplay")
 
 	return Array.join(
