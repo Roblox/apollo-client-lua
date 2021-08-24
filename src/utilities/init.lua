@@ -73,10 +73,11 @@ local Object = LuauPolyfill.Object
 -- exports.concatPagination = paginationModule.concatPagination
 -- exports.offsetLimitPagination = paginationModule.offsetLimitPagination
 -- exports.relayStylePagination = paginationModule.relayStylePagination
--- local ObservableModule = require(script.observables.Observable)
--- exports.Observable = ObservableModule.Observable
--- exports.Observer = ObservableModule.Observer
--- exports.ObservableSubscription = ObservableModule.ObservableSubscription
+local ObservableModule = require(script.observables.Observable)
+exports.Observable = ObservableModule.Observable
+export type Observable<T> = ObservableModule.Observable<T>
+export type Observer<T> = ObservableModule.Observer<T>
+export type ObservableSubscription<T> = ObservableModule.ObservableSubscription<T>
 -- Object.assign(exports, require(script.common.mergeDeep))
 -- Object.assign(exports, require(script.common.cloneDeep))
 -- Object.assign(exports, require(script.common.maybeDeepFreeze))

@@ -10,6 +10,7 @@ Shared = { git = "https://github.com/roblox/roact-alignment.git", package = "Sha
 ReactRoblox = { git = "https://github.com/roblox/roact-alignment.git", package = "ReactRoblox" }
 GraphQL = { git = "https://github.com/Roblox/graphql-lua.git", branch = "master" }
 LuauPolyfill = { git = "https://github.com/roblox/luau-polyfill.git", rev = "0c5a3db" }
+ZenObservable = { git = "https://github.com/roblox/zen-observable-lua.git", rev = "v0.8.15-rc.3" }
 Promise = "github.com/evaera/roblox-lua-promise@3.1.0"
 
 [dev_dependencies]
