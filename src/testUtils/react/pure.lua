@@ -22,10 +22,11 @@ local ReactRoblox = require(rootWorkspace.ReactRoblox)
 -- local dtlFireEvent = domModule.fireEvent
 -- local configureDTL = domModule.configure
 
--- ROBLOX deviation: not converting act yet
--- local act_compatModule = require(script.Parent["act-compat"])
--- local act = act_compatModule.default
--- local asyncAct = act_compatModule.asyncAct
+local actCompatModule = require(script.Parent["act-compat"])
+local act = actCompatModule.default
+
+-- ROBLOX deviation: asyncAct is only used with configureDTL, not being used
+-- local asyncAct = actCompatModule.asyncAct
 
 local exports = {}
 
@@ -86,7 +87,7 @@ local function render(ui: any, renderOptions: RenderOptions?)
 	-- ROBLOX deviation: we arent using queries
 	-- local queries = assertedRenderOptions.queries
 	-- ROBLOX deviation: we aren't using hydrate
-	-- local hydrate = assertedRenderOptions.hydrate or false
+	-- local hydrate = assertedRenderOptions and assertedRenderOptions.hydrate or false
 	local WrapperComponent = assertedRenderOptions and assertedRenderOptions.wrapper
 
 	--[[
@@ -115,9 +116,12 @@ local function render(ui: any, renderOptions: RenderOptions?)
 		end
 	end
 
-	if container.render ~= nil then
-		container:render(wrapUiIfNeeded(ui))
-	end
+	-- ROBLOX deviation: not using hydrate, not fully supported in ReactRoblox
+	act(function()
+		if container.render ~= nil then
+			container:render(wrapUiIfNeeded(ui))
+		end
+	end)
 
 	return Object.assign(
 		{
@@ -260,8 +264,8 @@ exports.cleanup = cleanup
 
 Object.assign(exports, require(srcWorkspace.testUtils.dom))
 
--- ROBLOX deviation: not export act and fireEvent
+-- ROBLOX deviation: not converting fireEvent
 -- exports.fireEvent = fireEvent
--- exports.act = act
+exports.act = act
 
 return exports

@@ -19,3 +19,4 @@ LuauRegExp = "github.com/Roblox/luau-regexp@0.1.0"
 GraphQLTag = "github.com/Roblox/graphql-tag-lua@2.12.3"
 ReactReconciler = { git = "https://github.com/roblox/roact-alignment.git", package = "ReactReconciler" }
 RoactCompat = { git = "https://github.com/roblox/roact-alignment.git", package = "RoactCompat" }
+Scheduler = { git = "https://github.com/roblox/roact-alignment.git", package = "Scheduler" }
