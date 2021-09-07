@@ -16,5 +16,5 @@ export type ResultFunction<T> = mockLinkModule.ResultFunction<T>
 -- exports.stripSymbols = require(script.stripSymbols).stripSymbols
 -- exports.subscribeAndCount = require(script.subscribeAndCount).default
 exports.itAsync = require(script.itAsync)
--- exports.withErrorSpy = require(script.withErrorSpy).withErrorSpy
+exports.withErrorSpy = require(script.withErrorSpy).withErrorSpy
 return exports
