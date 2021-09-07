@@ -52,7 +52,7 @@ return function()
 		it("should render 11 TextLabels", function()
 			local descendants = rootInstance:GetDescendants()
 			local count = #Array.filter(descendants, function(item)
-				return item.Name == "TextLabel"
+				return item.ClassName == "TextLabel"
 			end, nil)
 			jestExpect(count).toBe(11)
 		end)
