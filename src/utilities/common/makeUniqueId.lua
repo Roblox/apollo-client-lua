@@ -45,16 +45,25 @@ local alphabet = {
 	"y",
 	"z",
 }
-local function makeUniqueId(prefix: string)
-	--ROBLOX deviation: suffix replaces Math.random().toString(36).slice(2) that returns a string with eleven chars from "alphabet"
-	math.randomseed(os.time())
+
+math.randomseed(os.clock())
+
+local function uuid()
 	local suffix = ""
 	for i = 1, 11, 1 do
 		suffix ..= alphabet[math.random(1, 36)]
 	end
+
+	return suffix
+end
+
+local function makeUniqueId(prefix: string)
+	--ROBLOX deviation: suffix replaces Math.random().toString(36).slice(2) that returns a string with eleven chars from "alphabet"
+	local suffix = uuid()
 	local count = Boolean.toJSBoolean(prefixCounts:get(prefix)) and prefixCounts:get(prefix) or 1
 	prefixCounts:set(prefix, count + 1)
 	return ("%s:%s:%s"):format(prefix, count, suffix)
 end
+exports.uuid = uuid
 exports.makeUniqueId = makeUniqueId
 return exports

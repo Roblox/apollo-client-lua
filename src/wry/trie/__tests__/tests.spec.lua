@@ -1,7 +1,7 @@
 -- ROBLOX upstream: https://github.com/benjamn/wryware/blob/%40wry/trie%400.3.1/packages/trie/src/tests.ts
 
 return function()
-	local rootWorkspace = script.Parent.Parent.Parent.Parent
+	local rootWorkspace = script.Parent.Parent.Parent.Parent.Parent
 
 	local JestRoblox = require(rootWorkspace.Dev.JestRoblox)
 	local jestExpect = JestRoblox.Globals.expect
@@ -85,12 +85,7 @@ return function()
 				return Data.new(args)
 			end)
 			local function checkData(...)
-				--[[
-					ROBLOX deviation: table.pack(...) doesn't return an Array table.
-					It contains an additional property 'n' which seems to contain the size.
-					Using Array.from to get an actual array 
-				]]
-				local args: Array<any> = Array.slice(table.pack(...))
+				local args: Array<any> = { ... }
 				local data = dataTrie:lookupArray(args)
 				jestExpect(instanceof(data, Data)).toEqual(true)
 				jestExpect(data.args).never.toBe(args)

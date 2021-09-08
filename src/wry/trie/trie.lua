@@ -4,7 +4,7 @@
 -- object keys weakly, yet can also hold non-object keys, unlike the
 -- native `WeakMap`.
 
-local rootWorkspace = script.Parent.Parent.Parent
+local rootWorkspace = script.Parent.Parent.Parent.Parent
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Array = LuauPolyfill.Array
@@ -80,7 +80,7 @@ end
   Trie_Data is a placeholder for generic <T extends any[]> param
 ]]
 function Trie:lookup(...): Trie_Data
-	local array: Lookup_T = Array.slice(table.pack(...), nil)
+	local array: Lookup_T = { ... }
 	return self:lookupArray(array)
 end
 
@@ -93,7 +93,7 @@ function Trie:lookupArray(array: LookupArray_T): Trie_Data
 	forEach(array, function(key)
 		node = node:getChildTrie(key)
 		return nil
-	end, nil)
+	end)
 	if not Boolean.toJSBoolean(node.data) then
 		node.data = ((self :: any) :: TriePrivate<Trie_Data>).makeData(slice(array))
 	end

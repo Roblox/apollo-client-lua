@@ -74,8 +74,7 @@ local function getOperationName(doc: DocumentNode): (string | nil)
 		end),
 		function(x: OperationDefinitionNode)
 			return (Boolean.toJSBoolean(x) and Boolean.toJSBoolean(x.name) and (x.name :: any).value or nil)
-		end,
-		nil
+		end
 	)
 
 	return Boolean.toJSBoolean(mapped[1]) and mapped[1] or nil
