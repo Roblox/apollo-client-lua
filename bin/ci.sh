@@ -14,4 +14,4 @@ roblox-cli analyze tests.project.json
 stylua -c src
 
 echo "Run tests"
-roblox-cli run --load.model model.rbxm --run bin/spec.lua --headlessRenderer on --lua.globals=__DEV__=true --fastFlags.allOnLuau --fastFlags.overrides "UseDateTimeType3=true" "EnableLoadModule=true"
+roblox-cli run --load.model model.rbxm --run bin/spec.lua --lua.globals=__DEV__=true --fastFlags.allOnLuau --fastFlags.overrides "UseDateTimeType3=true" "EnableLoadModule=true" "EnableDelayedTaskMethods=true"
