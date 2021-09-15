@@ -3,7 +3,7 @@ return function()
 	local Packages = srcWorkspace.Parent
 	local JestRoblox = require(Packages.Dev.JestRoblox)
 	local jestExpect = JestRoblox.Globals.expect
-	local RegExp = require(Packages.Dev.LuauRegExp)
+	local RegExp = require(Packages.LuauRegExp)
 	local equal = require(script.Parent.Parent.equal)
 	describe("equal", function()
 		it("should return false if types don't match", function()

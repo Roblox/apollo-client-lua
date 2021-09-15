@@ -5,7 +5,7 @@ return function()
 	local JestRoblox = require(rootWorkspace.Dev.JestRoblox)
 	local jestExpect = JestRoblox.Globals.expect
 	local gql = require(rootWorkspace.Dev.GraphQLTag).default
-	local RegExp = require(rootWorkspace.Dev.LuauRegExp)
+	local RegExp = require(rootWorkspace.LuauRegExp)
 	local ParentModule = require(script.Parent.Parent)
 	local parser = ParentModule.parser
 	local DocumentType = ParentModule.DocumentType

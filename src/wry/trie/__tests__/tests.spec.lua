@@ -10,7 +10,7 @@ return function()
 	local Array = LuauPolyfill.Array
 	local Symbol = LuauPolyfill.Symbol
 	local instanceof = LuauPolyfill.instanceof
-	local RegExp = require(rootWorkspace.Dev.LuauRegExp)
+	local RegExp = require(rootWorkspace.LuauRegExp)
 
 	type Array<T> = LuauPolyfill.Array<T>
 

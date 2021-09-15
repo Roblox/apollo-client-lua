@@ -12,10 +12,10 @@ GraphQL = { git = "https://github.com/Roblox/graphql-lua.git", rev = "dcf1625" }
 LuauPolyfill = "github.com/roblox/luau-polyfill@=0.2.3"
 ZenObservable = { git = "https://github.com/roblox/zen-observable-lua.git", rev = "v0.8.15-rc.3" }
 Promise = "github.com/evaera/roblox-lua-promise@3.1.0"
+LuauRegExp = "github.com/Roblox/luau-regexp@0.1.2"
 
 [dev_dependencies]
 JestRoblox = "github.com/roblox/jest-roblox@=1.1.2"
-LuauRegExp = "github.com/Roblox/luau-regexp@0.1.0"
 GraphQLTag = "github.com/Roblox/graphql-tag-lua@2.12.3"
 ReactReconciler = { git = "https://github.com/roblox/roact-alignment.git", package = "ReactReconciler" }
 RoactCompat = { git = "https://github.com/roblox/roact-alignment.git", package = "RoactCompat" }

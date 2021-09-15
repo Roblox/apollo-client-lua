@@ -11,7 +11,7 @@ return function()
 	local instanceof = LuauPolyfill.instanceof
 	local Symbol = LuauPolyfill.Symbol
 	local Set = LuauPolyfill.Set
-	local RegExp = require(rootWorkspace.Dev.LuauRegExp)
+	local RegExp = require(rootWorkspace.LuauRegExp)
 
 	type Array<T> = LuauPolyfill.Array<T>
 
