@@ -103,7 +103,7 @@ local function isNullValue(value: ValueNode): boolean
 	return value.kind == "NullValue"
 end
 
-local function valueToObjectRepresentation(argObj: any, name: NameNode, value: ValueNode, variables: Object): ()
+local function valueToObjectRepresentation(argObj: any, name: NameNode, value: ValueNode, variables: Object?): ()
 	if isIntValue(value) or isFloatValue(value) then
 		argObj[tostring(name.value)] = tonumber((value :: (IntValueNode | FloatValueNode)).value)
 	elseif isBooleanValue(value) or isStringValue(value) then
