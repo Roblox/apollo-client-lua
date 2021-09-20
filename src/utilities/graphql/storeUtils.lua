@@ -239,7 +239,7 @@ getStoreKeyName = Object.assign(
 
 			if Boolean.toJSBoolean(directives) then
 				-- ROBLOX deviation: using Array.map instead of forEach
-				Array.map(Object.keys(directives), function(key)
+				Array.map(Object.keys(directives :: Directives), function(key)
 					if Array.indexOf(KNOWN_DIRECTIVES, key) ~= -1 then
 						return
 					end
@@ -257,7 +257,7 @@ getStoreKeyName = Object.assign(
 
 			return completeFieldName
 		end,
-	}),
+	}) :: any,
 	{
 		setStringify = function(self, s: typeof(stringify))
 			local previous = stringify
@@ -281,7 +281,7 @@ function stringify(value: any): string
 	if not isNonNullObject(value) then
 		return HttpService:JSONEncode(value)
 	end
-	local entries = Array.map(Array.sort(Object.keys(value)), function(key)
+	local entries = Array.map(Array.sort(Object.keys(value), nil), function(key)
 		return { key, stringify(value[key]) }
 	end)
 

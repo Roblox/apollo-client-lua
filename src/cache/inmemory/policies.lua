@@ -615,7 +615,7 @@ function Policies:updateTypePolicy(typename: string, incoming: TypePolicy): ()
 
 	if Boolean.toJSBoolean(fields) then
 		-- ROBLOX deviation: using Array.map instead of forEach
-		Array.map(Object.keys(fields), function(fieldName)
+		Array.map(Object.keys(fields :: Record<string, any>), function(fieldName)
 			local existing = self:getFieldPolicy(typename, fieldName, true)
 			local incoming = (fields :: any)[fieldName]
 

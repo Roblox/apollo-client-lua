@@ -10,8 +10,8 @@ local graphqlModule = require(rootWorkspace.GraphQL)
 type DocumentNode = graphqlModule.DocumentNode
 type OperationDefinitionNode = graphqlModule.OperationDefinitionNode
 type FragmentDefinitionNode = graphqlModule.FragmentDefinitionNode
--- ROBLOX TODO: remove underscore when required
-local _ValueNode = graphqlModule.ValueNode
+-- ROBLOX TODO: uncomment type when it's used
+-- type ValueNode = graphqlModule.ValueNode
 local invariantModule = require(srcWorkspace.jsutils.invariant)
 -- ROBLOX TODO: remove underscore when required
 local _invariant = invariantModule.invariant
