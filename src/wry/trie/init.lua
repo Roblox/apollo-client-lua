@@ -1,3 +1,7 @@
 -- ROBLOX no upstream
 
-return require(script.trie)
+local trieModule = require(script.trie)
+
+export type Trie<Data> = trieModule.Trie<Data>
+
+return trieModule

@@ -86,7 +86,7 @@ export type ObservableSubscription<T> = ObservableModule.ObservableSubscription<
 -- Object.assign(exports, require(script.observables.Concast))
 -- Object.assign(exports, require(script.observables.subclassing))
 Object.assign(exports, require(script.common.arrays))
--- Object.assign(exports, require(script.common.objects))
+Object.assign(exports, require(script.common.objects))
 -- Object.assign(exports, require(script.common.errorHandling))
 Object.assign(exports, require(script.common.canUse))
 Object.assign(exports, require(script.common.compact))
