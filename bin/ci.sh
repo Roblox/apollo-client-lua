@@ -10,7 +10,7 @@ find Packages/_Index -name "*.robloxrc" | xargs rm -f
 
 echo "Run static analysis"
 selene src
-roblox-cli analyze tests.project.json --new-argument-parsing --fastFlags.overrides "LuauTarjanChildLimit=10000" --fastFlags.overrides "LuauTypeInferIterationLimit=10000"
+roblox-cli analyze tests.project.json --new-argument-parsing --fastFlags.overrides "LuauTarjanChildLimit=0" --fastFlags.overrides "LuauTypeInferIterationLimit=0"
 stylua -c src
 
 echo "Run tests"

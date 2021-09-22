@@ -52,7 +52,7 @@ return function()
 		end)
 	end
 
-	local function rejectExceptions(reject: (reason: any) -> any, fn: (...any) -> Ret_)
+	local function rejectExceptions(reject: (reason: any) -> ...any, fn: (...any) -> ...Ret_)
 		return function(_self: any, ...): ()
 			local arguments = { ... }
 			local _ok, result, hasReturned = xpcall(function()
