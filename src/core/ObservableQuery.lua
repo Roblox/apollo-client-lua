@@ -7,8 +7,9 @@ local Boolean = LuauPolyfill.Boolean
 local exports = {}
 -- local invariant = require(Packages["ts-invariant"]).invariant
 -- local equal = require(Packages["@wry"].equality).equal
--- local networkStatusModule = require(script.Parent.networkStatus)
--- local NetworkStatus = networkStatusModule.NetworkStatus
+local networkStatusModule = require(script.Parent.networkStatus)
+local _NetworkStatus = networkStatusModule.NetworkStatus
+type NetworkStatus = networkStatusModule.NetworkStatus
 -- local isNetworkRequestInFlight = networkStatusModule.isNetworkRequestInFlight
 -- local utilitiesModule = require(script.Parent.Parent.utilities)
 -- local Concast = utilitiesModule.Concast
@@ -44,6 +45,11 @@ export type ObservableQuery<TData, TVariables> = {
 	queryId: string,
 	queryName: string?,
 	variables: TVariables | nil,
+	reobserve: ((
+		self: ObservableQuery<TData, TVariables>,
+		newOptions: any? --[[Partial<WatchQueryOptions<TVariables, TData>>]],
+		newNetworkStatus: NetworkStatus?
+	) -> any --[[Promise<ApolloQueryResult<TData>>]]),
 }
 -- error("not implemented"); --[[ ROBLOX TODO: Unhandled node for type: ClassDeclaration ]]
 --[[ class ObservableQuery<

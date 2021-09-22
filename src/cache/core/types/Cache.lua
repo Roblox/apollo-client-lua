@@ -68,7 +68,7 @@ export type Cache_DiffOptions<TVariables, TData> = Cache_ReadOptions<TVariables,
 --     Watcher extends object = Record<string, any>
 -- >
 type Watcher = { [string]: any }
-export type Cache_WatchOptions<TVariables, TData> = Cache_ReadOptions<TVariables, TData> & {
+export type Cache_WatchOptions<Watcher> = Cache_ReadOptions<any, any> & {
 	watcher: Watcher?,
 	immediate: boolean?,
 	callback: Cache_WatchCallback,
@@ -113,7 +113,7 @@ export type Cache_BatchOptions<C> = {
 	-- false from the callback will prevent broadcasting this result.
 	onWatchUpdated: ((
 		self: C,
-		watch: Cache_WatchOptions<any, any>,
+		watch: Cache_WatchOptions<any>,
 		diff: Cache_DiffResult<any>,
 		lastDiff: Cache_DiffResult<any>?
 	) -> any)?,

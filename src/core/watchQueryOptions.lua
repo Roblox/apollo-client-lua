@@ -37,8 +37,19 @@ export type ErrorPolicy = watchQueryOptionsTypesModule.ErrorPolicy
 
 -- ROBLOX comment: moved to different file to solve circular dependency issue
 export type QueryOptions<TVariables, TData> = watchQueryOptionsTypesModule.QueryOptions<TVariables, TData>
+type QueryOptions_omit_fetchPolicy<TVariables, TData> = {
+	query: typeof((({} :: any) :: QueryOptions<TVariables, TData>).query),
+	variables: typeof((({} :: any) :: QueryOptions<TVariables, TData>).variables),
+	errorPolicy: typeof((({} :: any) :: QueryOptions<TVariables, TData>).errorPolicy),
+	context: typeof((({} :: any) :: QueryOptions<TVariables, TData>).context),
+	pollInterval: typeof((({} :: any) :: QueryOptions<TVariables, TData>).pollInterval),
+	notifyOnNetworkStatusChange: typeof((({} :: any) :: QueryOptions<TVariables, TData>).notifyOnNetworkStatusChange),
+	returnPartialData: typeof((({} :: any) :: QueryOptions<TVariables, TData>).returnPartialData),
+	partialRefetch: typeof((({} :: any) :: QueryOptions<TVariables, TData>).partialRefetch),
+	canonizeResults: typeof((({} :: any) :: QueryOptions<TVariables, TData>).canonizeResults),
+}
 
-export type WatchQueryOptions<TVariables, TData> = {
+export type WatchQueryOptions<TVariables, TData> = QueryOptions_omit_fetchPolicy<TVariables, TData> & {
 	--[[
     /**
      * Specifies the {@link FetchPolicy} to be used for this query.
