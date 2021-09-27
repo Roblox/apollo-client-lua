@@ -426,11 +426,11 @@ Policies.__index = Policies
 
 function Policies.new(
 	config: {
-	cache: InMemoryCache,
-	dataIdFromObject: KeyFieldsFunction?,
-	possibleTypes: PossibleTypesMap?,
-	typePolicies: TypePolicies?,
-}
+		cache: InMemoryCache,
+		dataIdFromObject: KeyFieldsFunction?,
+		possibleTypes: PossibleTypesMap?,
+		typePolicies: TypePolicies?,
+	}
 ): Policies
 	local self = (setmetatable({}, Policies) :: any) :: PoliciesPrivate
 
@@ -521,8 +521,7 @@ function Policies:identify(
 end
 
 function Policies:addTypePolicies(typePolicies: TypePolicies): ()
-	-- ROBLOX deviation: using Array.map instead of forEach
-	Array.map(Object.keys(typePolicies), function(typename)
+	Array.forEach(Object.keys(typePolicies), function(typename)
 		local ref = typePolicies[typename]
 		local queryType, mutationType, subscriptionType = ref.queryType, ref.mutationType, ref.subscriptionType
 		local incoming = Object.assign({}, ref, {
@@ -614,8 +613,7 @@ function Policies:updateTypePolicy(typename: string, incoming: TypePolicy): ()
 	end
 
 	if Boolean.toJSBoolean(fields) then
-		-- ROBLOX deviation: using Array.map instead of forEach
-		Array.map(Object.keys(fields :: Record<string, any>), function(fieldName)
+		Array.forEach(Object.keys(fields :: Record<string, any>), function(fieldName)
 			local existing = self:getFieldPolicy(typename, fieldName, true)
 			local incoming = (fields :: any)[fieldName]
 
@@ -692,15 +690,13 @@ end
 
 function Policies:addPossibleTypes(possibleTypes: PossibleTypesMap): ()
 	self.usingPossibleTypes = true
-	-- ROBLOX deviation: using Array.map instead of forEach
-	Array.map(Object.keys(possibleTypes), function(supertype)
+	Array.forEach(Object.keys(possibleTypes), function(supertype)
 		-- Make sure all types have an entry in this.supertypeMap, even if
 		-- their supertype set is empty, so we can return false immediately
 		-- from policies.fragmentMatches for unknown supertypes.
 		self:getSupertypeSet(supertype, true)
 
-		-- ROBLOX deviation: using Array.map instead of forEach
-		Array.map(possibleTypes[supertype], function(subtype)
+		Array.forEach(possibleTypes[supertype], function(subtype)
 			self:getSupertypeSet(subtype, true):add(supertype)
 			-- ROBLOX deviation: string.match doesn't work with RegExps. Using RegExp:exec instead
 			local match = TypeOrFieldNameRegExp:exec(subtype)
@@ -741,8 +737,7 @@ function Policies:getTypePolicy(typename: string): any --[[ ROBLOX TODO: Policie
 		-- this policy, because this code runs at most once per typename.
 		local supertypes = self.supertypeMap:get(typename)
 		if Boolean.toJSBoolean(supertypes) and Boolean.toJSBoolean(supertypes.size) then
-			-- ROBLOX deviation: using Array.map instead of forEach
-			Array.map(supertypes, function(supertype)
+			Array.forEach(supertypes, function(supertype)
 				local ref = self:getTypePolicy(supertype)
 				local fields, rest = ref.fields, Object.assign({}, ref, { fields = Object.None })
 				Object.assign(policy, rest)
@@ -755,8 +750,7 @@ function Policies:getTypePolicy(typename: string): any --[[ ROBLOX TODO: Policie
 	if Boolean.toJSBoolean(inbox) and Boolean.toJSBoolean(#inbox) then
 		-- Merge the pending policies into this.typePolicies, in the order they
 		-- were originally passed to addTypePolicy.
-		-- ROBLOX deviation: using Array.map instead of forEach
-		Array.map(Array.splice(inbox, 1), function(policy)
+		Array.forEach(Array.splice(inbox, 1), function(policy)
 			self:updateTypePolicy(typename, policy)
 		end)
 	end
@@ -865,8 +859,7 @@ function Policies:fragmentMatches(
 				return true
 			end
 
-			-- ROBLOX deviation: using Array.map instead of forEach
-			Array.map(supertypeSet, maybeEnqueue)
+			Array.forEach(supertypeSet, maybeEnqueue)
 
 			if
 				needToCheckFuzzySubtypes

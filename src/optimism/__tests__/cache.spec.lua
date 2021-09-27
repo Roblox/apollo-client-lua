@@ -90,7 +90,7 @@ return function()
 				reverse(backwards)
 				jestExpect(backwards).toEqual(sequence)
 
-				Array.map(sequence, function(n)
+				Array.forEach(sequence, function(n)
 					jestExpect((cache :: any).map:get(n).value).toBe(n + 1)
 				end)
 

@@ -401,7 +401,10 @@ return function()
 			it("can filter key arguments in non-Query fields", function()
 				local cache = InMemoryCache.new({
 					typePolicies = {
-						Book = { keyFields = { "isbn" }, fields = { author = { keyArgs = { "firstName", "lastName" } } } },
+						Book = {
+							keyFields = { "isbn" },
+							fields = { author = { keyArgs = { "firstName", "lastName" } } },
+						},
 						Author = { keyFields = { "name" } },
 					},
 				})
@@ -580,7 +583,10 @@ return function()
 			it("can include optional arguments in keyArgs", function()
 				local cache = InMemoryCache.new({
 					typePolicies = {
-						Author = { keyFields = { "name" }, fields = { writings = { keyArgs = { "a", "b", "type" } } } },
+						Author = {
+							keyFields = { "name" },
+							fields = { writings = { keyArgs = { "a", "b", "type" } } },
+						},
 					},
 				})
 				local data = {
@@ -868,8 +874,14 @@ return function()
 					},
 					['Comment:{"author":{"name":"Alice"}}'] = { __typename = "Comment", author = { name = "Alice" } },
 					['Comment:{"author":{"name":"Bobby"}}'] = { __typename = "Comment", author = { name = "Bobby" } },
-					['Comment:{"author":{"name":"Calvin"}}'] = { __typename = "Comment", author = { name = "Calvin" } },
-					['Comment:{"author":{"name":"Hobbes"}}'] = { __typename = "Comment", author = { name = "Hobbes" } },
+					['Comment:{"author":{"name":"Calvin"}}'] = {
+						__typename = "Comment",
+						author = { name = "Calvin" },
+					},
+					['Comment:{"author":{"name":"Hobbes"}}'] = {
+						__typename = "Comment",
+						author = { name = "Hobbes" },
+					},
 				})
 			end)
 
@@ -1316,7 +1328,11 @@ return function()
 					mergeReadModify = 101,
 				})
 				expect(storageByFieldName:get("mergeRead")).toEqual({ mergeCount = 1, readCount = 2 })
-				expect(storageByFieldName:get("mergeModify")).toEqual({ mergeCount = 1, modifyCount = 1, readCount = 1 })
+				expect(storageByFieldName:get("mergeModify")).toEqual({
+					mergeCount = 1,
+					modifyCount = 1,
+					readCount = 1,
+				})
 				expect(storageByFieldName:get("mergeReadModify")).toEqual({
 					mergeCount = 1,
 					readCount = 2,
@@ -1436,7 +1452,10 @@ return function()
 				expect(cache:extract()).toEqual({
 					ROOT_QUERY = {
 						__typename = "Query",
-						books = { { __ref = 'Book:{"isbn":"1593278284"}' }, { __ref = 'Book:{"isbn":"9781491927281"}' } },
+						books = {
+							{ __ref = 'Book:{"isbn":"1593278284"}' },
+							{ __ref = 'Book:{"isbn":"9781491927281"}' },
+						},
 					},
 					['Book:{"isbn":"1593278284"}'] = officialRustBook,
 					['Book:{"isbn":"9781491927281"}'] = programmingRustBook,
@@ -1473,7 +1492,11 @@ return function()
 				})
 				expect(cache:readQuery({ query = query })).toEqual({
 					["books"] = {
-						{ ["__typename"] = "Book", ["isbn"] = "1788399978", ["title"] = "Hands-On Concurrency with Rust" },
+						{
+							["__typename"] = "Book",
+							["isbn"] = "1788399978",
+							["title"] = "Hands-On Concurrency with Rust",
+						},
 						{
 							["__typename"] = "Book",
 							["isbn"] = "9781491927281",
@@ -1484,7 +1507,11 @@ return function()
 							["isbn"] = "1680506366",
 							["title"] = "Programming WebAssembly with Rust",
 						},
-						{ ["__typename"] = "Book", ["isbn"] = "1593278284", ["title"] = "The Rust Programming Language" },
+						{
+							["__typename"] = "Book",
+							["isbn"] = "1593278284",
+							["title"] = "The Rust Programming Language",
+						},
 					},
 				})
 			end)
@@ -1652,7 +1679,12 @@ return function()
 					["Agenda:1"] = {
 						__typename = "Agenda",
 						id = 1,
-						tasks = { { __ref = "Task:1" }, { __ref = "Task:2" }, { __ref = "Task:3" }, { __ref = "Task:4" } },
+						tasks = {
+							{ __ref = "Task:1" },
+							{ __ref = "Task:2" },
+							{ __ref = "Task:3" },
+							{ __ref = "Task:4" },
+						},
 					},
 					["Task:1"] = {
 						__typename = "Task",
@@ -1699,7 +1731,12 @@ return function()
 						__typename = "Agenda",
 						taskCount = 4,
 						tasks = {
-							{ __typename = "Task", description = "parent task", ownTime = 2, totalTime = 2 + 3 + 4 + 5 },
+							{
+								__typename = "Task",
+								description = "parent task",
+								ownTime = 2,
+								totalTime = 2 + 3 + 4 + 5,
+							},
 							{ __typename = "Task", description = "child task 1", ownTime = 3, totalTime = 3 + 5 },
 							{ __typename = "Task", description = "child task 2", ownTime = 4, totalTime = 4 + 5 },
 							{ __typename = "Task", description = "grandchild task", ownTime = 5, totalTime = 5 },
@@ -1715,7 +1752,12 @@ return function()
 						__typename = "Agenda",
 						taskCount = 4,
 						tasks = {
-							{ __typename = "Task", description = "parent task", ownTime = 2, totalTime = 2 + 3 + 6 + 5 },
+							{
+								__typename = "Task",
+								description = "parent task",
+								ownTime = 2,
+								totalTime = 2 + 3 + 6 + 5,
+							},
 							{ __typename = "Task", description = "child task 1", ownTime = 3, totalTime = 3 + 5 },
 							{ __typename = "Task", description = "child task 2", ownTime = 6, totalTime = 6 + 5 },
 							{ __typename = "Task", description = "grandchild task", ownTime = 5, totalTime = 5 },
@@ -1766,7 +1808,12 @@ return function()
 						__typename = "Agenda",
 						taskCount = 4,
 						tasks = {
-							{ __typename = "Task", description = "parent task", ownTime = 2, totalTime = 2 + 3 + 6 + 7 },
+							{
+								__typename = "Task",
+								description = "parent task",
+								ownTime = 2,
+								totalTime = 2 + 3 + 6 + 7,
+							},
 							{ __typename = "Task", description = "child task 1", ownTime = 3, totalTime = 3 + 7 },
 							{ __typename = "Task", description = "child task 2", ownTime = 6, totalTime = 6 + 7 },
 							{ __typename = "Task", description = "grandchild task", ownTime = 7, totalTime = 7 },
@@ -1834,7 +1881,12 @@ return function()
 						__typename = "Agenda",
 						taskCount = 5,
 						tasks = {
-							{ __typename = "Task", description = "parent task", ownTime = 2, totalTime = 2 + 3 + 6 + 7 },
+							{
+								__typename = "Task",
+								description = "parent task",
+								ownTime = 2,
+								totalTime = 2 + 3 + 6 + 7,
+							},
 							{ __typename = "Task", description = "child task 1", ownTime = 3, totalTime = 3 + 7 },
 							{ __typename = "Task", description = "child task 2", ownTime = 6, totalTime = 6 + 7 },
 							{ __typename = "Task", description = "grandchild task", ownTime = 7, totalTime = 7 },
@@ -2505,7 +2557,9 @@ return function()
 					{
 						request = { query = query, variables = turrellVariables2 },
 						result = {
-							data = { search = { edges = turrellEdges, pageInfo = turrellPageInfo2, totalCount = 13531 } },
+							data = {
+								search = { edges = turrellEdges, pageInfo = turrellPageInfo2, totalCount = 13531 },
+							},
 						},
 					},
 				}):setOnError(reject)
@@ -2646,7 +2700,10 @@ return function()
 									totalCount = 13531,
 								})
 								expect(cache:evict({
-									id = cache:identify({ __typename = "Artist", href = "/artist/jean-michel-basquiat" }),
+									id = cache:identify({
+										__typename = "Artist",
+										href = "/artist/jean-michel-basquiat",
+									}),
 								})).toBe(true)
 							end, reject)
 					elseif count == 6 then
@@ -2690,7 +2747,11 @@ return function()
 									loading = false,
 									networkStatus = NetworkStatus.ready,
 									data = {
-										search = { edges = turrellEdges, pageInfo = turrellPageInfo2, totalCount = 13531 },
+										search = {
+											edges = turrellEdges,
+											pageInfo = turrellPageInfo2,
+											totalCount = 13531,
+										},
 									},
 								})
 								local snapshot = cache:extract()
@@ -2706,9 +2767,10 @@ return function()
 											cursor = ({ turrellPageInfo2.startCursor, turrellPageInfo2.endCursor })[tostring(
 												i
 											)],
-											node = (
-												{ { __ref = 'Artist:{"href":"/artist/james-turrell"}' }, edge.node }
-											)[tostring(
+											node = ({
+												{ __ref = 'Artist:{"href":"/artist/james-turrell"}' },
+												edge.node,
+											})[tostring(
 												i
 											)],
 										})
@@ -3022,7 +3084,11 @@ return function()
 						title = "Guns, Germs, and Steel",
 					},
 				})
-				cache:writeQuery({ query = query, variables = { isbn = "156858217X" }, data = { book = stealThisData } })
+				cache:writeQuery({
+					query = query,
+					variables = { isbn = "156858217X" },
+					data = { book = stealThisData },
+				})
 				expect(cache:extract()).toEqual({
 					ROOT_QUERY = {
 						__typename = "Query",
@@ -3210,7 +3276,10 @@ return function()
 						author = {
 							__typename = "Author",
 							name = "Ben Lerner",
-							books = { { __ref = 'Book:{"isbn":"1250758009"}' }, { __ref = 'Book:{"isbn":"1566892740"}' } },
+							books = {
+								{ __ref = 'Book:{"isbn":"1250758009"}' },
+								{ __ref = 'Book:{"isbn":"1566892740"}' },
+							},
 						},
 						isbn = "1250758009",
 						title = "The Topeka School",
@@ -3344,7 +3413,10 @@ return function()
       ` ]]
 				-- ROBLOX deviation: declare function before usage
 				local function check(cache: InMemoryCache)
-					cache:writeQuery({ query = nameQuery, data = { viewer = { __typename = "User", name = "Alice" } } })
+					cache:writeQuery({
+						query = nameQuery,
+						data = { viewer = { __typename = "User", name = "Alice" } },
+					})
 					expect(cache:extract()).toEqual({
 						ROOT_QUERY = { __typename = "Query", viewer = { __typename = "User", name = "Alice" } },
 					})
@@ -3354,7 +3426,12 @@ return function()
 					})
 					expect(cache:extract()).toEqual({
 						ROOT_QUERY = { __typename = "Query", viewer = { __ref = "User:12345" } },
-						["User:12345"] = { __typename = "User", name = "Alice", id = 12345, email = "alice@example.com" },
+						["User:12345"] = {
+							__typename = "User",
+							name = "Alice",
+							id = 12345,
+							email = "alice@example.com",
+						},
 					})
 					expect(cache:readQuery({ query = nameQuery })).toEqual({
 						viewer = { __typename = "User", name = "Alice" },
@@ -3372,9 +3449,17 @@ return function()
 						["User:12345"] = { id = 12345, __typename = "User", email = "alice@example.com" },
 						ROOT_QUERY = { __typename = "Query", viewer = { __ref = "User:12345" } },
 					})
-					cache:writeQuery({ query = nameQuery, data = { viewer = { __typename = "User", name = "Alice" } } })
+					cache:writeQuery({
+						query = nameQuery,
+						data = { viewer = { __typename = "User", name = "Alice" } },
+					})
 					expect(cache:extract()).toEqual({
-						["User:12345"] = { id = 12345, __typename = "User", email = "alice@example.com", name = "Alice" },
+						["User:12345"] = {
+							id = 12345,
+							__typename = "User",
+							email = "alice@example.com",
+							name = "Alice",
+						},
 						ROOT_QUERY = { __typename = "Query", viewer = { __ref = "User:12345" } },
 					})
 					expect(cache:readQuery({ query = nameQuery })).toEqual({

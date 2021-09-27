@@ -179,7 +179,7 @@ function ObjectCanon:admit(value: any): any
 				if self.known:has(value) then
 					return value
 				end
-				local array: Array<any> = Array.map(value :: Array<any>, self.admit, self)
+				local array: Array<any> = Array.map(value :: Array<any>, self.admit, self :: any)
 				-- Arrays are looked up in the Trie using their recursively
 				-- canonicalized elements, and the known version of the array is
 				-- preserved as node.array.
@@ -206,8 +206,7 @@ function ObjectCanon:admit(value: any): any
 				local keys = self:sortedKeys(value)
 				table.insert(array, keys.json)
 				local firstValueIndex = #array
-				-- ROBLOX deviation: using map because forEach doesn't exist in LuauPolyfill.Array
-				Array.map(keys.sorted, function(key)
+				Array.forEach(keys.sorted, function(key)
 					table.insert(array, self:admit((value :: any)[key]))
 				end)
 				-- Objects are looked up in the Trie by their prototype (which

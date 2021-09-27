@@ -223,15 +223,15 @@ end
 
 function QueryInfo:init(
 	query: {
-	document: DocumentNode,
-	variables: any,
-	-- The initial networkStatus for this fetch, most often
-	-- NetworkStatus.loading, but also possibly fetchMore, poll, refetch,
-	-- or setVariables.
-	networkStatus: NetworkStatus?,
-	observableQuery: ObservableQuery<any, any>?,
-	lastRequestId: number?,
-}
+		document: DocumentNode,
+		variables: any,
+		-- The initial networkStatus for this fetch, most often
+		-- NetworkStatus.loading, but also possibly fetchMore, poll, refetch,
+		-- or setVariables.
+		networkStatus: NetworkStatus?,
+		observableQuery: ObservableQuery<any, any>?,
+		lastRequestId: number?,
+	}
 )
 	local networkStatus = Boolean.toJSBoolean(query.networkStatus) and query.networkStatus or NetworkStatus.loading
 	if

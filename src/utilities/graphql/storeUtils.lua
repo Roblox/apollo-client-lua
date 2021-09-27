@@ -238,8 +238,7 @@ getStoreKeyName = Object.assign(
 			end
 
 			if Boolean.toJSBoolean(directives) then
-				-- ROBLOX deviation: using Array.map instead of forEach
-				Array.map(Object.keys(directives :: Directives), function(key)
+				Array.forEach(Object.keys(directives :: Directives), function(key)
 					if Array.indexOf(KNOWN_DIRECTIVES, key) ~= -1 then
 						return
 					end
