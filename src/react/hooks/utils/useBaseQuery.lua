@@ -29,12 +29,9 @@ local coreModule = require(script.Parent.Parent.Parent.Parent.core)
 type OperationVariables = coreModule.OperationVariables
 local getApolloContext = require(script.Parent.Parent.Parent.context).getApolloContext
 
--- ROBLOX TODO: remove when CLI is handling that correctly
-type TooComplex = any
-
 -- <TData, TVariables>
 local function useBaseQuery(
-	query: TooComplex, -- DocumentNode | TypedDocumentNode<any, any>,
+	query: DocumentNode | TypedDocumentNode<any, any>,
 	options: QueryHookOptions<any, any>?,
 	lazy: boolean?
 )
@@ -45,8 +42,7 @@ local function useBaseQuery(
 	local tick, forceUpdate = useReducer(function(x: any)
 		return x + 1
 	end, 0, nil)
-	local updatedOptions = Boolean.toJSBoolean(options)
-			and Object.assign({}, options, { query = query } :: TooComplex)
+	local updatedOptions = Boolean.toJSBoolean(options) and Object.assign({}, options, { query = query })
 		or { query = query }
 	local queryDataRef = useRef(nil)
 	local queryData

@@ -146,30 +146,24 @@ local function storeKeyNameFromField(field: FieldNode, variables: Object): strin
 	local directivesObj: any = nil
 	if Boolean.toJSBoolean(field.directives) then
 		directivesObj = {}
-		-- ROBLOX deviation: using Array.map instead of forEach
-		Array.map(((field.directives :: any) :: Array<DirectiveNode>), function(directive)
+		Array.forEach(((field.directives :: any) :: Array<DirectiveNode>), function(directive)
 			directivesObj[directive.name.value] = {}
 
 			if Boolean.toJSBoolean(directive.arguments) then
-				-- ROBLOX deviation: using Array.map instead of forEach
-				Array.map(directive.arguments, function(ref)
+				Array.forEach(directive.arguments, function(ref)
 					local name, value = ref.name, ref.value
 					valueToObjectRepresentation(directivesObj[directive.name.value], name, value, variables)
-					return nil
 				end)
 			end
-			return nil
 		end)
 	end
 
 	local argObj: any = nil
 	if Boolean.toJSBoolean(field.arguments) and Boolean.toJSBoolean(#field.arguments :: Array<any>) then
 		argObj = {}
-		-- ROBLOX deviation: using Array.map instead of forEach
-		Array.map(field.arguments :: Array<any>, function(ref)
+		Array.forEach(field.arguments :: Array<any>, function(ref)
 			local name, value = ref.name, ref.value
 			valueToObjectRepresentation(argObj, name, value, variables)
-			return nil
 		end)
 	end
 
@@ -215,10 +209,8 @@ getStoreKeyName = Object.assign(
 					Array.sort(filterKeys, nil)
 
 					local filteredArgs = {} :: { [string]: any }
-					-- ROBLOX deviation: using Array.map instead of forEach
-					Array.map(filterKeys, function(key)
+					Array.forEach(filterKeys, function(key)
 						filteredArgs[key] = (args :: Record<string, any>)[key]
-						return nil
 					end)
 
 					return ("%s(%s)"):format((directives :: Directives)["connection"]["key"], stringify(filteredArgs))
@@ -250,7 +242,6 @@ getStoreKeyName = Object.assign(
 					else
 						completeFieldName ..= ("@%s"):format(key)
 					end
-					return nil
 				end)
 			end
 
@@ -317,11 +308,9 @@ end
 local function argumentsObjectFromField(field: FieldNode | DirectiveNode, variables: Record<string, any>): Object | nil
 	if Boolean.toJSBoolean(field.arguments) and Boolean.toJSBoolean(#(field.arguments :: Array<any>)) then
 		local argObj: Object = {}
-		-- ROBLOX deviation: using Array.map instead of forEach
-		Array.map((field.arguments :: Array<any>), function(ref)
+		Array.forEach((field.arguments :: Array<any>), function(ref)
 			local name, value = ref.name, ref.value
 			valueToObjectRepresentation(argObj, name, value, variables)
-			return nil
 		end)
 		return argObj
 	end

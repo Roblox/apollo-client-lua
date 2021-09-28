@@ -95,9 +95,8 @@ local function dep(options: { subscribe: Dep_Subscribe }?)
 			-- We have to use toArray(dep).forEach instead of dep.forEach, because
 			-- modifying a Set while iterating over it can cause elements in the Set
 			-- to be removed from the Set before they've been iterated over.
-			-- ROBLOX deviation: using map because forEach doesn't exist in LuauPolyfill.Array
-			Array.map(toArray(dep), function(entry)
-				return entry[m](entry)
+			Array.forEach(toArray(dep), function(entry)
+				entry[m](entry)
 			end)
 			depsByKey:delete(key)
 			maybeUnsubscribe(dep)

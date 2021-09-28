@@ -91,9 +91,7 @@ function OperationData:refreshClient()
 end
 
 function OperationData:verifyDocumentType(document: DocumentNode, type_: DocumentType)
-	-- ROBLOX TODO: remove when CLI is handling that correctly
-	type TooComplex = any
-	local operation = parser(document :: TooComplex)
+	local operation = parser(document)
 	local requiredOperationName = operationName(type_)
 	local usedOperationName = operationName(operation.type)
 	invariant(

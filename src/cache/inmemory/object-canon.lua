@@ -179,7 +179,8 @@ function ObjectCanon:admit(value: any): any
 				if self.known:has(value) then
 					return value
 				end
-				local array: Array<any> = Array.map(value :: Array<any>, self.admit, self :: any)
+				-- ROBLOX FIXME: Luau needs extra help to coerce self into an { [string]: any }, which seems like a bug
+				local array: Array<any> = Array.map(value :: Array<any>, self.admit, (self :: any) :: Object)
 				-- Arrays are looked up in the Trie using their recursively
 				-- canonicalized elements, and the known version of the array is
 				-- preserved as node.array.
@@ -222,9 +223,9 @@ function ObjectCanon:admit(value: any): any
 					node.object = Object.create(proto)
 					local obj = node.object
 					self.known:add(obj)
-					Array.map(keys.sorted, function(key, i)
+					Array.forEach(keys.sorted, function(key, i)
 						obj[key] = array[firstValueIndex + i]
-					end :: any)
+					end)
 					-- Since canonical objects may be shared widely between
 					-- unrelated consumers, it's important to regard them as
 					-- immutable, even if they are not frozen in production.
@@ -245,12 +246,12 @@ end
 -- same initial unsorted arrays tend to be encountered many times.
 -- Fortunately, we can reuse the Trie machinery to look up the sorted
 -- arrays in linear time (which is faster than sorting large arrays).
-function ObjectCanon:sortedKeys(obj: Object): any
-	local keys = Object.keys(obj)
+function ObjectCanon:sortedKeys(obj: Object): { json: string, sorted: Array<string> }
+	local keys: Array<string> = Object.keys(obj)
 	local node = self.pool:lookupArray(keys)
 
 	if not Boolean.toJSBoolean(node.keys) then
-		Array.sort(keys, nil)
+		Array.sort(keys)
 		local json = HttpService:JSONEncode(keys)
 
 		node.keys = self.keysByJSON:get(json)

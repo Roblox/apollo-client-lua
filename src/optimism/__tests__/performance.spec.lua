@@ -62,8 +62,7 @@ return function()
 		it("should be able to tolerate lots of deps", function()
 			local d = dep()
 			local parent = wrap(function(id: number)
-				-- ROBLOX deviation: using map because forEach doesn't exist in LuauPolyfill.Array
-				Array.map(keys, function(...)
+				Array.forEach(keys, function(...)
 					d(...)
 				end)
 				return id
@@ -71,9 +70,8 @@ return function()
 			parent(1)
 			parent(2)
 			parent(3)
-			-- ROBLOX deviation: using map because forEach doesn't exist in LuauPolyfill.Array
-			Array.map(keys, function(key)
-				return d:dirty(key)
+			Array.forEach(keys, function(key)
+				d:dirty(key)
 			end)
 		end)
 

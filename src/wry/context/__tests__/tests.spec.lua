@@ -238,8 +238,7 @@ return function()
 
 			table.insert(checks, bind(neither))
 
-			-- ROBLOX deviation: using map because forEach doesn't exist in LuauPolyfill.Array
-			Array.map(checks, function(check)
+			Array.forEach(checks, function(check)
 				return check()
 			end)
 		end)

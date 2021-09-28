@@ -64,8 +64,7 @@ return function()
 
 			-- local hash = wrap(function(paths: Array<string>)
 			-- 	local h = createHash("sha1")
-			-- 	-- ROBLOX deviation: using map because forEach doesn't exist in LuauPolyfill.Array
-			-- 	Array.map(paths, function(path)
+			-- 	Array.forEach(paths, function(path)
 			-- 		h:update(read(path))
 			-- 	end)
 			-- 	return h:digest("hex")

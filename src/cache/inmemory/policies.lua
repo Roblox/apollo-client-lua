@@ -882,9 +882,8 @@ function Policies:fragmentMatches(
 				-- workQueue to search through the supertypes of those fuzzy
 				-- subtypes. Otherwise the for-loop will terminate and we'll
 				-- return false below.
-				-- ROBLOX deviation: using Array.map instead of forEach
 				-- ROBLOX deviation: using Map:entries() as Array.map can't be used on a Map directly
-				Array.map(self.fuzzySubtypes:entries(), function(entry)
+				Array.forEach(self.fuzzySubtypes:entries(), function(entry)
 					local regExp, fuzzyString = entry[2], entry[1] :: string
 					-- ROBLOX deviation: string.match doesn't work with RegExps. Using RegExp:exec instead
 					local match = regExp:exec(typename :: string)
@@ -1311,8 +1310,7 @@ function computeKeyObject(
 ): Record<string, any>
 	local keyObj = {}
 	local prevKey: string | nil
-	-- ROBLOX deviation: using Array.map instead of forEach
-	Array.map(specifier, function(s)
+	Array.forEach(specifier, function(s)
 		if Boolean.toJSBoolean(Array.isArray(s)) then
 			if typeof(prevKey) == "string" then
 				local subsets

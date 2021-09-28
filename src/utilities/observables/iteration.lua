@@ -34,7 +34,6 @@ local function iterateObserversSafely(
 		end
 	end
 
-	-- ROBLOX deviation: using map because forEach doesn't exist in LuauPolyfill.Array
 	Array.forEach(observersWithMethod, function(obs)
 		obs[method](argument)
 	end)

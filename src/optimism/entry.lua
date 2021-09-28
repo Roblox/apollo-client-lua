@@ -215,10 +215,8 @@ end
 
 function Entry:forgetDeps()
 	if Boolean.toJSBoolean(self.deps) then
-		-- ROBLOX deviation: using map because forEach doesn't exist in LuauPolyfill.Array
-		Array.map(toArray(self.deps), function(dep)
+		Array.forEach(toArray(self.deps), function(dep)
 			dep:delete(self)
-			return nil
 		end)
 		self.deps:clear()
 		table.insert(emptySetPool, self.deps)
@@ -395,10 +393,8 @@ function forgetChildren(parent: AnyEntry)
 			we need to clone the keys so they are not affected during the loop
 		]]
 		local children = Array.slice(parent.childValues:keys())
-		-- ROBLOX deviation: LuauPolyfill Map implementation doesn't have forEach implementation. Iterating keys instead
-		Array.map(children, function(child)
+		Array.forEach(children, function(child)
 			forgetChild(parent, child)
-			return nil
 		end)
 	end
 
