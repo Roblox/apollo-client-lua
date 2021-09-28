@@ -319,7 +319,8 @@ end
 exports.argumentsObjectFromField = argumentsObjectFromField
 
 local function resultKeyNameFromField(field: FieldNode): string
-	if Boolean.toJSBoolean(field.alias) then
+	-- ROBLOX deviation: nil check to avoid casting
+	if Boolean.toJSBoolean(field.alias) and field.alias ~= nil then
 		return field.alias.value
 	else
 		return field.name.value

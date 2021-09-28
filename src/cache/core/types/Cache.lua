@@ -67,7 +67,6 @@ export type Cache_DiffOptions<TVariables, TData> = Cache_ReadOptions<TVariables,
 -- export interface WatchOptions<
 --     Watcher extends object = Record<string, any>
 -- >
-type Watcher = { [string]: any }
 export type Cache_WatchOptions<Watcher> = Cache_ReadOptions<any, any> & {
 	watcher: Watcher?,
 	immediate: boolean?,

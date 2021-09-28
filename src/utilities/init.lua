@@ -24,6 +24,9 @@ local Object = LuauPolyfill.Object
 -- exports.FragmentMap = fragmentsModule.FragmentMap
 -- exports.createFragmentMap = fragmentsModule.createFragmentMap
 -- exports.getFragmentQueryDocument = fragmentsModule.getFragmentQueryDocument
+exports.getFragmentQueryDocument = function(...: any): ...any
+	error("fragments are not supported yet")
+end
 -- exports.getFragmentFromSelection = fragmentsModule.getFragmentFromSelection
 local getFromASTModule = require(script.graphql.getFromAST)
 -- exports.checkDocument = getFromASTModule.checkDocument
