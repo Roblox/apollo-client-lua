@@ -68,13 +68,15 @@ local function useBaseQuery(
 								Boolean.toJSBoolean(queryDataRef.current)
 								and Boolean.toJSBoolean(queryDataRef.current.isMounted)
 							then
-								return forceUpdate()
+								-- ROBLOX deviation: Roact forces us to provide a value here
+								return forceUpdate(nil)
 							end
 						end)
 					else
 						-- // If we're rendering on the server side we can force an update at
 						-- // any point.
-						forceUpdate()
+						-- ROBLOX deviation: Roact forces us to provide a value here
+						forceUpdate(nil)
 					end
 				end,
 			})
