@@ -214,7 +214,7 @@ local function argsFromFieldSpecifier(spec: FieldSpecifier)
 		end
 	end)()
 end
-type FieldFunctionOptions<TArgs, TVars> = any
+export type FieldFunctionOptions<TArgs, TVars> = any
 --[[ ROBLOX TODO: Unhandled node for type: TSInterfaceDeclaration ]]
 --[[ interface FieldFunctionOptions<TArgs = Record<string, any>, TVars = Record<string, any>> {
   args: TArgs | null; // The name of the field, equal to options.field.name.value when
