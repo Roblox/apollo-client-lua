@@ -22,8 +22,11 @@ export type Operation = {
 	variables: Record<string, any>,
 	operationName: string,
 	extensions: Record<string, any>,
-	setContext: ((context: Record<string, any>) -> Record<string, any>),
-	getContext: (() -> Record<string, any>),
+	setContext: ((
+		self: Operation,
+		context: (Record<string, any> | ((Record<string, any>) -> Record<string, any>)) -- ROBLOX deviation: second param needs to be union with function because functions are not tables in Lua
+	) -> Record<string, any>),
+	getContext: ((self: Operation) -> Record<string, any>),
 }
 export type FetchResult<TData, C, E> = ExecutionResult & { data: (TData | nil)?, extensions: E?, context: C? }
 
@@ -32,8 +35,9 @@ export type NextLink = ((
 ) -> Observable<FetchResult<{ [string]: any }, Record<string, any>, Record<string, any>>>)
 
 export type RequestHandler = ((
+	self: any, -- ApolloLink
 	operation: Operation,
 	forward: NextLink
-) -> (Observable<FetchResult<{ [string]: any }, Record<string, any>, Record<string, any>>> | nil))
+) -> ...(Observable<FetchResult<{ [string]: any }, Record<string, any>, Record<string, any>>> | nil))
 
 return exports

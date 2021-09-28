@@ -2,8 +2,9 @@
 local srcWorkspace = script.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
-local Error = LuauPolyfill.Error
-type Error = { name: string, message: string, stack: string? }
+local Array, Boolean, console, Error =
+	LuauPolyfill.Array, LuauPolyfill.Boolean, LuauPolyfill.console, LuauPolyfill.Error
+type Error = LuauPolyfill.Error
 
 local genericMessage = "Invariant Violation"
 local InvariantError = setmetatable({}, { __index = Error })
@@ -34,12 +35,35 @@ function InvariantError.new(message_: (string | number)?)
 end
 
 local function invariant(condition: any, message: string | nil)
-	if not condition then
-		error(message or "Unexpected invariant triggered.")
+	if not Boolean.toJSBoolean(condition) then
+		error(InvariantError.new(message))
+	end
+end
+
+local verbosityLevels = { "debug", "log", "warn", "error", "silent" }
+local verbosityLevel = Array.indexOf(verbosityLevels, "log")
+
+local function wrapConsoleMethod(name: string)
+	return function(...)
+		if Array.indexOf(verbosityLevels, name) >= verbosityLevel then
+			-- Default to console.log if this host environment happens not to provide
+			-- all the console.* methods we need.
+			local method = Boolean.toJSBoolean(console[name]) and console[name] or console.log
+			return method(...)
+		end
 	end
 end
 
 return {
-	invariant = invariant,
+	invariant = setmetatable({
+		debug = wrapConsoleMethod("debug"),
+		log = wrapConsoleMethod("log"),
+		warn = wrapConsoleMethod("warn"),
+		error = wrapConsoleMethod("error"),
+	}, {
+		__call = function(_self, condition, message)
+			invariant(condition, message)
+		end,
+	}),
 	InvariantError = InvariantError,
 }

@@ -10,7 +10,7 @@ type GraphQLRequest = coreModule.GraphQLRequest
 type Operation = coreModule.Operation
 local getOperationName = require(script.Parent.Parent.Parent.utilities).getOperationName
 
-local function transformOperation(operation: GraphQLRequest): Operation
+local function transformOperation(operation: GraphQLRequest): GraphQLRequest
 	local transformedOperation: GraphQLRequest = {
 		variables = Boolean.toJSBoolean(operation.variables) and operation.variables or {},
 		extensions = Boolean.toJSBoolean(operation.extensions) and operation.extensions or {},
@@ -28,7 +28,7 @@ local function transformOperation(operation: GraphQLRequest): Operation
 			transformedOperation.operationName = ""
 		end
 	end
-	return (transformedOperation :: any) :: Operation
+	return transformedOperation
 end
 exports.transformOperation = transformOperation
 return exports

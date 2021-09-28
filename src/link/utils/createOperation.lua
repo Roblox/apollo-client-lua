@@ -12,7 +12,7 @@ type Operation = coreModule.Operation
 local function createOperation(starting: any, operation_: GraphQLRequest): Operation
 	local operation = operation_ :: any
 	local context = Object.assign({}, starting)
-	local function setContext(next: any)
+	local function setContext(_self, next: any)
 		if typeof(next) == "function" then
 			context = Object.assign({}, context, next(context))
 		else
@@ -20,12 +20,11 @@ local function createOperation(starting: any, operation_: GraphQLRequest): Opera
 		end
 	end
 
-	local function getContext()
+	local function getContext(_self)
 		return Object.assign({}, context)
 	end
 
-	operation.setContext = setContext
-	operation.getContext = getContext
+	operation = setmetatable(operation, { __index = { setContext = setContext, getContext = getContext } })
 
 	return operation :: Operation
 end
