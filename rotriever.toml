@@ -8,7 +8,7 @@ content_root = "src"
 React = { git = "https://github.com/roblox/roact-alignment.git", package = "React" }
 Shared = { git = "https://github.com/roblox/roact-alignment.git", package = "Shared" }
 ReactRoblox = { git = "https://github.com/roblox/roact-alignment.git", package = "ReactRoblox" }
-GraphQL = { git = "https://github.com/Roblox/graphql-lua.git", rev = "dcf1625" }
+GraphQL = { git = "https://github.com/Roblox/graphql-lua.git", rev = "c511c9a3" }
 LuauPolyfill = "github.com/roblox/luau-polyfill@0.2.5"
 ZenObservable = { git = "https://github.com/roblox/zen-observable-lua.git", rev = "v0.8.15-rc.5" }
 Promise = "github.com/evaera/roblox-lua-promise@3.1.0"
