@@ -9,7 +9,6 @@ return function()
 
 	type Array<T> = LuauPolyfill.Array<T>
 	type Record<T, U> = { [T]: U }
-	type ArrayMapFn = (any, any?, any?, any?) -> any
 
 	local waitForCompletion = require(srcWorkspace.testUtils.waitForCompletion)
 	local HttpService = game:GetService("HttpService")
@@ -78,7 +77,7 @@ return function()
 		jestExpect(#calls).toBe(#results)
 		Array.map(calls, function(call: any, i: number)
 			return jestExpect(call.data).toEqual(results[i])
-		end :: ArrayMapFn, nil)
+		end)
 	end
 
 	type TestResultType = {
