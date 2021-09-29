@@ -76,7 +76,7 @@ return function()
 			calls = {}
 		end
 		jestExpect(#calls).toBe(#results)
-		Array.map(calls, function(call, i)
+		Array.map(calls, function(call: any, i: number)
 			return jestExpect(call.data).toEqual(results[i])
 		end :: ArrayMapFn, nil)
 	end

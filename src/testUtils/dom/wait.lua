@@ -7,7 +7,7 @@ local waitForExpect = require(srcWorkspace.testUtils.waitForExpect)
 local configModule = require(srcWorkspace.testUtils.dom.config)
 local getConfig = configModule.getConfig
 
-type GenericFunction = (...any) -> any?
+type GenericFunction = (...any) -> ...any?
 
 local exports = {}
 

@@ -13,15 +13,14 @@ exports.DEV = DEV
 local LuauPolyfill = require(Packages.LuauPolyfill)
 local Object = LuauPolyfill.Object
 
--- local directivesModule = require(script.graphql.directives)
--- exports.DirectiveInfo = directivesModule.DirectiveInfo
--- exports.InclusionDirectives = directivesModule.InclusionDirectives
--- exports.shouldInclude = directivesModule.shouldInclude
--- exports.hasDirectives = directivesModule.hasDirectives
--- exports.hasClientExports = directivesModule.hasClientExports
--- exports.getDirectiveNames = directivesModule.getDirectiveNames
--- exports.getInclusionDirectives = directivesModule.getInclusionDirectives
-
+local directivesModule = require(script.graphql.directives)
+exports.shouldInclude = directivesModule.shouldInclude
+exports.hasDirectives = directivesModule.hasDirectives
+exports.hasClientExports = directivesModule.hasClientExports
+exports.getDirectiveNames = directivesModule.getDirectiveNames
+exports.getInclusionDirectives = directivesModule.getInclusionDirectives
+export type DirectiveInfo = directivesModule.DirectiveInfo
+export type InclusionDirectives = directivesModule.InclusionDirectives
 -- local fragmentsModule = require(script.graphql.fragments)
 -- exports.FragmentMap = fragmentsModule.FragmentMap
 -- exports.createFragmentMap = fragmentsModule.createFragmentMap
@@ -89,7 +88,7 @@ export type Observable<T> = ObservableModule.Observable<T>
 export type Observer<T> = ObservableModule.Observer<T>
 export type ObservableSubscription<T> = ObservableModule.ObservableSubscription<T>
 
--- Object.assign(exports, require(script.common.mergeDeep))
+Object.assign(exports, require(script.common.mergeDeep))
 -- Object.assign(exports, require(script.common.cloneDeep))
 -- Object.assign(exports, require(script.common.maybeDeepFreeze))
 Object.assign(exports, require(script.observables.iteration))
