@@ -8,13 +8,14 @@ local Object = LuauPolyfill.Object
 local invariant = require(srcWorkspace.jsutils.invariant).invariant
 local DEV = require(srcWorkspace.utilities).DEV
 invariant("boolean" == typeof(DEV), tostring(DEV))
---ROBLOX TODO: add exports when available
--- exports.empty = require(script.empty).empty
--- exports.from = require(script.from).from
--- exports.split = require(script.split).split
--- exports.concat = require(script.concat).concat
--- exports.execute = require(script.execute).execute
--- exports.ApolloLink = require(script.ApolloLink).ApolloLink
+
+exports.empty = require(script.empty).empty
+exports.from = require(script.from).from
+exports.split = require(script.split).split
+exports.concat = require(script.concat).concat
+exports.execute = require(script.execute).execute
+exports.ApolloLink = require(script.ApolloLink).ApolloLink
+
 local typesModule = require(script.types)
 Object.assign(exports, typesModule)
 export type DocumentNode = typesModule.DocumentNode

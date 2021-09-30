@@ -5,7 +5,9 @@ local rootWorkspace = srcWorkspace.Parent
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Array, Object = LuauPolyfill.Array, LuauPolyfill.Object
 local InvariantError = require(srcWorkspace.jsutils.invariant).InvariantError
-local linkCoreModule = require(script.Parent.Parent.core)
+
+-- ROBLOX deviation: importing directly from core.types to avoid circular dependency
+local linkCoreModule = require(script.Parent.Parent.core.types)
 type GraphQLRequest = linkCoreModule.GraphQLRequest
 
 local function validateOperation(operation: GraphQLRequest): GraphQLRequest

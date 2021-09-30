@@ -5,7 +5,8 @@ local rootWorkspace = srcWorkspace.Parent
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Boolean = LuauPolyfill.Boolean
 
-local coreModule = require(script.Parent.Parent.core)
+-- ROBLOX deviation: importing directly from core.types to avoid circular dependency
+local coreModule = require(script.Parent.Parent.core.types)
 type GraphQLRequest = coreModule.GraphQLRequest
 type Operation = coreModule.Operation
 local getOperationName = require(script.Parent.Parent.Parent.utilities).getOperationName
