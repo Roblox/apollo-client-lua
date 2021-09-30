@@ -11,7 +11,7 @@ local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
 type Promise<T> = PromiseTypeModule.Promise<T>
 
 local Shared = require(rootWorkspace.Shared)
-type Thenable<R, U> = Shared.Thenable<R, U>
+type Thenable<R> = Shared.Thenable<R>
 
 -- ROBLOX deviation: not using React
 -- local React = require(rootWorkspace.React)
@@ -76,7 +76,7 @@ local function asyncAct(cb)
 				local _ok, hasReturned = xpcall(function()
 					result = reactAct(function()
 						cbReturn = cb()
-						return cbReturn :: Thenable<any, any>
+						return cbReturn :: Thenable<any>
 					end)
 					return false
 				end, function(err)

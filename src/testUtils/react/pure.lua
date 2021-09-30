@@ -101,7 +101,7 @@ local function render(ui: any, renderOptions: RenderOptions?)
 	if not container then
 		rootInstance = Instance.new("Folder") :: Folder;
 		(rootInstance :: Folder).Name = "GuiRoot"
-		container = ReactRoblox.createLegacyRoot(rootInstance)
+		container = ReactRoblox.createLegacyRoot(rootInstance :: Instance)
 	else
 		rootInstance = container and container._internalRoot and container._internalRoot.containerInfo
 	end

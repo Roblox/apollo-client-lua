@@ -22,7 +22,7 @@ local exports = {}
 -- ROBLOX deviation: Thenable type comes from Shared in roact-alignment
 -- local ReactFiberWorkLoopModule = require(Packages["react-reconciler"].src.ReactFiberWorkLoop)
 local Shared = require(rootWorkspace.Shared)
-type Thenable<R, U> = Shared.Thenable<R, U>
+type Thenable<R> = Shared.Thenable<R>
 
 local warningWithoutStack = require(srcWorkspace.jsutils.warningWithoutStack).default
 -- ROBLOX deviation: Not converting all of ReactDOM
@@ -84,7 +84,7 @@ local didWarnAboutUsingActInProd = false
 
 -- ROBLOX deviation: This seems to be a bug in upstream. act-compat doest adhere to the callback typing upstream.
 -- Added () -> () to align with how act is used in act-compat.
-local function act(callback: (() -> Thenable<any, any>) | () -> ())
+local function act(callback: (() -> Thenable<any>) | () -> ())
 	if not Boolean.toJSBoolean(_G.__DEV__) then
 		if didWarnAboutUsingActInProd == false then
 			didWarnAboutUsingActInProd = true
