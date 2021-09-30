@@ -719,20 +719,19 @@ return function()
 				testLinkResults({ link = link, results = { { count = 2 } }, context = context })
 			end)
 
-			-- ROBLOX TODO: needs Observable.map
-			xit("should allow concat after split to be join_", function()
+			it("should allow concat after split to be join_", function()
 				local context = { test = true }
 				local link = ApolloLink.split_(function(operation: Operation)
 					return operation:getContext().test
 				end, function(_self, operation: Operation, forward: NextLink)
-					return (forward(operation) :: any):map(function(data)
+					return forward(operation):map(function(data)
 						return {
 							data = {
 								count = data.data.count :: number + 1,
 							},
 						}
 					end)
-				end :: any):concat(function(_self)
+				end):concat(function(_self)
 					return Observable.of({ data = { count = 1 } })
 				end)
 				testLinkResults({ link = link, context = context, results = { { count = 2 } } })
