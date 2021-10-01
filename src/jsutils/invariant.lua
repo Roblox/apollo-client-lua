@@ -51,6 +51,7 @@ local function wrapConsoleMethod(name: string)
 			local method = Boolean.toJSBoolean(console[name]) and console[name] or console.log
 			return method(...)
 		end
+		return
 	end
 end
 

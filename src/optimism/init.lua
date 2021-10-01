@@ -195,6 +195,7 @@ local function wrap(originalFunction: (...any) -> TResult_, options_: Optimistic
 		if Boolean.toJSBoolean(entry) then
 			return (entry :: any):peek()
 		end
+		return
 	end
 	-- ROBLOX deviation: needs modified signature when used as method
 	optimistic.peekKey = asMethod(peekKey)

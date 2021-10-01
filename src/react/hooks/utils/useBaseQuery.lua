@@ -67,6 +67,7 @@ local function useBaseQuery(
 								-- ROBLOX deviation: Roact forces us to provide a value here
 								return forceUpdate(nil)
 							end
+							return
 						end)
 					else
 						-- // If we're rendering on the server side we can force an update at
