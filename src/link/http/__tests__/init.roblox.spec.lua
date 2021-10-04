@@ -27,8 +27,8 @@ return function()
 			jestExpect(typeof(linkHttpModule.checkFetcher)).toBe("function")
 		end)
 
-		xit("should re-export createSignalIfSupported", function()
-			-- jestExpect(typeof(linkHttpModule.createSignalIfSupported)).toBe("function")
+		it("should re-export createSignalIfSupported", function()
+			jestExpect(typeof(linkHttpModule.createSignalIfSupported)).toBe("function")
 		end)
 
 		xit("should re-export selectURI", function()
