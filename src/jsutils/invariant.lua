@@ -10,7 +10,7 @@ local genericMessage = "Invariant Violation"
 local InvariantError = setmetatable({}, { __index = Error })
 InvariantError.__index = InvariantError
 
-type InvariantError = Error & { framesToPop: number, name: string }
+export type InvariantError = Error & { framesToPop: number, name: string }
 function InvariantError.new(message_: (string | number)?)
 	local message = message_ :: string | number
 	if message_ == nil then

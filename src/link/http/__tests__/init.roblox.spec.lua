@@ -14,8 +14,8 @@ return function()
 			-- jestExpect(typeof(linkHttpModule.parseAndCheckHttpResponse)).toBe("function")
 		end)
 
-		xit("should re-export serializeFetchParameter", function()
-			-- jestExpect(typeof(linkHttpModule.serializeFetchParameter)).toBe("function")
+		it("should re-export serializeFetchParameter", function()
+			jestExpect(typeof(linkHttpModule.serializeFetchParameter)).toBe("function")
 		end)
 
 		xit("should re-export selectHttpOptionsAndBody", function()
