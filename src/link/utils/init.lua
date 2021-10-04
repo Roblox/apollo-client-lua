@@ -3,7 +3,7 @@ local exports = {}
 -- ROBLOX TODO: uncomment when available
 exports.fromError = require(script.fromError).fromError
 exports.toPromise = require(script.toPromise).toPromise
--- exports.fromPromise = require(script.fromPromise).fromPromise
+exports.fromPromise = require(script.fromPromise).fromPromise
 -- local throwServerErrorModule = require(script.throwServerError)
 -- exports.ServerError = throwServerErrorModule.ServerError
 -- exports.throwServerError = throwServerErrorModule.throwServerError
