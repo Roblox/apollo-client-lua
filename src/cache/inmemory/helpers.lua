@@ -31,6 +31,7 @@ local isNonNullObject = utilitiesModule.isNonNullObject
 local exports = {}
 
 local hasOwn = require(srcWorkspace.luaUtils.hasOwnProperty)
+exports.hasOwn = hasOwn
 
 local function getTypenameFromStoreObject(
 	store: NormalizedCache,
