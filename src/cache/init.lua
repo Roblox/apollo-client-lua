@@ -1,13 +1,19 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/cache/index.ts
 local exports = {}
 
-local _srcWorkspace = script.Parent.Parent.Parent.Parent
--- local invariant = require(rootWorkspace["ts-invariant"]).invariant
--- local DEV = require(script.Parent.utilities).DEV
--- invariant("boolean" == typeof(DEV), DEV)
--- local cacheModule = require(script.core.cache)
--- exports.Transaction = cacheModule.Transaction
--- exports.ApolloCache = cacheModule.ApolloCache
+local srcWorkspace = script.Parent
+local rootWorkspace = srcWorkspace.Parent
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
+local Object = LuauPolyfill.Object
+
+local invariantModule = require(srcWorkspace.jsutils.invariant)
+local invariant = invariantModule.invariant
+local DEV = require(script.Parent.utilities).DEV
+invariant("boolean" == typeof(DEV), DEV)
+local cacheModule = require(script.core.cache)
+export type Transaction<T> = cacheModule.Transaction<T>
+export type ApolloCache<TSerialized> = cacheModule.ApolloCache<TSerialized>
+
 local cacheTypesModule = require(script.core.types.Cache)
 export type Cache_DiffResult<T> = cacheTypesModule.Cache_DiffResult<T>
 export type Cache_WatchCallback = cacheTypesModule.Cache_WatchCallback
@@ -25,15 +31,17 @@ export type Cache_WriteFragmentOptions<TData, TVariables> = cacheTypesModule.Cac
 export type Cache_Fragment<TData, TVariables> = cacheTypesModule.Cache_Fragment<TData, TVariables>
 
 -- exports.DataProxy = require(script.core.types.DataProxy).DataProxy
--- local commonModule = require(script.core.types.common)
--- exports.MissingFieldError = commonModule.MissingFieldError
--- exports.ReadFieldOptions = commonModule.ReadFieldOptions
--- local utilitiesModule = require(script.Parent.utilities)
--- exports.Reference = utilitiesModule.Reference
--- exports.isReference = utilitiesModule.isReference
--- exports.makeReference = utilitiesModule.makeReference
+local commonModule = require(script.core.types.common)
+exports.MissingFieldError = commonModule.MissingFieldError
+export type MissingFieldError = commonModule.MissingFieldError
+export type ReadFieldOptions = commonModule.ReadFieldOptions
+
+local utilitiesModule = require(script.Parent.utilities)
+export type Reference = utilitiesModule.Reference
+exports.isReference = utilitiesModule.isReference
+exports.makeReference = utilitiesModule.makeReference
 -- exports.EntityStore = require(script.inmemory.entityStore).EntityStore
--- exports.fieldNameFromStoreName = require(script.inmemory.helpers).fieldNameFromStoreName
+exports.fieldNameFromStoreName = require(script.inmemory.helpers).fieldNameFromStoreName
 -- local inMemoryCacheModule = require(script.inmemory.inMemoryCache)
 -- exports.InMemoryCache = inMemoryCacheModule.InMemoryCache
 -- exports.InMemoryCacheConfig = inMemoryCacheModule.InMemoryCacheConfig
@@ -52,5 +60,23 @@ export type FieldFunctionOptions<TArgs, TVars> = policiesModule.FieldFunctionOpt
 export type PossibleTypesMap = policiesModule.PossibleTypesMap
 exports.Policies = policiesModule.Policies
 exports.canonicalStringify = require(script.inmemory["object-canon"]).canonicalStringify
--- Object.assign(exports, require(script.inmemory.types))
+
+local inMemoryTypesModule = require(script.inmemory.types)
+Object.assign(exports, inMemoryTypesModule)
+export type StoreObject = inMemoryTypesModule.StoreObject
+export type StoreValue = inMemoryTypesModule.StoreValue
+-- ROBLOX comment: already exported from utilities module
+-- export type Reference = inMemoryTypesModule.Reference
+export type IdGetterObj = inMemoryTypesModule.IdGetterObj
+export type IdGetter = inMemoryTypesModule.IdGetter
+export type NormalizedCache = inMemoryTypesModule.NormalizedCache
+export type NormalizedCacheObject = inMemoryTypesModule.NormalizedCacheObject
+export type OptimisticStoreItem = inMemoryTypesModule.OptimisticStoreItem
+export type ReadQueryOptions = inMemoryTypesModule.ReadQueryOptions
+export type DiffQueryAgainstStoreOptions = inMemoryTypesModule.DiffQueryAgainstStoreOptions
+export type ApolloReducerConfig = inMemoryTypesModule.ApolloReducerConfig
+export type MergeInfo = inMemoryTypesModule.MergeInfo
+export type MergeTree = inMemoryTypesModule.MergeTree
+export type ReadMergeModifyContext = inMemoryTypesModule.ReadMergeModifyContext
+
 return exports

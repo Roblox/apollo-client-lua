@@ -214,49 +214,58 @@ local function argsFromFieldSpecifier(spec: FieldSpecifier)
 		end
 	end)()
 end
-export type FieldFunctionOptions<TArgs, TVars> = any
---[[ ROBLOX TODO: Unhandled node for type: TSInterfaceDeclaration ]]
---[[ interface FieldFunctionOptions<TArgs = Record<string, any>, TVars = Record<string, any>> {
-  args: TArgs | null; // The name of the field, equal to options.field.name.value when
-  // options.field is available. Useful if you reuse the same function for
-  // multiple fields, and you need to know which field you're currently
-  // processing. Always a string, even when options.field is null.
+export type FieldFunctionOptions<TArgs, TVars> = {
+	args: TArgs | nil,
 
-  fieldName: string; // The full field key used internally, including serialized key arguments.
+	-- The name of the field, equal to options.field.name.value when
+	-- options.field is available. Useful if you reuse the same function for
+	-- multiple fields, and you need to know which field you're currently
+	-- processing. Always a string, even when options.field is null.
+	fieldName: string,
 
-  storeFieldName: string; // The FieldNode object used to read this field. Useful if you need to
-  // know about other attributes of the field, such as its directives. This
-  // option will be null when a string was passed to options.readField.
+	-- The full field key used internally, including serialized key arguments.
+	storeFieldName: string,
 
-  field: FieldNode | null;
-  variables?: TVars; // Utilities for dealing with { __ref } objects.
+	-- The FieldNode object used to read this field. Useful if you need to
+	-- know about other attributes of the field, such as its directives. This
+	-- option will be null when a string was passed to options.readField.
+	field: FieldNode | nil,
 
-  isReference: typeof isReference;
-  toReference: ToReferenceFunction; // A handy place to put field-specific data that you want to survive
-  // across multiple read function calls. Useful for field-level caching,
-  // if your read function does any expensive work.
+	variables: TVars?,
 
-  storage: StorageType;
-  cache: InMemoryCache; // Helper function for reading other fields within the current object.
-  // If a foreign object or reference is provided, the field will be read
-  // from that object instead of the current object, so this function can
-  // be used (together with isReference) to examine the cache outside the
-  // current object. If a FieldNode is passed instead of a string, and
-  // that FieldNode has arguments, the same options.variables will be used
-  // to compute the argument values. Note that this function will invoke
-  // custom read functions for other fields, if defined. Always returns
-  // immutable data (enforced with Object.freeze in development).
+	-- Utilities for dealing with { __ref } objects.
+	isReference: typeof(isReference),
+	toReference: ToReferenceFunction,
 
-  readField: ReadFieldFunction; // Returns true for non-normalized StoreObjects and non-dangling
-  // References, indicating that readField(name, objOrRef) has a chance of
-  // working. Useful for filtering out dangling references from lists.
+	-- A handy place to put field-specific data that you want to survive
+	-- across multiple read function calls. Useful for field-level caching,
+	-- if your read function does any expensive work.
+	storage: StorageType,
 
-  canRead: CanReadFunction; // Instead of just merging objects with { ...existing, ...incoming }, this
-  // helper function can be used to merge objects in a way that respects any
-  // custom merge functions defined for their fields.
+	cache: InMemoryCache,
 
-  mergeObjects: MergeObjectsFunction;
-} ]]
+	-- Helper function for reading other fields within the current object.
+	-- If a foreign object or reference is provided, the field will be read
+	-- from that object instead of the current object, so this function can
+	-- be used (together with isReference) to examine the cache outside the
+	-- current object. If a FieldNode is passed instead of a string, and
+	-- that FieldNode has arguments, the same options.variables will be used
+	-- to compute the argument values. Note that this function will invoke
+	-- custom read functions for other fields, if defined. Always returns
+	-- immutable data (enforced with Object.freeze in development).
+	readField: ReadFieldFunction,
+
+	-- Returns true for non-normalized StoreObjects and non-dangling
+	-- References, indicating that readField(name, objOrRef) has a chance of
+	-- working. Useful for filtering out dangling references from lists.
+	canRead: CanReadFunction,
+
+	-- Instead of just merging objects with { ...existing, ...incoming }, this
+	-- helper function can be used to merge objects in a way that respects any
+	-- custom merge functions defined for their fields.
+	mergeObjects: MergeObjectsFunction,
+}
+
 type MergeObjectsFunction = any --[[ ROBLOX TODO: Unhandled node for type: TSFunctionType ]]
 --[[ <T extends StoreObject | Reference>(existing: T, incoming: T) => T ]]
 export type FieldReadFunction<T, V> = any --[[ ROBLOX TODO: Unhandled node for type: TSFunctionType ]]

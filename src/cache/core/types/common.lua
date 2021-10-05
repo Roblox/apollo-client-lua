@@ -1,4 +1,5 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/cache/core/types/common.ts
+local exports = {}
 
 local srcWorkspace = script.Parent.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
@@ -63,6 +64,7 @@ function MissingFieldError.new(
 	-- (this as any).__proto__ = MissingFieldError.prototype;
 	return (setmetatable(self, MissingFieldError) :: any) :: MissingFieldError
 end
+exports.MissingFieldError = MissingFieldError
 
 export type FieldSpecifier = {
 	typename: string?,
@@ -104,4 +106,4 @@ export type Modifier<T> = (value: T, details: ModifierDetails) -> T
 
 export type Modifiers = { [string]: Modifier<any> }
 
-return {}
+return exports
