@@ -63,6 +63,7 @@ return function()
 			if hasReturned then
 				return result
 			end
+			return
 		end :: typeof(fn)
 	end
 

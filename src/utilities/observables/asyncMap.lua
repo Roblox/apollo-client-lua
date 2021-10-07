@@ -82,6 +82,7 @@ local function asyncMap(
 							if Boolean.toJSBoolean(error_) then
 								return error_(observer, caught)
 							end
+							return
 						end)
 				end
 			else

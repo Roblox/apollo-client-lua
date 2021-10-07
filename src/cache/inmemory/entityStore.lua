@@ -188,6 +188,7 @@ function EntityStore.new(policies: Policies, group: CacheGroup): EntityStore
 			end
 			return ref
 		end
+		return
 	end
 
 	return self :: EntityStore
