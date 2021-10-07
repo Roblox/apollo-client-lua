@@ -351,8 +351,8 @@ export type Policies = {
 		self: Policies,
 		fragment: InlineFragmentNode | FragmentDefinitionNode,
 		typename: string | nil,
-		result: Record<string, any>,
-		variables: Record<string, any>
+		result: Record<string, any>?,
+		variables: Record<string, any>?
 	) -> boolean,
 	hasKeyArgs: (self: Policies, typename: string | nil, fieldName: string) -> boolean,
 	getStoreFieldName: (self: Policies, fieldSpec: FieldSpecifier) -> string,
@@ -373,7 +373,7 @@ export type Policies = {
 		incoming: StoreValue,
 		ref: MergeInfo,
 		context: WriteContext,
-		storage: StorageType
+		storage: StorageType?
 	) -> any,
 }
 
@@ -804,8 +804,8 @@ end
 function Policies:fragmentMatches(
 	fragment: InlineFragmentNode | FragmentDefinitionNode,
 	typename: string | nil,
-	result: Record<string, any>,
-	variables: Record<string, any>
+	result: Record<string, any>?,
+	variables: Record<string, any>?
 ): boolean
 	if not Boolean.toJSBoolean(fragment.typeCondition) then
 		return true
@@ -1055,7 +1055,7 @@ function Policies:runMergeFunction(
 	incoming: StoreValue,
 	ref: MergeInfo,
 	context: WriteContext,
-	storage: StorageType
+	storage: StorageType?
 ): any
 	local field, typename, merge = ref.field, ref.typename, ref.merge
 
@@ -1098,7 +1098,7 @@ function Policies:runMergeFunction(
 			nil,
 			{ typename = typename, fieldName = field.name.value, field = field, variables = context.variables },
 			context,
-			Boolean.toJSBoolean(storage) and storage or {}
+			Boolean.toJSBoolean(storage) and storage :: StorageType or {}
 		)
 	)
 end
@@ -1131,7 +1131,7 @@ function makeFieldFunctionOptions(
 		storage = storage,
 		cache = policies.cache,
 		canRead = canRead,
-		readField = function(self, fieldNameOrOptions: string | ReadFieldOptions, from: StoreObject | Reference)
+		readField = function(self, fieldNameOrOptions: string | ReadFieldOptions, from: (StoreObject | Reference)?)
 			local options: ReadFieldOptions = typeof(fieldNameOrOptions) == "string"
 					and { fieldName = fieldNameOrOptions, from = from }
 				or Object.assign({}, fieldNameOrOptions)

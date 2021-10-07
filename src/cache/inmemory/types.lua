@@ -23,9 +23,9 @@ export type StoreObject = utilitiesModule.StoreObject
 export type StoreValue = utilitiesModule.StoreValue
 export type Reference = utilitiesModule.Reference
 
--- ROBLOX TODO: uncomment this when entityStore is converted
 -- local FieldValueGetter = require(script.Parent.entityStore).FieldValueGetter
-type FieldValueGetter = (objectOrReference: StoreObject | Reference | nil, storeFieldName: string) -> any
+-- ROBLOX deviation: bringing the type inline to avoid circular dependency
+type FieldValueGetter = (self: any, objectOrReference: StoreObject | Reference | nil, storeFieldName: string) -> any
 
 local policiesModule = require(script.Parent.policies)
 type KeyFieldsFunction = policiesModule.KeyFieldsFunction

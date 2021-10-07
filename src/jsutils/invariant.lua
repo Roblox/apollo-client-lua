@@ -34,7 +34,7 @@ function InvariantError.new(message_: (string | number)?)
 	return setmetatable(self, InvariantError)
 end
 
-local function invariant(condition: any, message: string | nil)
+local function invariant(condition: any, message: string?)
 	if not Boolean.toJSBoolean(condition) then
 		error(InvariantError.new(message))
 	end
@@ -62,7 +62,7 @@ return {
 		warn = wrapConsoleMethod("warn"),
 		error = wrapConsoleMethod("error"),
 	}, {
-		__call = function(_self, condition, message)
+		__call = function(_self, condition: any, message: string?)
 			invariant(condition, message)
 		end,
 	}),

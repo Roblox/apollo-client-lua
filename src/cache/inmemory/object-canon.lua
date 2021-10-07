@@ -166,8 +166,8 @@ function ObjectCanon:pass(value: any)
 end
 
 -- Returns the canonical version of value.
-function ObjectCanon:admit(value: any): any
-	if isObjectOrArray(value) then
+function ObjectCanon:admit(value: any?): any?
+	if isObjectOrArray(value) and value ~= nil then
 		local original = self.passes:get(value)
 		if Boolean.toJSBoolean(original) then
 			return original

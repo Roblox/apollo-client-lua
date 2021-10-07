@@ -107,16 +107,14 @@ export type Resolvers = typesModule.Resolvers
   ServerError,
   throwServerError,
 } from '../link/utils'; ]]
---[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
---[[ export {
-  Observable,
-  Observer,
-  ObservableSubscription,
-  Reference,
-  isReference,
-  makeReference,
-  StoreObject,
-} from '../utilities'; ]]
+local utilitiesModule = require(script.Parent.utilities)
+export type Observable<T> = utilitiesModule.Observable<T>
+export type Observer<T> = utilitiesModule.Observer<T>
+export type ObservableSubscription<T> = utilitiesModule.ObservableSubscription<T>
+export type Reference = utilitiesModule.Reference
+exports.isReference = utilitiesModule.isReference
+exports.makeReference = utilitiesModule.makeReference
+export type StoreObject = utilitiesModule.StoreObject
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import { setVerbosity } from "ts-invariant"; ]]
 --[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]

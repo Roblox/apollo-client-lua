@@ -21,14 +21,24 @@ exports.getDirectiveNames = directivesModule.getDirectiveNames
 exports.getInclusionDirectives = directivesModule.getInclusionDirectives
 export type DirectiveInfo = directivesModule.DirectiveInfo
 export type InclusionDirectives = directivesModule.InclusionDirectives
+-- ROBLOX TODO: implement fragment module
 -- local fragmentsModule = require(script.graphql.fragments)
 -- exports.FragmentMap = fragmentsModule.FragmentMap
+export type FragmentMap = any
 -- exports.createFragmentMap = fragmentsModule.createFragmentMap
+exports.createFragmentMap = function(...)
+	error("fragments are not supported yet")
+	return {}
+end
 -- exports.getFragmentQueryDocument = fragmentsModule.getFragmentQueryDocument
 exports.getFragmentQueryDocument = function(...: any): ...any
 	error("fragments are not supported yet")
 end
 -- exports.getFragmentFromSelection = fragmentsModule.getFragmentFromSelection
+exports.getFragmentFromSelection = function(...)
+	error("fragments are not supported yet")
+	return {}
+end
 
 local getFromASTModule = require(script.graphql.getFromAST)
 exports.checkDocument = getFromASTModule.checkDocument
