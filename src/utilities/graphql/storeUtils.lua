@@ -43,6 +43,7 @@ local InvariantError = require(srcWorkspace.jsutils.invariant).InvariantError
 local isNonNullObject = require(script.Parent.Parent.common.objects).isNonNullObject
 -- local fragmentsModule = require(script.Parent.fragments)
 -- local FragmentMap = fragmentsModule.FragmentMap
+type FragmentMap = Object
 -- local getFragmentFromSelection = fragmentsModule.getFragmentFromSelection
 
 export type Reference = { __ref: string }
@@ -329,6 +330,13 @@ end
 exports.resultKeyNameFromField = resultKeyNameFromField
 
 -- ROBLOX deviation: not supporting fragments
+local function getTypenameFromResult(
+	_result: Record<string, any>,
+	_selectionSet: SelectionSetNode,
+	_fragmentMap: FragmentMap
+): string | nil
+	return nil
+end
 -- local function getTypenameFromResult(
 -- 	result: Record<string, any>,
 -- 	selectionSet: SelectionSetNode,
@@ -353,7 +361,7 @@ exports.resultKeyNameFromField = resultKeyNameFromField
 --     }
 --   } ]]
 -- end
--- exports.getTypenameFromResult = getTypenameFromResult
+exports.getTypenameFromResult = getTypenameFromResult
 
 local function isField(selection: SelectionNode): boolean
 	return selection.kind == "Field"

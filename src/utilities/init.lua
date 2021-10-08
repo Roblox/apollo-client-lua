@@ -66,8 +66,7 @@ exports.storeKeyNameFromField = storeUtilsModule.storeKeyNameFromField
 exports.argumentsObjectFromField = storeUtilsModule.argumentsObjectFromField
 exports.resultKeyNameFromField = storeUtilsModule.resultKeyNameFromField
 exports.getStoreKeyName = storeUtilsModule.getStoreKeyName
--- ROBLOX deviation: not supporting fragments
--- exports.getTypenameFromResult = storeUtilsModule.getTypenameFromResult
+exports.getTypenameFromResult = storeUtilsModule.getTypenameFromResult
 
 local transformModule = require(script.graphql.transform)
 export type RemoveNodeConfig<N> = transformModule.RemoveNodeConfig<N>
@@ -99,12 +98,14 @@ export type Observer<T> = ObservableModule.Observer<T>
 export type ObservableSubscription<T> = ObservableModule.ObservableSubscription<T>
 
 Object.assign(exports, require(script.common.mergeDeep))
--- Object.assign(exports, require(script.common.cloneDeep))
--- Object.assign(exports, require(script.common.maybeDeepFreeze))
+Object.assign(exports, require(script.common.cloneDeep))
+Object.assign(exports, require(script.common.maybeDeepFreeze))
 Object.assign(exports, require(script.observables.iteration))
 Object.assign(exports, require(script.observables.asyncMap))
--- Object.assign(exports, require(script.observables.Concast))
--- Object.assign(exports, require(script.observables.subclassing))
+local concastModule = require(script.observables.Concast)
+Object.assign(exports, concastModule)
+export type ConcastSourcesIterable<T> = concastModule.ConcastSourcesIterable<T>
+Object.assign(exports, require(script.observables.subclassing))
 Object.assign(exports, require(script.common.arrays))
 Object.assign(exports, require(script.common.objects))
 Object.assign(exports, require(script.common.errorHandling))

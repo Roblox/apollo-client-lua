@@ -53,8 +53,8 @@ export type NormalizedCache = {
 	-- The store.merge method allows either argument to be a string ID, but
 	-- the other argument has to be a StoreObject. Either way, newer fields
 	-- always take precedence over older fields.
-	-- ROBLOX deviation: luau doesnt have function overloading, instead defining as a union of the overloaded types
-	merge: ((self: NormalizedCache, olderId: string, newerObject: StoreObject) -> ()) | ((self: NormalizedCache, olderObject: StoreObject, newerId: string) -> ()),
+	-- ROBLOX deviation: luau doesnt have function overloading, instead defining one function that fits all overloads
+	merge: (self: NormalizedCache, olderIdOrObject: string | StoreObject, newerObjectOrId: StoreObject | string) -> (),
 
 	modify: (self: NormalizedCache, dataId: string, fields: Modifiers | Modifier<any>) -> boolean,
 	delete: (self: NormalizedCache, dataId: string, fieldName: string?) -> boolean,
