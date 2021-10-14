@@ -48,7 +48,7 @@ local mergeDeepArray
 -- ROBLOX deviation: Luau doesn't support function generics.
 type T_ = any
 local function mergeDeep(...: T_): TupleToIntersection<T_>
-	return mergeDeepArray(...)
+	return mergeDeepArray({ ... })
 end
 exports.mergeDeep = mergeDeep
 
@@ -63,7 +63,7 @@ local DeepMerger = {}
 -- consistent element type.
 function mergeDeepArray(sources: Array<T_>): T_
 	local target = Boolean.toJSBoolean(sources[1]) and sources[1] or ({} :: T_)
-	local count = #target
+	local count = #sources
 	if count > 1 then
 		local merger = DeepMerger.new()
 		for i = 2, count do
@@ -158,7 +158,7 @@ local function shallowCopy(table: Object): Object
 end
 
 function DeepMerger:shallowCopyForMerge(value: T_): T_
-	if isNonNullObject(value) and self.pastCopies:has(value) then
+	if isNonNullObject(value) and not self.pastCopies:has(value) then
 		if Array.isArray(value) then
 			value = Array.slice((value :: Array<any>), 1)
 		else
