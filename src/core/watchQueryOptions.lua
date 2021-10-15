@@ -4,7 +4,8 @@ local srcWorkspace = script.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 type Array<T> = LuauPolyfill.Array<T>
-type Error = { name: string, message: string, stack: string? }
+type Error = LuauPolyfill.Error
+type Object = LuauPolyfill.Object
 
 local graphQLModule = require(rootWorkspace.GraphQL)
 type DocumentNode = graphQLModule.DocumentNode
@@ -25,72 +26,32 @@ type InternalRefetchQueriesInclude = typesModule.InternalRefetchQueriesInclude
 -- local ApolloCache = require(script.Parent.Parent.cache).ApolloCache
 -- ROBLOX comment: moved to different file to solve circular dependency issue
 export type FetchPolicy = watchQueryOptionsTypesModule.FetchPolicy
--- ROBLOX deviation
--- export type WatchQueryFetchPolicy = FetchPolicy | 'cache-and-network';
-export type WatchQueryFetchPolicy = string
--- ROBLOX deviation
--- export type RefetchWritePolicy = "merge" | "overwrite";
-export type RefetchWritePolicy = string
+-- ROBLOX comment: moved to different file to solve circular dependency issue
+export type WatchQueryFetchPolicy = watchQueryOptionsTypesModule.WatchQueryFetchPolicy
+-- ROBLOX comment: moved to different file to solve circular dependency issue
+export type RefetchWritePolicy = watchQueryOptionsTypesModule.RefetchWritePolicy
 
 -- ROBLOX comment: moved to different file to solve circular dependency issue
 export type ErrorPolicy = watchQueryOptionsTypesModule.ErrorPolicy
 
 -- ROBLOX comment: moved to different file to solve circular dependency issue
 export type QueryOptions<TVariables, TData> = watchQueryOptionsTypesModule.QueryOptions<TVariables, TData>
-type QueryOptions_omit_fetchPolicy<TVariables, TData> = {
-	query: typeof((({} :: any) :: QueryOptions<TVariables, TData>).query),
-	variables: typeof((({} :: any) :: QueryOptions<TVariables, TData>).variables),
-	errorPolicy: typeof((({} :: any) :: QueryOptions<TVariables, TData>).errorPolicy),
-	context: typeof((({} :: any) :: QueryOptions<TVariables, TData>).context),
-	pollInterval: typeof((({} :: any) :: QueryOptions<TVariables, TData>).pollInterval),
-	notifyOnNetworkStatusChange: typeof((({} :: any) :: QueryOptions<TVariables, TData>).notifyOnNetworkStatusChange),
-	returnPartialData: typeof((({} :: any) :: QueryOptions<TVariables, TData>).returnPartialData),
-	partialRefetch: typeof((({} :: any) :: QueryOptions<TVariables, TData>).partialRefetch),
-	canonizeResults: typeof((({} :: any) :: QueryOptions<TVariables, TData>).canonizeResults),
-}
+-- ROBLOX comment: moved to different file to solve circular dependency issue
+type QueryOptions_omit_fetchPolicy<TVariables, TData> =
+	watchQueryOptionsTypesModule.QueryOptions_omit_fetchPolicy<TVariables, TData>
+-- ROBLOX comment: moved to different file to solve circular dependency issue
+export type WatchQueryOptions<TVariables, TData> = watchQueryOptionsTypesModule.WatchQueryOptions<TVariables, TData>
+-- ROBLOX comment: moved to different file to solve circular dependency issue
+export type FetchMoreQueryOptions<TVariables, TData> =
+	watchQueryOptionsTypesModule.FetchMoreQueryOptions<TVariables, TData>
 
-export type WatchQueryOptions<TVariables, TData> = QueryOptions_omit_fetchPolicy<TVariables, TData> & {
-	--[[
-    /**
-     * Specifies the {@link FetchPolicy} to be used for this query.
-     */
-     ]]
-	fetchPolicy: WatchQueryFetchPolicy?,
-	--[[
-    /**
-     * Specifies the {@link FetchPolicy} to be used after this query has completed.
-     */
-  ]]
-	nextFetchPolicy: any?, -- ROBLOX todo:  WatchQueryFetchPolicy | ((this: WatchQueryOptions<TVariables, TData>,lastFetchPolicy: WatchQueryFetchPolicy,) => WatchQueryFetchPolicy)
-	--[[
-    /**
-     * Specifies whether a {@link NetworkStatus.refetch} operation should merge
-     * incoming field data with existing data, or overwrite the existing data.
-     * Overwriting is probably preferable, but merging is currently the default
-     * behavior, for backwards compatibility with Apollo Client 3.x.
-     */
-  ]]
-	refetchWritePolicy: RefetchWritePolicy?,
-}
+-- ROBLOX comment: moved to different file to solve circular dependency issue
+export type UpdateQueryFn<TData, TSubscriptionVariables, TSubscriptionData> =
+	watchQueryOptionsTypesModule.UpdateQueryFn<TData, TSubscriptionVariables, TSubscriptionData>
 
-export type FetchMoreQueryOptions<TVariables, TData> = {
-	query: (DocumentNode | TypedDocumentNode<TData, TVariables>)?,
-	variables: any?, --ROBLOX deviation: Partial<TVariables>
-	context: any?,
-}
-
-export type UpdateQueryFn<TData, TSubscriptionVariables, TSubscriptionData> = (
-	previousQueryResult: TData,
-	options: { subscriptionData: { data: TSubscriptionData }, variables: TSubscriptionVariables? }
-) -> TData
-
-export type SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData> = {
-	document: DocumentNode | TypedDocumentNode<TSubscriptionData, TSubscriptionVariables>,
-	variables: TSubscriptionVariables?,
-	updateQuery: UpdateQueryFn<TData, TSubscriptionVariables, TSubscriptionData>?,
-	onError: ((error: Error) -> ())?,
-	context: DefaultContext?,
-}
+-- ROBLOX comment: moved to different file to solve circular dependency issue
+export type SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData> =
+	watchQueryOptionsTypesModule.SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData>
 -- export error("not implemented"); --[[ ROBLOX TODO: Unhandled node for type: TSInterfaceDeclaration ]]
 --[[ interface SubscriptionOptions<TVariables = OperationVariables, TData = any> {
   /**

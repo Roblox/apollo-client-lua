@@ -8,6 +8,7 @@ local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Boolean, Object, setTimeout = LuauPolyfill.Boolean, LuauPolyfill.Object, LuauPolyfill.setTimeout
 
 type Array<T> = LuauPolyfill.Array<T>
+type Object = LuauPolyfill.Object
 
 local GraphQL = require(rootWorkspace.GraphQL)
 type ExecutionResult = GraphQL.ExecutionResult
@@ -94,7 +95,7 @@ export type ApolloClientOptions<TCacheShape> = {
 	name: string?,
 	version: string?,
 }
-type OptionsUnion = any
+type OptionsUnion = Object
 
 local function mergeOptions(defaults: any, options: any): any
 	return compact(

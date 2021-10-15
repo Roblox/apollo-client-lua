@@ -21,9 +21,9 @@ type StoreObject = utilitiesModule.StoreObject
 type StoreValue = utilitiesModule.StoreValue
 local isReference = utilitiesModule.isReference
 
--- ROBLOX TODO: uncomment when this portion is converted
--- local StorageType = require(script.Parent.Parent.Parent.inmemory.policies).StorageType
-type StorageType = any
+-- ROBLOX deviation: causes circular dep, inline trivial type
+-- local Policies = require(script.Parent.Parent.Parent.inmemory.policies)
+type StorageType = Record<string, any> -- Policies.StorageType
 
 --[[
  * The Readonly<T> type only really works for object types, since it marks
@@ -34,7 +34,7 @@ type StorageType = any
  * assignable to SafeReadonly<any>, whereas string is not assignable to
  * Readonly<any>, somewhat surprisingly.
 ]]
-export type SafeReadonly<T> = any
+export type SafeReadonly<T> = { [string]: any }
 
 export type MissingFieldError = {
 	message: string,

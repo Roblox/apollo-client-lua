@@ -61,9 +61,8 @@ local getFragmentFromSelection = utilitiesModule.getFragmentFromSelection
 local maybeDeepFreeze = utilitiesModule.maybeDeepFreeze
 local isNonNullObject = utilitiesModule.isNonNullObject
 local _canUseWeakMap = utilitiesModule.canUseWeakMap
--- ROBLOX TODO: this is a namespace which is not supported in Lua
--- local Cache = require(script.Parent.Parent.core.types.Cache).Cache
-type Cache_DiffResult<any> = any
+local Cache = require(script.Parent.Parent.core.types.Cache)
+type Cache_DiffResult<T> = Cache.Cache_DiffResult<T>
 local typesModule = require(script.Parent.types)
 type DiffQueryAgainstStoreOptions = typesModule.DiffQueryAgainstStoreOptions
 type NormalizedCache = typesModule.NormalizedCache

@@ -9,6 +9,7 @@ local Object = LuauPolyfill.Object
 local Boolean = LuauPolyfill.Boolean
 local String = LuauPolyfill.String
 type Array<T> = LuauPolyfill.Array<T>
+type Object = LuauPolyfill.Object
 type Record<T, U> = { [T]: U }
 type Function = (...any) -> any
 
@@ -54,7 +55,7 @@ local function createFragmentMap(fragments: Array<any>)
 	return symTable
 end
 -- type FragmentMap = fragmentsModule.FragmentMap
-type FragmentMap = any
+type FragmentMap = Object
 
 -- ROBLOX deviation: predefine functions
 local hasDirectivesInSelection
@@ -82,7 +83,8 @@ local TYPENAME_FIELD: FieldNode = { kind = "Field", name = { kind = "Name", valu
 
 local function isEmpty(op: OperationDefinitionNode | FragmentDefinitionNode, fragments: FragmentMap): boolean
 	return Array.every(op.selectionSet.selections, function(selection)
-		return selection.kind == "FragmentSpread" and isEmpty(fragments[selection.name.value], fragments)
+		return selection.kind == "FragmentSpread"
+			and isEmpty(fragments[selection.name.value] :: FragmentDefinitionNode, fragments)
 	end, nil)
 end
 

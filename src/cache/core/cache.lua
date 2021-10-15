@@ -52,6 +52,8 @@ type Cache_ReadFragmentOptions<TData, TVariables> = cacheModule.Cache_ReadFragme
 type Cache_WriteQueryOptions<TData, TVariables> = cacheModule.Cache_WriteQueryOptions<TData, TVariables>
 type Cache_WriteFragmentOptions<TData, TVariables> = cacheModule.Cache_WriteFragmentOptions<TData, TVariables>
 
+-- ROBLOX FIXME: to workaround a Luau bug, this type argument has to be the same *name* as ApolloCache's type arg. https://jira.rbx.com/browse/CLI-47160
+-- export type Transaction<T> = (c: ApolloCache<T>) -> ()
 -- ROBLOX FIXME: this is a workaround for the 'recursive type with different args' error, remove this once that's fixed
 type _Transaction = (c: _ApolloCache) -> ()
 export type Transaction<T> = (c: _ApolloCache) -> ()
@@ -157,6 +159,8 @@ export type ApolloCache<TSerialized> = DataProxy & {
 		* Called when hydrating a cache (server side rendering, or offline storage),
 		* and also (potentially) during hot reloads.
 	]]
+	-- ROBLOX FIXME: go back to hi-fi types once recursive issue is fixed:
+	-- restore: (self: ApolloCache<TSerialized>, serializedState: TSerialized) -> ApolloCache<TSerialized>,
 	restore: (self: ApolloCache<TSerialized>, serializedState: TSerialized_) -> _ApolloCache,
 
 	--[[*
@@ -175,6 +179,16 @@ export type ApolloCache<TSerialized> = DataProxy & {
 	-- provide a default batch implementation that's just another way of calling
 	-- performTransaction. Subclasses of ApolloCache (such as InMemoryCache) can
 	-- override the batch method to do more interesting things with its options.
+	-- ROBLOX FIXME: go back to hi-fi types once recursive issue is fixed:
+	-- 	batch: (self: ApolloCache<TSerialized>, options: Cache_BatchOptions<ApolloCache<TSerialized>>) -> (),
+	-- 	performTransaction: (
+	-- 		self: ApolloCache<TSerialized>,
+	-- 		transaction: Transaction<TSerialized>,
+	-- 		optimisticId: string
+	-- 	) -> (),
+	-- 	recordOptimisticTransaction: (
+	-- 		self: ApolloCache<TSerialized>,
+	-- 		transaction: Transaction<TSerialized>,
 	batch: (self: ApolloCache<TSerialized>, options: Cache_BatchOptions<_ApolloCache>) -> (),
 	performTransaction: (self: ApolloCache<TSerialized>, transaction: _Transaction, optimisticId: string) -> (),
 	recordOptimisticTransaction: (

@@ -5,10 +5,14 @@ local rootWorkspace = srcWorkspace.Parent
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 type Array<T> = LuauPolyfill.Array<T>
+type Record<T, U> = { [T]: U }
+type Error = LuauPolyfill.Error
+type Object = LuauPolyfill.Object
 
 local GraphQL = require(rootWorkspace.GraphQL)
 type DocumentNode = GraphQL.DocumentNode
 type GraphQLError = GraphQL.GraphQLError
+type ExecutionResult = GraphQL.ExecutionResult
 
 -- ROBLOX deviation: need to define Promise type for use below
 local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
@@ -20,49 +24,54 @@ type Map<T, U> = { [any]: any }
 -- ROBLOX deviation: only used during upstreams generic type restriction for RefetchQueriesOptions
 -- local ApolloCache = require(script.Parent.Parent.cache).ApolloCache
 
--- ROBLOX TODO: use import when FetchResult is implemented
+-- ROBLOX deviation: inline trivial type to avoid circular dependency
 -- local FetchResult = require(script.Parent.Parent.link.core).FetchResult
-type FetchResult<TData> = any
+type FetchResult<TData, C, E> = ExecutionResult & { data: (TData | nil)?, extensions: E?, context: C? }
+
 -- ROBLOX TODO: should be equivalent to:
 -- type FetchResultWithoutContext = Omit<FetchResult<TData>, 'context'>
-type FetchResultWithoutContext<TData> = FetchResult<TData>
+type FetchResultWithoutContext<TData> = FetchResult<TData, Record<string, any>, Record<string, any>>
 
--- ROBLOX TODO: use import when ApolloError is implemented
+-- ROBLOX deviation: inline typedef to avoid circular dependency
 -- local ApolloError = require(script.Parent.Parent.errors).ApolloError
-type ApolloError = any
+type ServerParserError = Object
+type ServerError = Object
+type ApolloError = Error & {
+	message: string,
+	graphQLErrors: Array<GraphQLError>,
+	clientErrors: Array<Error>,
+	networkError: Error | ServerParserError | ServerError | nil,
+	-- An object that can be used to provide some additional information
+	-- about an error, e.g. specifying the type of error this is. Used
+	-- internally within Apollo Client.
+	extraInfo: any,
+}
 
--- ROBLOX TODO: use import when QueryInfo is implemented
--- local QueryInfo = require(script.Parent.QueryInfo).QueryInfo
-type QueryInfo = any
+local QueryInfo = require(script.Parent.QueryInfo)
+type QueryInfo = QueryInfo.QueryInfo
 
--- ROBLOX TODO: use import when NetworkStatus is implemented
--- local NetworkStatus = require(script.Parent.networkStatus).NetworkStatus
-type NetworkStatus = any
+local NetworkStatus = require(script.Parent.networkStatus)
+type NetworkStatus = NetworkStatus.NetworkStatus
 
 -- ROBLOX TODO: use import when Resolver is implemented
 -- local Resolver = require(script.Parent.LocalState).Resolver
 type Resolver = any
 
--- ROBLOX TODO: use import when ObservableQuery is implemented
--- local ObservableQuery = require(script.Parent.ObservableQuery).ObservableQuery
-type ObservableQuery<T> = any
+local ObservableQuery = require(script.Parent.ObservableQuery)
+type ObservableQuery<TData, TVariables> = ObservableQuery.ObservableQuery<TData, TVariables>
 
 -- ROBLOX comment: moved to different file to solve circular dependency issue
 local watchQueryOptionsModule = require(script.Parent.watchQueryOptions_types)
 type QueryOptions<TVariables, TData> = watchQueryOptionsModule.QueryOptions<TVariables, TData>
 
--- ROBLOX TODO: use import when Cache namespace is implemented
 -- ROBLOX deviation: Luau doesn't support namespaces
--- local Cache = require(script.Parent.Parent.cache).Cache
-type Cache_DiffResult<any> = any
+local Cache = require(script.Parent.Parent.cache)
+type Cache_DiffResult<T> = Cache.Cache_DiffResult<T>
 
 -- ROBLOX TODO: This type is used in tandem with the RefetchQueriesPromiseResults
 -- typedef. It will need to be defined if we fully conform to upstreams implementation
 -- of RefetchQueriesPromiseResults.
 -- local IsStrictlyAny = require(script.Parent.Parent.utilities).IsStrictlyAny
-
--- ROBLOX deviation: creating typescripts Record<T, U> type
-export type Record<T, U> = { [T]: U }
 
 local typedDocumentNodeModule = require(srcWorkspace.jsutils.typedDocumentNode)
 export type TypedDocumentNode<Result, Variables> = typedDocumentNodeModule.TypedDocumentNode<Result, Variables>
@@ -72,9 +81,9 @@ export type DefaultContext = Record<string, any>
 export type QueryListener = (QueryInfo) -> nil
 
 export type OnQueryUpdated<TResult> = (
-	ObservableQuery<any>,
-	Cache_DiffResult<any>,
-	Cache_DiffResult<any> | nil
+	observableQuery: ObservableQuery<any, OperationVariables>, -- ROBLOX deviation: inline default type args
+	diff: Cache_DiffResult<any>,
+	lastDiff: Cache_DiffResult<any> | nil
 ) -> boolean | TResult
 
 export type RefetchQueryDescriptor = string | DocumentNode
@@ -161,7 +170,8 @@ export type RefetchQueriesResult<TResult> = Promise<RefetchQueriesPromiseResults
 	-- An array of ObservableQuery objects corresponding 1:1 to TResult values
 	-- in the results arrays (both the TResult[] array below, and the results
 	-- array resolved by the Promise above).
-	queries: Array<ObservableQuery<any>>,
+	-- ROBLOX deviation: inline default type args
+	queries: Array<ObservableQuery<any, OperationVariables>>,
 	-- These are the raw TResult values returned by any onQueryUpdated functions
 	-- that were invoked by client.refetchQueries.
 	results: Array<InternalRefetchQueriesResult<TResult>>,
@@ -186,7 +196,9 @@ export type InternalRefetchQueriesOptions<TCache, TResult> = RefetchQueriesOptio
 
 export type InternalRefetchQueriesResult<TResult> = TResult | Promise<ApolloQueryResult<any>>
 
-export type InternalRefetchQueriesMap<TResult> = Map<ObservableQuery<any>, InternalRefetchQueriesResult<TResult>>
+-- ROBLOX deviation: inline default type args
+export type InternalRefetchQueriesMap<TResult> =
+	Map<ObservableQuery<any, OperationVariables>, InternalRefetchQueriesResult<TResult>>
 
 -- TODO Remove this unnecessary type in Apollo Client 4.
 export type PureQueryOptions = QueryOptions<any, any>
@@ -208,7 +220,12 @@ export type ApolloQueryResult<T> = {
 -- This is part of the public API, people write these functions in `updateQueries`.
 export type MutationQueryReducer<T> = (
 	Record<string, any>,
-	{ mutationResult: FetchResult<T>, queryName: string | nil, queryVariables: Record<string, any> }
+		-- ROBLOX deviation: inline default type arg params: interface FetchResult<TData = { [key: string]: any },C = Record<string, any>,E = Record<string, any>
+{
+		mutationResult: FetchResult<T, Record<string, any>, Record<string, any>>,
+		queryName: string | nil,
+		queryVariables: Record<string, any>,
+	}
 ) -> Record<string, any>
 
 export type MutationQueryReducersMap<T> = { [string]: MutationQueryReducer<T> }

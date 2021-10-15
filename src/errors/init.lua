@@ -1,16 +1,16 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/errors/index.ts
 local exports = {}
 
-type Record<T, U> = { [T]: U }
-type Array<T> = { [number]: T }
-type Object = { [string]: any }
-
-type Error = { name: string, message: string, stack: string? }
-
 local srcWorkspace = script.Parent
 local Packages = srcWorkspace.Parent
--- ROBLOX deviation: add polyfills for JS Primitives
 local LuauPolyfill = require(Packages.LuauPolyfill)
+type Record<T, U> = { [T]: U }
+type Array<T> = LuauPolyfill.Array<T>
+type Object = LuauPolyfill.Object
+
+type Error = LuauPolyfill.Error
+
+-- ROBLOX deviation: add polyfills for JS Primitives
 local Boolean, Array, Error = LuauPolyfill.Boolean, LuauPolyfill.Array, LuauPolyfill.Error
 
 local invariant = require(srcWorkspace.jsutils.invariant).invariant
@@ -66,9 +66,8 @@ local function generateErrorMessage(err: ApolloError)
 	return message
 end
 
-export type ApolloError = {
+export type ApolloError = Error & {
 	message: string,
-	stack: string?,
 	graphQLErrors: Array<GraphQLError>,
 	clientErrors: Array<Error>,
 	networkError: Error | ServerParserError | ServerError | nil,

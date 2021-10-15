@@ -28,11 +28,11 @@ type NetworkStatus = networkStatusModule.NetworkStatus
 -- local ApolloQueryResult = typesModule.ApolloQueryResult
 -- local OperationVariables = typesModule.OperationVariables
 
-local watchQueryOptionsModule = require(script.Parent.watchQueryOptions)
-type WatchQueryOptions<TVariables, TData> = watchQueryOptionsModule.WatchQueryOptions<TVariables, TData>
-type FetchMoreQueryOptions<TVariables, TData> = watchQueryOptionsModule.FetchMoreQueryOptions<TVariables, TData>
+local watchQueryOptionsTypesModule = require(script.Parent.watchQueryOptions_types)
+type WatchQueryOptions<TVariables, TData> = watchQueryOptionsTypesModule.WatchQueryOptions<TVariables, TData>
+type FetchMoreQueryOptions<TVariables, TData> = watchQueryOptionsTypesModule.FetchMoreQueryOptions<TVariables, TData>
 type SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData> =
-	watchQueryOptionsModule.SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData>
+	watchQueryOptionsTypesModule.SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData>
 -- local QueryInfo = require(script.Parent.QueryInfo).QueryInfo
 export type FetchMoreOptions<TData, TVariables> = {
 	updateQuery: ((previousQueryResult: TData, options: { fetchMoreResult: TData?, variables: TVariables? }) -> TData)?,

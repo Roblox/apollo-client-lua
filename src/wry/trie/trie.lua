@@ -42,24 +42,25 @@ export type Trie<Data> = {
 	makeData: (array: Array<any>) -> Data,
 	lookup: (self: Trie<Data>, ...any) -> Data,
 	lookupArray: (self: Trie<Data>, array: LookupArray_T) -> Data,
-}
-
--- ROBLOX FIXME: this is a workaround for the 'recursive type with different args' error, remove this once that's fixed
-type _TriePrivate = Trie<any> & {
-	weak: WeakMap<any, Trie<any>>?,
-	strong: Map<any, Trie<any>>?,
-	data: any?,
-	getChildTrie: (self: _TriePrivate, key: any) -> _TriePrivate,
-}
-
--- Since a `WeakMap` cannot hold primitive values as keys, we need a
--- backup `Map` instance to hold primitive keys. Both `self.weak`
--- and `self.strong` are lazily initialized.
-type TriePrivate<Data> = Trie<Data> & {
+	-- Since a `WeakMap` cannot hold primitive values as keys, we need a
+	-- backup `Map` instance to hold primitive keys. Both `self.weak`
+	-- and `self.strong` are lazily initialized.
 	weak: WeakMap<any, Trie<Data>>?,
 	strong: Map<any, Trie<Data>>?,
 	data: Data?,
-	getChildTrie: (self: TriePrivate<Data>, key: any) -> _TriePrivate,
+	getChildTrie: (self: Trie<Data>, key: any) -> Trie<Data>,
+}
+
+-- ROBLOX FIXME: this is a workaround for the 'recursive type with different args' error, remove this once that's fixed
+type _Trie = {
+	weakness: boolean,
+	makeData: (array: Array<any>) -> any,
+	lookup: (self: _Trie, ...any) -> any,
+	lookupArray: (self: _Trie, array: LookupArray_T) -> any,
+	weak: WeakMap<any, _Trie>?,
+	strong: Map<any, _Trie>?,
+	data: any?,
+	getChildTrie: (self: _Trie, key: any) -> _Trie,
 }
 
 --[[
@@ -97,13 +98,13 @@ end
   Trie_Data is a placeholder for generic <T extends IArguments | any[]> param
 ]]
 function Trie:lookupArray(array: LookupArray_T): Trie_Data
-	local node: TriePrivate<Trie_Data> = self
+	local node: Trie<Trie_Data> = self
 	forEach(array, function(key)
 		node = node:getChildTrie(key)
 		return nil
 	end)
 	if not Boolean.toJSBoolean(node.data) then
-		node.data = ((self :: any) :: TriePrivate<Trie_Data>).makeData(slice(array))
+		node.data = ((self :: any) :: Trie<Trie_Data>).makeData(slice(array))
 	end
 	return node.data
 end

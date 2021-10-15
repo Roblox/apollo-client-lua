@@ -8,9 +8,8 @@ local Array = LuauPolyfill.Array
 local Object = LuauPolyfill.Object
 local Boolean = LuauPolyfill.Boolean
 type Array<T> = LuauPolyfill.Array<T>
-type Object = { [string]: any }
-local typesModule = require(srcWorkspace.core.types)
-type Record<T, U> = typesModule.Record<T, U>
+type Object = LuauPolyfill.Object
+type Record<T, U> = { [T]: U }
 
 local HttpService = game:GetService("HttpService")
 

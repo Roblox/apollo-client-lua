@@ -9,15 +9,17 @@ local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Boolean = LuauPolyfill.Boolean
 local Array = LuauPolyfill.Array
 local Object = LuauPolyfill.Object
+type Object = LuauPolyfill.Object
 local Set = LuauPolyfill.Set
 local Map = LuauPolyfill.Map
 type Array<T> = LuauPolyfill.Array<T>
 type Set<T> = LuauPolyfill.Set<T>
 type Map<K, V> = LuauPolyfill.Map<K, V>
+type Function = (...any) -> ...any
 export type Record<T, U> = { [T]: U }
 export type ReturnType<T> = any
-export type Exclude<T, V> = any
-export type Readonly<T> = any
+export type Exclude<T, V> = T
+export type Readonly<T> = T
 
 local RegExp = require(rootWorkspace.LuauRegExp)
 type RegExp = RegExp.RegExp
@@ -44,33 +46,26 @@ local invariant = invariantModule.invariant
 local InvariantError = invariantModule.InvariantError
 
 local utilitiesModule = require(script.Parent.Parent.Parent.utilities)
--- ROBLOX TODO: use real dependency when implemented
-type FragmentMap = any -- utilitiesModule.FragmentMap
+-- ROBLOX TODO: fragments not currently implemented, so stub type
+type FragmentMap = Object -- utilitiesModule.FragmentMap
 local getFragmentFromSelection = utilitiesModule.getFragmentFromSelection
 local isField = utilitiesModule.isField
 local getTypenameFromResult = utilitiesModule.getTypenameFromResult
 local storeKeyNameFromField = utilitiesModule.storeKeyNameFromField
--- ROBLOX TODO: use real dependency when implemented
-type StoreValue = any -- utilitiesModule.StoreValue
--- ROBLOX TODO: use real dependency when implemented
-type StoreObject = any -- utilitiesModule.StoreObject
+type StoreValue = utilitiesModule.StoreValue
+type StoreObject = utilitiesModule.StoreObject
 local argumentsObjectFromField = utilitiesModule.argumentsObjectFromField
--- ROBLOX TODO: use real dependency when implemented
-type Reference = any -- utilitiesModule.Reference
+type Reference = utilitiesModule.Reference
 local isReference = utilitiesModule.isReference
 local getStoreKeyName = utilitiesModule.getStoreKeyName
 local canUseWeakMap = utilitiesModule.canUseWeakMap
 local isNonNullObject = utilitiesModule.isNonNullObject
--- ROBLOX TODO: use real dependency when implemented
+-- ROBLOX TODO: circular dependency
 -- local typesModule = require(script.Parent.types)
--- ROBLOX TODO: use real dependency when implemented
-type IdGetter = any -- typesModule.IdGetter
--- ROBLOX TODO: use real dependency when implemented
-type MergeInfo = any -- typesModule.MergeInfo
--- ROBLOX TODO: use real dependency when implemented
-type NormalizedCache = any -- typesModule.NormalizedCache
--- ROBLOX TODO: use real dependency when implemented
-type ReadMergeModifyContext = any -- typesModule.ReadMergeModifyContext
+type IdGetter = (any) -> string | nil -- typesModule.IdGetter
+type MergeInfo = { field: FieldNode, typename: string | nil, merge: Function } -- typesModule.MergeInfo
+type NormalizedCache = { [string]: any } -- typesModule.NormalizedCache
+type ReadMergeModifyContext = { [string]: any } -- typesModule.ReadMergeModifyContext
 -- ROBLOX TODO: use real dependency when implemented
 -- local helpersModule = require(script.Parent.helpers)
 -- ROBLOX deviation: using luaUtils implementation instead of one from helpers
@@ -98,21 +93,21 @@ type InMemoryCache = any
 -- ROBLOX TODO: use real dependency when implemented
 -- local commonModule = require(script.Parent.Parent.core.types.common)
 -- ROBLOX TODO: use real dependency when implemented
-type SafeReadonly<T> = any -- commonModule.SafeReadonly
+type SafeReadonly<T> = T -- commonModule.SafeReadonly
 -- ROBLOX TODO: use real dependency when implemented
-type FieldSpecifier = any -- commonModule.FieldSpecifier
+type FieldSpecifier = { [string]: any } -- commonModule.FieldSpecifier
 -- ROBLOX TODO: use real dependency when implemented
-type ToReferenceFunction = any -- commonModule.ToReferenceFunction
+type ToReferenceFunction = Function -- commonModule.ToReferenceFunction
 -- ROBLOX TODO: use real dependency when implemented
-type ReadFieldFunction = any -- commonModule.ReadFieldFunction
+type ReadFieldFunction = Function -- commonModule.ReadFieldFunction
 -- ROBLOX TODO: use real dependency when implemented
-type ReadFieldOptions = any -- commonModule.ReadFieldOptions
+type ReadFieldOptions = Object -- commonModule.ReadFieldOptions
 -- ROBLOX TODO: use real dependency when implemented
-type CanReadFunction = any -- commonModule.CanReadFunction
+type CanReadFunction = Function -- commonModule.CanReadFunction
 -- ROBLOX TODO: use real dependency when implemented
 -- local writeToStoreModule = require(script.Parent.writeToStore)
 -- ROBLOX TODO: use real dependency when implemented
-type WriteContext = any -- writeToStoreModule.WriteContext
+type WriteContext = { [string]: any } -- writeToStoreModule.WriteContext
 
 -- Upgrade to a faster version of the default stable JSON.stringify function
 -- used by getStoreKeyName. This function is used when computing storeFieldName
@@ -285,13 +280,13 @@ incoming: SafeReadonly<TIncoming>, options: FieldFunctionOptions) => SafeReadonl
 local function defaultDataIdFromObject(ref, context: KeyFieldsContext?): string | nil
 	local __typename, id, _id = ref.__typename, ref.id, ref._id
 	if typeof(__typename) == "string" then
-		if Boolean.toJSBoolean(context) then
+		if context then
 			if id ~= nil then
-				(context :: any).keyObject = { id = id }
+				context.keyObject = { id = id }
 			elseif _id ~= nil then
-				(context :: any).keyObject = { _id = _id }
+				context.keyObject = { _id = _id }
 			else
-				(context :: any).keyObject = nil
+				context.keyObject = nil
 			end
 		end
 		if id == nil then
@@ -377,19 +372,21 @@ export type Policies = {
 	) -> any,
 }
 
+-- ROBLOX deviation: extract this since Luau can't index into a type
+type TypePoliciesStringIndex = { -- [__typename: string]
+	keyFn: KeyFieldsFunction?,
+	merge: FieldMergeFunction<any, any>?,
+	fields: {
+		[string]: { -- [fieldName: string]
+			keyFn: KeyArgsFunction?,
+			read: FieldReadFunction<any, any>?,
+			merge: FieldMergeFunction<any, any>?,
+		},
+	},
+}
 export type PoliciesPrivate = Policies & {
 	typePolicies: {
-		[string]: { -- [__typename: string]
-			keyFn: KeyFieldsFunction?,
-			merge: FieldMergeFunction<any, any>?,
-			fields: {
-				[string]: { -- [fieldName: string]
-					keyFn: KeyArgsFunction?,
-					read: FieldReadFunction<any, any>?,
-					merge: FieldMergeFunction<any, any>?,
-				},
-			},
-		},
+		[string]: TypePoliciesStringIndex,
 	},
 	toBeAdded: {
 		[string]: Array<TypePolicy>, -- [__typename: string]
@@ -476,7 +473,7 @@ function Policies:identify(
 	object: StoreObject,
 	selectionSet: SelectionSetNode?,
 	fragmentMap: FragmentMap?
-): any -- ROBLOX TODO: original return type [string?, StoreObject?]
+): any -- ROBLOX TODO: return multiple values to make this more Lua native [string?, StoreObject?]
 	-- TODO Use an AliasMap here?
 	local typename
 	if Boolean.toJSBoolean(selectionSet) and Boolean.toJSBoolean(fragmentMap) then
@@ -717,7 +714,9 @@ function Policies:addPossibleTypes(possibleTypes: PossibleTypesMap): ()
 	end)
 end
 
-function Policies:getTypePolicy(typename: string): any --[[ ROBLOX TODO: Policies["typePolicies"][string] ]]
+function Policies:getTypePolicy(
+	typename: string
+): TypePoliciesStringIndex --[[ ROBLOX TODO: Policies["typePolicies"][string] ]]
 	if not hasOwn(self.typePolicies, typename) then
 		self.typePolicies[typename] = {}
 		local policy: any --[[ ROBLOX TODO: Policies["typePolicies"][string] ]] = self.typePolicies[typename]
@@ -972,11 +971,11 @@ end
 type V = any
 function Policies:readField--[[<V = StoreValue>]](options: ReadFieldOptions, context: ReadMergeModifyContext): SafeReadonly<V> | nil
 	local objectOrReference = options.from
-	if not Boolean.toJSBoolean(objectOrReference) then
+	if not objectOrReference then
 		return
 	end
 
-	local nameOrField = Boolean.toJSBoolean(options.field) and options.field or options.fieldName
+	local nameOrField = options.field and options.field or options.fieldName
 	if not Boolean.toJSBoolean(nameOrField) then
 		return
 	end
@@ -1007,10 +1006,12 @@ function Policies:readField--[[<V = StoreValue>]](options: ReadFieldOptions, con
 			context,
 			context.store:getStorage(
 				(function()
-					if Boolean.toJSBoolean(isReference(objectOrReference)) then
-						return objectOrReference.__ref
+					if isReference(objectOrReference) then
+						-- ROBLOX deviation: Luau narrowing, doesn't understand guard clause above
+						return (objectOrReference :: Reference).__ref
 					else
-						return objectOrReference
+						-- ROBLOX TODO: change cast to :: StoreObject once crash is fixed CLI-47051
+						return objectOrReference :: any
 					end
 				end)(),
 				storeFieldName
@@ -1230,38 +1231,32 @@ function makeMergeObjectsFunction(store: NormalizedCache): MergeObjectsFunction
 	end
 end
 function keyArgsFnFromSpecifier(specifier: KeySpecifier): KeyArgsFunction
-	return (
-			function(args, context)
-				if Boolean.toJSBoolean(args) then
-					return ("%s:%s"):format(
-						context.fieldName,
-						HttpService:JSONEncode(computeKeyObject(args, specifier, false))
-					)
-				else
-					return context.fieldName
-				end
-			end :: any
-		) :: KeyArgsFunction
+	return function(args, context)
+		if args then
+			return ("%s:%s"):format(context.fieldName, HttpService:JSONEncode(computeKeyObject(args, specifier, false)))
+		else
+			return context.fieldName
+		end
+	end
 end
 function keyFieldsFnFromSpecifier(specifier: KeySpecifier): KeyFieldsFunction
 	local trie = Trie.new(canUseWeakMap)
-	return (
-			function(object, context)
-				local aliasMap: AliasMap | nil
-				if Boolean.toJSBoolean(context.selectionSet) and Boolean.toJSBoolean(context.fragmentMap) then
-					local info = trie:lookupArray({ context.selectionSet, context.fragmentMap })
-					if Boolean.toJSBoolean(info.aliasMap) then
-						aliasMap = info.aliasMap
-					else
-						info.aliasMap = makeAliasMap(context.selectionSet, context.fragmentMap)
-						aliasMap = info.aliasMap
-					end
-				end
-				context.keyObject = computeKeyObject(object, specifier, true, aliasMap)
-				local keyObject = context.keyObject
-				return ("%s:%s"):format(context.typename, HttpService:JSONEncode(keyObject))
-			end :: any
-		) :: KeyFieldsFunction
+	return function(object, context)
+		local aliasMap: AliasMap | nil
+		if context.selectionSet and context.fragmentMap then
+			local info = trie:lookupArray({ context.selectionSet, context.fragmentMap })
+			if Boolean.toJSBoolean(info.aliasMap) then
+				aliasMap = info.aliasMap
+			else
+				info.aliasMap = makeAliasMap(context.selectionSet, context.fragmentMap)
+				aliasMap = info.aliasMap
+			end
+		end
+		context.keyObject = computeKeyObject(object, specifier, true, aliasMap)
+		local keyObject = context.keyObject
+		-- ROBLOX deviation: typename is string?, so a fallback is necessary
+		return ("%s:%s"):format(context.typename or "null", HttpService:JSONEncode(keyObject))
+	end
 end
 type AliasMap = {
 	-- Map from store key to corresponding response key. Undefined when there are

@@ -94,7 +94,7 @@ export type CommonOptions<TOptions> = TOptions & { client: ApolloClient<Object>?
 --[[ Query types ]]
 
 -- ROBLOX TODO: when we port over WatchQueryOptions we should implement the omitted version of it
-export type BaseQueryOptionsWithoutWatchQueryOptions<TVariables> = any
+export type BaseQueryOptionsWithoutWatchQueryOptions<TVariables> = Object
 
 --[[ ROBLOX deviation: there are no default generic params in Luau: `TVariables = OperationVariables` ]]
 export type BaseQueryOptions<TVariables> =

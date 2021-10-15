@@ -13,6 +13,7 @@ local Boolean, clearTimeout, Map, Object, Set, setTimeout, WeakMap =
 	LuauPolyfill.setTimeout,
 	LuauPolyfill.WeakMap
 type Array<T> = LuauPolyfill.Array<T>
+type Function = (...any) -> ...any
 type Set<T> = LuauPolyfill.Set<T>
 type Error = LuauPolyfill.Error
 type MapLike<T, V> = {
@@ -20,9 +21,7 @@ type MapLike<T, V> = {
 	get: (MapLike<T, V>, T) -> V,
 	has: (MapLike<T, V>, T) -> boolean,
 }
-
-local coreTypesModule = require(srcWorkspace.core.types)
-type Record<T, U> = coreTypesModule.Record<T, U>
+type Record<T, U> = { [T]: U }
 
 local graphqlModule = require(rootWorkspace.GraphQL)
 type DocumentNode = graphqlModule.DocumentNode
@@ -33,20 +32,19 @@ local cacheModule = require(srcWorkspace.cache)
 type Cache_DiffResult<T> = cacheModule.Cache_DiffResult<T>
 type Cache_DiffOptions<TVariables, TData> = cacheModule.Cache_DiffOptions<TVariables, TData>
 type Cache_WatchOptions<Watcher> = cacheModule.Cache_WatchOptions<Watcher>
+type ApolloCache<T> = cacheModule.ApolloCache<T>
 
--- ROBLOX TODO: use proper type when available
--- type ApolloCache<T> = cacheModule.ApolloCache<T>
-type ApolloCache<TSerialized> = any
-
-local watchQueryOptionsModule = require(script.Parent.watchQueryOptions)
-type WatchQueryOptions<TVariables, TData> = watchQueryOptionsModule.WatchQueryOptions<TVariables, TData>
-type ErrorPolicy = watchQueryOptionsModule.ErrorPolicy
+local watchQueryOptionsTypesModule = require(script.Parent.watchQueryOptions_types)
+type WatchQueryOptions<TVariables, TData> = watchQueryOptionsTypesModule.WatchQueryOptions<TVariables, TData>
+type ErrorPolicy = watchQueryOptionsTypesModule.ErrorPolicy
 
 local observableQueryModule = require(script.Parent.ObservableQuery)
 type ObservableQuery<TData, TVariables> = observableQueryModule.ObservableQuery<TData, TVariables>
 
-local typesModule = require(script.Parent.types)
-type QueryListener = typesModule.QueryListener
+-- ROBLOX deviation: inline QueryInfo definition to avoid circular dep
+-- local typesModule = require(script.Parent.types)
+-- type QueryListener = typesModule.QueryListener
+type QueryListener = (QueryInfo) -> nil
 
 local linkCoreModule = require(script.Parent.Parent.link.core)
 type FetchResult<TData, C, E> = linkCoreModule.FetchResult<TData, C, E>
@@ -94,9 +92,10 @@ local function wrapDestructiveCacheMethod(
 	cache: ApolloCache<any>,
 	methodName: string --[[ keyof ApolloCache<any> ]]
 )
-	local original = cache[methodName]
+	-- ROBLOX TODO: Luau doesn't have `keyof` to make this safe, so cast around it
+	local original = (cache :: any)[methodName]
 	if typeof(original) == "function" then
-		cache[methodName] = function(...)
+		(cache :: any)[methodName] = function(...)
 			destructiveMethodCounts:set(
 				cache,
 				-- The %1e15 allows the count to wrap around to 0 safely every

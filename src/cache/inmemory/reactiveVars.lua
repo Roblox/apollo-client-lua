@@ -13,10 +13,8 @@ local Slot = require(srcWorkspace.wry.context).Slot
 -- ROBLOX TODO: use real implementation when available
 type InMemoryCache = any
 type InMemoryCache_broadcastWatches = typeof((({} :: any) :: InMemoryCache).broadcastWatches)
--- local coreModule = require(script.Parent.Parent.Parent.core)
--- type ApolloCache = coreModule.ApolloCache
--- ROBLOX TODO: use real implementation when available
-type ApolloCache<T> = any
+local coreCacheModule = require(script.Parent.Parent.core.cache)
+type ApolloCache<T> = coreCacheModule.ApolloCache<T>
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Array = LuauPolyfill.Array
@@ -144,16 +142,16 @@ local function makeVar(value: T_): ReactiveVar<T_>
 	end
 
 	-- ROBLOX deviation: change order to simplify self handling
-	attach = function(cache)
+	attach = function(cache: ApolloCache<any>)
 		caches:add(cache)
 		getCacheInfo(cache).vars:add(rv)
 		return rv
 	end
-	rv.attachCache = function(_self: any, cache)
+	rv.attachCache = function(_self: ReactiveVar<any>, cache: ApolloCache<any>)
 		return attach(cache)
 	end
 
-	rv.forgetCache = function(_self, cache)
+	rv.forgetCache = function(_self: ReactiveVar<any>, cache: ApolloCache<any>)
 		return caches:delete(cache)
 	end
 
