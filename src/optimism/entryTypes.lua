@@ -24,6 +24,35 @@ type Map<K, V> = LuauPolyfill.Map<K, V>
 -- way of representing unknown, ordinary, and exceptional values.
 export type Value<T> = Array<T | any>
 
+-- ROBLOX FIXME: this is a workaround for the 'recursive type with different args' error, remove this once that's fixed
+type _Entry = {
+	-- ROBLOX deviation: original type: OptimisticWrapOptions<TArgs>["subscribe"]
+	subscribe: (((...any) -> ()) | (() -> any))?,
+	-- ROBLOX deviation: original type: Unsubscribable["unsubscribe"]
+	unsubscribe: (() -> any)?,
+
+	parents: Set<AnyEntry>,
+	childValues: Map<AnyEntry, Value<any>>,
+
+	-- When self Entry has children that are dirty, self property becomes
+	-- a Set containing other Entry objects, borrowed from emptySetPool.
+	-- When the set becomes empty, it gets recycled back to emptySetPool.
+	dirtyChildren: Set<AnyEntry> | nil,
+
+	dirty: boolean,
+	recomputing: boolean,
+	value: Value<any>,
+
+	fn: (...any) -> any,
+
+	peek: (self: _Entry) -> any | nil,
+	recompute: (self: _Entry, args: any) -> any,
+	setDirty: (self: _Entry) -> (),
+	dispose: (self: _Entry) -> (),
+	forget: (self: _Entry) -> (),
+	dependsOn: (self: _Entry, dep: Dep<any>) -> (),
+	forgetDeps: (self: _Entry) -> (),
+}
 export type Entry<TArgs, TValue> = {
 	-- ROBLOX deviation: original type: OptimisticWrapOptions<TArgs>["subscribe"]
 	subscribe: (((...any) -> ()) | (() -> any))?,
@@ -53,6 +82,6 @@ export type Entry<TArgs, TValue> = {
 	forgetDeps: (self: Entry<TArgs, TValue>) -> (),
 }
 
-export type AnyEntry = Entry<any, any>
+export type AnyEntry = _Entry
 
 return {}

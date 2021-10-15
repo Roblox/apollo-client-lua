@@ -44,6 +44,14 @@ export type Trie<Data> = {
 	lookupArray: (self: Trie<Data>, array: LookupArray_T) -> Data,
 }
 
+-- ROBLOX FIXME: this is a workaround for the 'recursive type with different args' error, remove this once that's fixed
+type _TriePrivate = Trie<any> & {
+	weak: WeakMap<any, Trie<any>>?,
+	strong: Map<any, Trie<any>>?,
+	data: any?,
+	getChildTrie: (self: _TriePrivate, key: any) -> _TriePrivate,
+}
+
 -- Since a `WeakMap` cannot hold primitive values as keys, we need a
 -- backup `Map` instance to hold primitive keys. Both `self.weak`
 -- and `self.strong` are lazily initialized.
@@ -51,7 +59,7 @@ type TriePrivate<Data> = Trie<Data> & {
 	weak: WeakMap<any, Trie<Data>>?,
 	strong: Map<any, Trie<Data>>?,
 	data: Data?,
-	getChildTrie: (self: TriePrivate<Data>, key: any) -> TriePrivate<any>,
+	getChildTrie: (self: TriePrivate<Data>, key: any) -> _TriePrivate,
 }
 
 --[[

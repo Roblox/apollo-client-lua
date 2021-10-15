@@ -52,7 +52,86 @@ type Cache_ReadFragmentOptions<TData, TVariables> = cacheModule.Cache_ReadFragme
 type Cache_WriteQueryOptions<TData, TVariables> = cacheModule.Cache_WriteQueryOptions<TData, TVariables>
 type Cache_WriteFragmentOptions<TData, TVariables> = cacheModule.Cache_WriteFragmentOptions<TData, TVariables>
 
-export type Transaction<T> = (c: ApolloCache<T>) -> ()
+-- ROBLOX FIXME: this is a workaround for the 'recursive type with different args' error, remove this once that's fixed
+type _Transaction = (c: _ApolloCache) -> ()
+export type Transaction<T> = (c: _ApolloCache) -> ()
+-- ROBLOX FIXME: this is a workaround for the 'recursive type with different args' error, remove this once that's fixed
+type _ApolloCache = DataProxy & {
+	-- required to implement
+	-- core API
+	read: (self: _ApolloCache, query: Cache_ReadOptions<TVariables_, T_>) -> T_ | nil,
+	write: (self: _ApolloCache, write: Cache_WriteOptions<TResult_, TVariables_>) -> Reference | nil,
+	diff: (self: _ApolloCache, query: Cache_DiffOptions<any, any>) -> Cache_DiffResult<T_>,
+	watch: (self: _ApolloCache, watch: Cache_WatchOptions<Record<string, any>>) -> (),
+	reset: (self: _ApolloCache) -> Promise<nil>,
+
+	-- Remove whole objects from the cache by passing just options.id, or
+	-- specific fields by passing options.field and/or options.args. If no
+	-- options.args are provided, all fields matching options.field (even
+	-- those with arguments) will be removed. Returns true iff any data was
+	-- removed from the cache.
+	evict: (self: _ApolloCache, options: Cache_EvictOptions) -> boolean,
+
+	-- intializer / offline / ssr API
+	--[[*
+		* Replaces existing state in the cache (if any) with the values expressed by
+		* `serializedState`.
+		*
+		* Called when hydrating a cache (server side rendering, or offline storage),
+		* and also (potentially) during hot reloads.
+	]]
+	restore: (self: _ApolloCache, serializedState: TSerialized_) -> _ApolloCache,
+
+	--[[*
+		* Exposes the cache's complete state, in a serializable format for later restoration.
+	]]
+	extract: (self: _ApolloCache, optimistic: boolean?) -> any,
+
+	-- Optimistic API
+
+	removeOptimistic: (self: _ApolloCache, id: string) -> (),
+
+	-- Transactional API
+
+	-- The batch method is intended to replace/subsume both performTransaction
+	-- and recordOptimisticTransaction, but performTransaction came first, so we
+	-- provide a default batch implementation that's just another way of calling
+	-- performTransaction. Subclasses of ApolloCache (such as InMemoryCache) can
+	-- override the batch method to do more interesting things with its options.
+	batch: (self: _ApolloCache, options: Cache_BatchOptions<_ApolloCache>) -> (),
+	performTransaction: (self: _ApolloCache, transaction: _Transaction, optimisticId: string) -> (),
+	recordOptimisticTransaction: (self: _ApolloCache, transaction: _Transaction, optimisticId: string) -> (),
+
+	-- Optional API
+
+	transformDocument: (self: _ApolloCache, document: DocumentNode) -> DocumentNode,
+	identify: (self: _ApolloCache, object: StoreObject | Reference) -> string | nil,
+	gc: (self: _ApolloCache) -> Array<string>,
+	modify: (self: _ApolloCache, options: Cache_ModifyOptions) -> boolean,
+
+	-- Experimental API
+
+	transformForLink: (self: _ApolloCache, document: DocumentNode) -> DocumentNode,
+
+	-- DataProxy API
+	--[[*
+		*
+		* @param options
+		* @param optimistic
+	]]
+	readQuery: (
+		self: _ApolloCache,
+		options: Cache_ReadQueryOptions<QueryType_, TVariables_>,
+		optimistic: boolean?
+	) -> QueryType_ | nil,
+	readFragment: (
+		self: _ApolloCache,
+		options: Cache_ReadFragmentOptions<FragmentType_, TVariables_>,
+		optimistic: boolean?
+	) -> FragmentType_ | nil,
+	writeQuery: (self: _ApolloCache, Cache_WriteQueryOptions<TData_, TVariables_>) -> Reference | nil,
+	writeFragment: (self: _ApolloCache, Cache_WriteFragmentOptions<TData_, TVariables_>) -> Reference | nil,
+}
 
 export type ApolloCache<TSerialized> = DataProxy & {
 	-- required to implement
@@ -78,7 +157,7 @@ export type ApolloCache<TSerialized> = DataProxy & {
 		* Called when hydrating a cache (server side rendering, or offline storage),
 		* and also (potentially) during hot reloads.
 	]]
-	restore: (self: ApolloCache<TSerialized>, serializedState: TSerialized_) -> ApolloCache<TSerialized>,
+	restore: (self: ApolloCache<TSerialized>, serializedState: TSerialized_) -> _ApolloCache,
 
 	--[[*
 		* Exposes the cache's complete state, in a serializable format for later restoration.
@@ -96,15 +175,11 @@ export type ApolloCache<TSerialized> = DataProxy & {
 	-- provide a default batch implementation that's just another way of calling
 	-- performTransaction. Subclasses of ApolloCache (such as InMemoryCache) can
 	-- override the batch method to do more interesting things with its options.
-	batch: (self: ApolloCache<TSerialized>, options: Cache_BatchOptions<ApolloCache<any>>) -> (),
-	performTransaction: (
-		self: ApolloCache<TSerialized>,
-		transaction: Transaction<TSerialized_>,
-		optimisticId: string
-	) -> (),
+	batch: (self: ApolloCache<TSerialized>, options: Cache_BatchOptions<_ApolloCache>) -> (),
+	performTransaction: (self: ApolloCache<TSerialized>, transaction: _Transaction, optimisticId: string) -> (),
 	recordOptimisticTransaction: (
 		self: ApolloCache<TSerialized>,
-		transaction: Transaction<TSerialized_>,
+		transaction: _Transaction,
 		optimisticId: string
 	) -> (),
 

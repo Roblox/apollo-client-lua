@@ -136,7 +136,7 @@ return function()
 
 			it("defaults optimistic to false", function()
 				local test = TestCache.new()
-				test.read = function(_self, ref)
+				test.read = function(_self: any, ref)
 					local optimistic = ref.optimistic
 					return optimistic :: any
 				end
@@ -167,7 +167,7 @@ return function()
 
 			it("defaults optimistic to false", function()
 				local test = TestCache.new()
-				test.read = function(_self, ref)
+				test.read = function(_self: any, ref)
 					local optimistic = ref.optimistic
 					return optimistic :: any
 				end
