@@ -3,8 +3,8 @@
 return function()
 	local rootWorkspace = script.Parent.Parent.Parent.Parent.Parent
 
-	local JestRoblox = require(rootWorkspace.Dev.JestRoblox)
-	local jestExpect = JestRoblox.Globals.expect
+	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
+	local jestExpect = JestGlobals.expect
 
 	local checkFetcher = require(script.Parent.Parent.checkFetcher).checkFetcher
 	local voidFetchDuringEachTest = require(script.Parent.helpers)({

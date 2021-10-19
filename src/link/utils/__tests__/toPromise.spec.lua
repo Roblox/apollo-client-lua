@@ -7,9 +7,9 @@ return function()
 	local Error = LuauPolyfill.Error
 	local console = LuauPolyfill.console
 
-	local JestRoblox = require(rootWorkspace.Dev.JestRoblox)
-	local jestExpect = JestRoblox.Globals.expect
-	local jest = JestRoblox.Globals.jest
+	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
+	local jestExpect = JestGlobals.expect
+	local jest = JestGlobals.jest
 
 	local Observable = require(srcWorkspace.utilities.observables.Observable).Observable
 

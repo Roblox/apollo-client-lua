@@ -3,8 +3,8 @@
 return function()
 	local rootWorkspace = script.Parent.Parent.Parent.Parent
 
-	local JestRoblox = require(rootWorkspace.Dev.JestRoblox)
-	local jestExpect = JestRoblox.Globals.expect
+	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
+	local jestExpect = JestGlobals.expect
 
 	local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 	local Error = LuauPolyfill.Error

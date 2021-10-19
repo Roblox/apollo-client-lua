@@ -4,8 +4,8 @@ return function()
 	local Packages = srcWorkspace.Parent
 	local LuauPolyfill = require(Packages.LuauPolyfill)
 	local Object = LuauPolyfill.Object
-	local JestRoblox = require(Packages.Dev.JestRoblox)
-	local jestExpect = JestRoblox.Globals.expect
+	local JestGlobals = require(Packages.Dev.JestGlobals)
+	local jestExpect = JestGlobals.expect
 
 	local compact = require(script.Parent.Parent.compact).compact
 	local hasOwn = require(srcWorkspace.luaUtils.hasOwnProperty)

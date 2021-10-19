@@ -3,9 +3,9 @@
 local srcWorkspace = script.Parent.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 
-local JestRoblox = require(rootWorkspace.Dev.JestRoblox)
-local jestExpect = JestRoblox.Globals.expect
-local jest = JestRoblox.Globals.jest
+local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
+local jestExpect = JestGlobals.expect
+local jest = JestGlobals.jest
 
 local wait = require(script.Parent.Parent).wait
 
@@ -17,7 +17,7 @@ local Promise = require(rootWorkspace.Promise)
 return function()
 	describe("wait", function()
 		it("it waits for the data to be loaded", function()
-			local spy = jest:fn()
+			local spy = jest.fn()
 			-- we are using random timeout here to simulate a real-time example
 			-- of an async operation calling a callback at a non-deterministic time
 			local randomTimeout = math.random(0, 60)
@@ -31,7 +31,7 @@ return function()
 		end)
 
 		it("wait defaults to a noop callback", function()
-			local handler = jest:fn()
+			local handler = jest.fn()
 			-- ROBLOX deviation: handler is a callable "table", type(handler) == "table"
 			-- this is throwing an error in the Promise library expecting the type to be "function"
 			-- Wrapping in a function to make it work

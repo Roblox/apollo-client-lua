@@ -1,8 +1,8 @@
 return function()
 	local srcWorkspace = script.Parent.Parent.Parent
 	local Packages = srcWorkspace.Parent
-	local JestRoblox = require(Packages.Dev.JestRoblox)
-	local jestExpect = JestRoblox.Globals.expect
+	local JestGlobals = require(Packages.Dev.JestGlobals)
+	local jestExpect = JestGlobals.expect
 	local RegExp = require(Packages.LuauRegExp)
 	local equal = require(script.Parent.Parent.equal)
 	describe("equal", function()

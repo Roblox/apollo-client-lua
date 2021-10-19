@@ -4,9 +4,9 @@ return function()
 	local srcWorkspace = script.Parent.Parent.Parent.Parent
 	local rootWorkspace = srcWorkspace.Parent
 
-	local JestRoblox = require(rootWorkspace.Dev.JestRoblox)
-	local jestExpect = JestRoblox.Globals.expect
-	local _jest = JestRoblox.Globals.jest
+	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
+	local jestExpect = JestGlobals.expect
+	local _jest = JestGlobals.jest
 	type JestMock = { mockClear: (self: any, ...any) -> (), mock: any } & typeof(setmetatable({}, {
 		__call = function(self, ...: any): ...any
 			return ...

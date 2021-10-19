@@ -14,9 +14,9 @@ return function()
 	local waitForCompletion = require(srcWorkspace.testUtils.waitForCompletion)
 	local HttpService = game:GetService("HttpService")
 
-	local JestRoblox = require(rootWorkspace.Dev.JestRoblox)
-	local jestExpect = JestRoblox.Globals.expect
-	local jest = JestRoblox.Globals.jest
+	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
+	local jestExpect = JestGlobals.expect
+	local jest = JestGlobals.jest
 
 	local gql = require(rootWorkspace.Dev.GraphQLTag).default
 	local graphQLModule = require(rootWorkspace.GraphQL)

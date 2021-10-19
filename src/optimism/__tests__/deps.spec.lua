@@ -4,8 +4,8 @@
 return function()
 	local rootWorkspace = script.Parent.Parent.Parent.Parent
 
-	local JestRoblox = require(rootWorkspace.Dev.JestRoblox)
-	local jestExpect = JestRoblox.Globals.expect
+	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
+	local jestExpect = JestGlobals.expect
 
 	local ParentModule = require(script.Parent.Parent)
 	local wrap = ParentModule.wrap

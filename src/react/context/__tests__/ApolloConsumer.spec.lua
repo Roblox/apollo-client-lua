@@ -5,8 +5,8 @@ return function()
 	local rootWorkspace = script.Parent.Parent.Parent.Parent
 	local packagesWorkspace = rootWorkspace.Parent
 
-	local JestRoblox = require(packagesWorkspace.Dev.JestRoblox)
-	local jestExpect = JestRoblox.Globals.expect
+	local JestGlobals = require(packagesWorkspace.Dev.JestGlobals)
+	local jestExpect = JestGlobals.expect
 
 	local bootstrap = require(rootWorkspace.utilities.common.bootstrap)
 

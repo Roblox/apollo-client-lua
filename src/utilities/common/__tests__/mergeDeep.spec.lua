@@ -13,8 +13,8 @@ return function()
 
 	local HttpService = game:GetService("HttpService")
 
-	local JestRoblox = require(rootWorkspace.Dev.JestRoblox)
-	local jestExpect = JestRoblox.Globals.expect
+	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
+	local jestExpect = JestGlobals.expect
 
 	local mergeDeepModule = require(script.Parent.Parent.mergeDeep)
 	local mergeDeep = mergeDeepModule.mergeDeep

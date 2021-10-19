@@ -7,8 +7,8 @@ return function()
 	local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 	local Symbol = LuauPolyfill.Symbol
 
-	local JestRoblox = require(rootWorkspace.Dev.JestRoblox)
-	local jestExpect = JestRoblox.Globals.expect
+	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
+	local jestExpect = JestGlobals.expect
 
 	local stripSymbols = require(script.Parent.Parent.stripSymbols).stripSymbols
 	describe("stripSymbols", function()

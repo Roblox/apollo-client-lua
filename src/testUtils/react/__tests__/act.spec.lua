@@ -3,9 +3,9 @@
 local srcWorkspace = script.Parent.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 
-local JestRoblox = require(rootWorkspace.Dev.JestRoblox)
-local jestExpect = JestRoblox.Globals.expect
-local jest = JestRoblox.Globals.jest
+local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
+local jestExpect = JestGlobals.expect
+local jest = JestGlobals.jest
 
 local React = require(rootWorkspace.React)
 
@@ -42,7 +42,7 @@ return function()
 
 		-- ROBLOX deviation: not using fireEvent
 		-- it("fireEvent triggers useEffect calls", function()
-		-- 	local effectCb = jest:fn()
+		-- 	local effectCb = jest.fn()
 		-- 	local function Counter()
 		-- 		React.useEffect(effectCb)
 		-- 		local count, setCount = table.unpack(React.useState(0), 1, 2)
