@@ -14,7 +14,10 @@ exports.from = require(script.from).from
 exports.split = require(script.split).split
 exports.concat = require(script.concat).concat
 exports.execute = require(script.execute).execute
-exports.ApolloLink = require(script.ApolloLink).ApolloLink
+
+local apolloLinkModule = require(script.ApolloLink)
+exports.ApolloLink = apolloLinkModule.ApolloLink
+export type ApolloLink = apolloLinkModule.ApolloLink
 
 local typesModule = require(script.types)
 Object.assign(exports, typesModule)
