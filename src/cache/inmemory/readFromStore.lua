@@ -142,7 +142,7 @@ local function execSelectionSetKeyArgs(options: ExecSelectionSetOptions): ExecSe
 	}
 end
 
-type StoreReader = {
+export type StoreReader = {
 	canon: ObjectCanon,
 	resetCanon: (self: StoreReader) -> (),
 	diffQueryAgainstStore: (self: StoreReader, ref: DiffQueryAgainstStoreOptions) -> Cache_DiffResult<T_>,
@@ -187,7 +187,7 @@ function StoreReader.new(config: StoreReaderConfig): StoreReader
 
 	self.canon = Boolean.toJSBoolean(config.canon) and config.canon :: ObjectCanon or ObjectCanon.new()
 
-	self.executeSelectionSet = wrap(function(options)
+	self.executeSelectionSet = wrap(function(_self, options)
 		local canonizeResults = options.context.canonizeResults
 
 		local peekArgs = execSelectionSetKeyArgs(options)
@@ -218,12 +218,14 @@ function StoreReader.new(config: StoreReaderConfig): StoreReader
 		return self:execSelectionSetImpl(options)
 	end, {
 		max = self.config.resultCacheMaxSize,
-		keyArgs = execSelectionSetKeyArgs,
+		keyArgs = function(_self, ...)
+			return execSelectionSetKeyArgs(...)
+		end,
 		-- Note that the parameters of makeCacheKey are determined by the
 		-- array returned by keyArgs.
 		makeCacheKey = function(selectionSet, parent, context, canonizeResults): Object | nil
 			if supportsResultCaching(context.store) then
-				return ((context.store :: any) :: EntityStore).makeCacheKey(
+				return ((context.store :: any) :: EntityStore):makeCacheKey(
 					selectionSet,
 					Boolean.toJSBoolean(isReference(parent)) and parent.__ref or parent,
 					context.varString,
@@ -234,7 +236,7 @@ function StoreReader.new(config: StoreReaderConfig): StoreReader
 		end,
 	})
 
-	self.executeSubSelectedArray = wrap(function(options: ExecSubSelectedArrayOptions)
+	self.executeSubSelectedArray = wrap(function(_self, options: ExecSubSelectedArrayOptions)
 		maybeDependOnExistenceOfEntity(options.context.store, options.enclosingRef.__ref)
 		return self:execSubSelectedArrayImpl(options)
 	end, {
@@ -242,7 +244,7 @@ function StoreReader.new(config: StoreReaderConfig): StoreReader
 		makeCacheKey = function(ref): Object | nil
 			local field, array, context = ref.field, ref.array, ref.context
 			if supportsResultCaching(context.store) then
-				return ((context.store :: any) :: EntityStore).makeCacheKey(field, array, context.varString)
+				return ((context.store :: any) :: EntityStore):makeCacheKey(field, array, context.varString)
 			end
 			return nil
 		end,

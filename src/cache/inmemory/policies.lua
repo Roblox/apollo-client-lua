@@ -9,17 +9,17 @@ local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Boolean = LuauPolyfill.Boolean
 local Array = LuauPolyfill.Array
 local Object = LuauPolyfill.Object
-type Object = LuauPolyfill.Object
 local Set = LuauPolyfill.Set
 local Map = LuauPolyfill.Map
 type Array<T> = LuauPolyfill.Array<T>
+type Object = LuauPolyfill.Object
 type Set<T> = LuauPolyfill.Set<T>
 type Map<K, V> = LuauPolyfill.Map<K, V>
 type Function = (...any) -> ...any
-export type Record<T, U> = { [T]: U }
-export type ReturnType<T> = any
-export type Exclude<T, V> = T
-export type Readonly<T> = T
+type Record<T, U> = { [T]: U }
+type ReturnType<T> = any
+type Exclude<T, V> = T
+type Readonly<T> = T
 
 local RegExp = require(rootWorkspace.LuauRegExp)
 type RegExp = RegExp.RegExp
@@ -66,30 +66,17 @@ type IdGetter = (any) -> string | nil -- typesModule.IdGetter
 type MergeInfo = { field: FieldNode, typename: string | nil, merge: Function } -- typesModule.MergeInfo
 type NormalizedCache = { [string]: any } -- typesModule.NormalizedCache
 type ReadMergeModifyContext = { [string]: any } -- typesModule.ReadMergeModifyContext
--- ROBLOX TODO: use real dependency when implemented
--- local helpersModule = require(script.Parent.helpers)
+local helpersModule = require(script.Parent.helpers)
 -- ROBLOX deviation: using luaUtils implementation instead of one from helpers
 local hasOwn = require(srcWorkspace.luaUtils.hasOwnProperty)
--- local fieldNameFromStoreName = helpersModule.fieldNameFromStoreName
-local fieldNameFromStoreName = function(...)
-	return ""
-end
--- local storeValueIsStoreObject = helpersModule.storeValueIsStoreObject
-local storeValueIsStoreObject = function(...)
-	return false
-end
--- local selectionSetMatchesResult = helpersModule.selectionSetMatchesResult
-local selectionSetMatchesResult = function(...)
-	return nil
-end
--- local TypeOrFieldNameRegExp = helpersModule.TypeOrFieldNameRegExp
-local TypeOrFieldNameRegExp = RegExp("^[_a-z][_0-9a-z]*", "i")
--- ROBLOX TODO: use real dependency when implemented
--- local cacheSlot = require(script.Parent.reactiveVars).cacheSlot
-local cacheSlot = { withValue = function(...) end }
--- ROBLOX TODO: use real dependency when implemented
--- local InMemoryCache = require(script.Parent.inMemoryCache).InMemoryCache
-type InMemoryCache = any
+local fieldNameFromStoreName = helpersModule.fieldNameFromStoreName
+local storeValueIsStoreObject = helpersModule.storeValueIsStoreObject
+local selectionSetMatchesResult = helpersModule.selectionSetMatchesResult
+local TypeOrFieldNameRegExp = helpersModule.TypeOrFieldNameRegExp
+local cacheSlot = require(script.Parent.reactiveVars).cacheSlot
+-- local inMemoryCacheModule = require(script.Parent.inMemoryCache)
+-- local InMemoryCache = inMemoryCacheModule.InMemoryCache
+type InMemoryCache = any -- inMemoryCacheModule.InMemoryCache
 -- ROBLOX TODO: use real dependency when implemented
 -- local commonModule = require(script.Parent.Parent.core.types.common)
 -- ROBLOX TODO: use real dependency when implemented
@@ -116,60 +103,20 @@ type WriteContext = { [string]: any } -- writeToStoreModule.WriteContext
 -- local canonicalStringify = require(script.Parent["object-canon"]).canonicalStringify
 -- getStoreKeyName:setStringify(canonicalStringify)
 
-export type TypePolicies = {
-	[string]: TypePolicy, -- [__typename: string]
-}
+local policiesTypesModule = require(script.Parent.policies_types)
 
--- TypeScript 3.7 will allow recursive type aliases, so this should work:
--- type KeySpecifier = (string | KeySpecifier)[]
-type KeySpecifier = Array<string | Array<any>>
-type KeyFieldsContext = {
-	typename: string?,
-	selectionSet: SelectionSetNode?,
-	fragmentMap: FragmentMap?,
-	-- May be set by the KeyFieldsFunction to report fields that were involved
-	-- in computing the ID. Never passed in by the caller.
-	keyObject: Record<string, any>?,
-}
-export type KeyFieldsFunction = (
-	object: Readonly<StoreObject>,
-	context: KeyFieldsContext
-) -> KeySpecifier | boolean | ReturnType<IdGetter> -- ROBLOX deviation: KeySpecifier | false | ReturnType<IdGetter>
+export type TypePolicies = policiesTypesModule.TypePolicies
 
-type KeyFieldsResult = Exclude<ReturnType<KeyFieldsFunction>, KeySpecifier>
+type KeySpecifier = policiesTypesModule.KeySpecifier
+type KeyFieldsContext = policiesTypesModule.KeyFieldsContext
+export type KeyFieldsFunction = policiesTypesModule.KeyFieldsFunction
+type KeyFieldsResult = policiesTypesModule.KeyFieldsResult
 
--- TODO Should TypePolicy be a generic type, with a TObject or TEntity
--- type parameter?
-export type TypePolicy = {
-	-- Allows defining the primary key fields for this type, either using an
-	-- array of field names or a function that returns an arbitrary string.
-	keyFields: (KeySpecifier | KeyFieldsFunction | boolean)?, -- ROBLOX deviation: KeySpecifier | KeyFieldsFunction | false
+export type TypePolicy = policiesTypesModule.TypePolicy
 
-	-- Allows defining a merge function (or merge:true/false shorthand) to
-	-- be used for merging objects of this type wherever they appear, unless
-	-- the parent field also defines a merge function/boolean (that is,
-	-- parent field merge functions take precedence over type policy merge
-	-- functions). In many cases, defining merge:true for a given type
-	-- policy can save you from specifying merge:true for all the field
-	-- policies where that type might be encountered.
-	merge: (FieldMergeFunction<any, any> | boolean)?,
+export type KeyArgsFunction = policiesTypesModule.KeyArgsFunction
 
-	-- In the rare event that your schema happens to use a different
-	-- __typename for the root Query, Mutation, and/or Schema types, you can
-	-- express your deviant preferences by enabling one of these options.
-	queryType: boolean?, -- ROBLOX deviation: true
-	mutationType: boolean?, -- ROBLOX deviation: true
-	subscriptionType: boolean?, -- ROBLOX deviation: true
-
-	fields: ({ [string]: FieldPolicy<any, any, any> | FieldReadFunction<any, any> })?,
-}
-
-export type KeyArgsFunction = (
-	args: Record<string, any> | nil,
-	context: { typename: string, fieldName: string, field: FieldNode | nil, variables: Record<string, any>? }
-) -> KeySpecifier | boolean | ReturnType<IdGetter> -- ROBLOX deviation: KeySpecifier | false | ReturnType<IdGetter>
-
-type KeyArgsResult = Exclude<ReturnType<KeyArgsFunction>, KeySpecifier>
+type KeyArgsResult = policiesTypesModule.KeyArgsResult
 
 -- The internal representation used to store the field's data in the
 -- cache. Must be JSON-serializable if you plan to serialize the result
@@ -186,13 +133,10 @@ type KeyArgsResult = Exclude<ReturnType<KeyArgsFunction>, KeySpecifier>
 -- data and options.args as input. Usually the same as TIncoming.
 -- ROBLOX deviation: TReadResult = TIncoming,
 -- TReadResult
-export type FieldPolicy<TExisting, TIncoming, TReadResult> = {
-	keyArgs: (KeySpecifier | KeyArgsFunction | boolean)?, -- ROBLOX deviation: KeySpecifier | KeyArgsFunction | false
-	read: FieldReadFunction<TExisting, TReadResult>?,
-	merge: (FieldMergeFunction<TExisting, TIncoming> | boolean)?,
-}
+export type FieldPolicy<TExisting, TIncoming, TReadResult> =
+	policiesTypesModule.FieldPolicy<TExisting, TIncoming, TReadResult>
 
-export type StorageType = Record<string, any>
+export type StorageType = policiesTypesModule.StorageType
 
 local function argsFromFieldSpecifier(spec: FieldSpecifier)
 	return (function()
@@ -209,74 +153,13 @@ local function argsFromFieldSpecifier(spec: FieldSpecifier)
 		end
 	end)()
 end
-export type FieldFunctionOptions<TArgs, TVars> = {
-	args: TArgs | nil,
+export type FieldFunctionOptions<TArgs, TVars> = policiesTypesModule.FieldFunctionOptions<TArgs, TVars>
 
-	-- The name of the field, equal to options.field.name.value when
-	-- options.field is available. Useful if you reuse the same function for
-	-- multiple fields, and you need to know which field you're currently
-	-- processing. Always a string, even when options.field is null.
-	fieldName: string,
+type MergeObjectsFunction = policiesTypesModule.MergeObjectsFunction
+-- --[[ <T extends StoreObject | Reference>(existing: T, incoming: T) => T ]]
+export type FieldReadFunction<T, V> = policiesTypesModule.FieldReadFunction<T, V>
+export type FieldMergeFunction<T, V> = policiesTypesModule.FieldMergeFunction<T, V>
 
-	-- The full field key used internally, including serialized key arguments.
-	storeFieldName: string,
-
-	-- The FieldNode object used to read this field. Useful if you need to
-	-- know about other attributes of the field, such as its directives. This
-	-- option will be null when a string was passed to options.readField.
-	field: FieldNode | nil,
-
-	variables: TVars?,
-
-	-- Utilities for dealing with { __ref } objects.
-	isReference: typeof(isReference),
-	toReference: ToReferenceFunction,
-
-	-- A handy place to put field-specific data that you want to survive
-	-- across multiple read function calls. Useful for field-level caching,
-	-- if your read function does any expensive work.
-	storage: StorageType,
-
-	cache: InMemoryCache,
-
-	-- Helper function for reading other fields within the current object.
-	-- If a foreign object or reference is provided, the field will be read
-	-- from that object instead of the current object, so this function can
-	-- be used (together with isReference) to examine the cache outside the
-	-- current object. If a FieldNode is passed instead of a string, and
-	-- that FieldNode has arguments, the same options.variables will be used
-	-- to compute the argument values. Note that this function will invoke
-	-- custom read functions for other fields, if defined. Always returns
-	-- immutable data (enforced with Object.freeze in development).
-	readField: ReadFieldFunction,
-
-	-- Returns true for non-normalized StoreObjects and non-dangling
-	-- References, indicating that readField(name, objOrRef) has a chance of
-	-- working. Useful for filtering out dangling references from lists.
-	canRead: CanReadFunction,
-
-	-- Instead of just merging objects with { ...existing, ...incoming }, this
-	-- helper function can be used to merge objects in a way that respects any
-	-- custom merge functions defined for their fields.
-	mergeObjects: MergeObjectsFunction,
-}
-
-type MergeObjectsFunction = any --[[ ROBLOX TODO: Unhandled node for type: TSFunctionType ]]
---[[ <T extends StoreObject | Reference>(existing: T, incoming: T) => T ]]
-export type FieldReadFunction<T, V> = any --[[ ROBLOX TODO: Unhandled node for type: TSFunctionType ]]
---[[ ( // When reading a field, one often needs to know about any existing
-// value stored for that field. If the field is read before any value
-// has been written to the cache, this existing parameter will be
-// undefined, which makes it easy to use a default parameter expression
-// to supply the initial value. This parameter is positional (rather
-// than one of the named options) because that makes it possible for the
-// developer to annotate it with a type, without also having to provide
-// a whole new type for the options object.
-existing: SafeReadonly<TExisting> | undefined, options: FieldFunctionOptions) => TReadResult | undefined ]]
-export type FieldMergeFunction<T, V> = any --[[ ROBLOX TODO: Unhandled node for type: TSFunctionType ]]
---[[ (existing: SafeReadonly<TExisting> | undefined, // The incoming parameter needs to be positional as well, for the same
-// reasons discussed in FieldReadFunction above.
-incoming: SafeReadonly<TIncoming>, options: FieldFunctionOptions) => SafeReadonly<TExisting> ]]
 local function defaultDataIdFromObject(ref, context: KeyFieldsContext?): string | nil
 	local __typename, id, _id = ref.__typename, ref.id, ref._id
 	if typeof(__typename) == "string" then
@@ -355,7 +238,7 @@ export type Policies = {
 		self: Policies,
 		options: ReadFieldOptions,
 		context: ReadMergeModifyContext
-	) -> SafeReadonly<V> | nil,
+	) -> SafeReadonly<V_> | nil,
 	getMergeFunction: (
 		self: Policies,
 		parentTypename: string | nil,
@@ -878,7 +761,7 @@ function Policies:fragmentMatches(
 				-- after we verify the supertype, but this check is often less
 				-- expensive than that search, and we will have to do the
 				-- comparison anyway whenever we find a potential match.
-				and Boolean.toJSBoolean(selectionSetMatchesResult(fragment.selectionSet, result, variables))
+				and selectionSetMatchesResult(fragment.selectionSet, result :: any, variables)
 			then
 				-- We don't always need to check fuzzy subtypes (if no result
 				-- was provided, or !this.fuzzySubtypes.size), but, when we do,
@@ -964,12 +847,12 @@ function Policies:getStoreFieldName(fieldSpec: FieldSpecifier): string
 	if fieldName == fieldNameFromStoreName(storeFieldName) then
 		return storeFieldName
 	else
-		return (fieldName .. ":") + storeFieldName
+		return fieldName .. ":" .. storeFieldName
 	end
 end
 
-type V = any
-function Policies:readField--[[<V = StoreValue>]](options: ReadFieldOptions, context: ReadMergeModifyContext): SafeReadonly<V> | nil
+type V_ = any
+function Policies:readField--[[<V = StoreValue>]](options: ReadFieldOptions, context: ReadMergeModifyContext): SafeReadonly<V_> | nil
 	local objectOrReference = options.from
 	if not objectOrReference then
 		return
@@ -1019,7 +902,7 @@ function Policies:readField--[[<V = StoreValue>]](options: ReadFieldOptions, con
 		)
 
 		-- Call read(existing, readOptions) with cacheSlot holding this.cache.
-		return cacheSlot:withValue(self.cache, read, { existing, readOptions }) :: SafeReadonly<V>
+		return cacheSlot:withValue(self.cache, read, { existing, readOptions }) :: SafeReadonly<V_>
 	end
 
 	return existing

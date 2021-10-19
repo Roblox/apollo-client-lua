@@ -15,6 +15,12 @@ type Set<T> = LuauPolyfill.Set<T>
 type Record<T, U> = { [T]: U }
 type Object = { [string]: any }
 
+-- ROBLOX deviation: need None table to allow for nil values to be handled merge
+local NONE = newproxy(true)
+getmetatable(NONE :: any).__tostring = function()
+	return "Value.None"
+end
+
 local isNonNullObject = require(script.Parent.objects).isNonNullObject
 local hasOwnProperty = require(srcWorkspace.luaUtils.hasOwnProperty)
 
@@ -133,6 +139,10 @@ function DeepMerger:merge(target: any, source: any, ...: TContextArgs): any
 				target = self:shallowCopyForMerge(target)
 				target[sourceKey] = source[sourceKey]
 			end
+			-- ROBLOX deviation
+			if target[sourceKey] == NONE then
+				target[sourceKey] = nil
+			end
 		end)
 
 		return target
@@ -173,6 +183,8 @@ function DeepMerger:shallowCopyForMerge(value: T_): T_
 	end
 	return value
 end
+
+DeepMerger.None = NONE
 
 exports.DeepMerger = DeepMerger
 

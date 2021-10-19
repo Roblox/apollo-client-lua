@@ -209,7 +209,7 @@ exports.cleanup = cleanup
 -- 	return returnValue
 -- end
 
--- Object:keys(dtlFireEvent):forEach(function(key)
+-- Object.keys(dtlFireEvent):forEach(function(key)
 -- 	fireEvent[tostring(key)] = function(
 -- 		__unhandledIdentifier__ --[[ ROBLOX TODO: Unhandled node for type: RestElement ]]	--[[ ...args ]]
 

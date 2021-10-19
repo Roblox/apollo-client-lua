@@ -36,7 +36,7 @@ local broadcast
 
 export type ReactiveVar<T> = typeof(setmetatable(
 	{},
-	{ __call = (function() end :: any) :: ((self: any, newValue: T?) -> ...T?) }
+	{ __call = (function() end :: any) :: ((self: any, newValue: T?) -> T) }
 )) & {
 	onNextChange: (self: ReactiveVar<T>, listener: ReactiveListener<T>) -> (() -> ()),
 	attachCache: (self: ReactiveVar<T>, cache: ApolloCache<any>) -> any,

@@ -276,7 +276,7 @@ type SortedKeysInfo = { sorted: Array<string>, json: string }
 -- version of JSON.stringify, which automatically sorts object keys.
 local canonicalStringify = Object.assign(
 	setmetatable({}, {
-		__call = function(value: any): string
+		__call = function(_self, value: any): string
 			if Boolean.toJSBoolean(isObjectOrArray(value)) then
 				local canonical = stringifyCanon:admit(value)
 				local json = stringifyCache:get(canonical)

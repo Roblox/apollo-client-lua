@@ -137,7 +137,6 @@ local function relayStylePagination(keyArgs: KeyArgs?): RelayFieldPolicy<TNode_>
 	return {
 		keyArgs = keyArgs,
 		read = function(_self, existing, ref)
-			local canRead, readField = ref.canRead, ref.readField
 			if not Boolean.toJSBoolean(existing) then
 				return
 			end
@@ -149,7 +148,7 @@ local function relayStylePagination(keyArgs: KeyArgs?): RelayFieldPolicy<TNode_>
 			Array.forEach(existing.edges, function(edge)
 				-- Edges themselves could be Reference objects, so it's important
 				-- to use readField to access the edge.edge.node property.
-				if canRead(readField("node", edge)) then
+				if ref:canRead(ref:readField("node", edge)) then
 					table.insert(edges, edge)
 					if Boolean.toJSBoolean(edge.cursor) then
 						if Boolean.toJSBoolean(firstEdgeCursor) then
@@ -197,14 +196,14 @@ local function relayStylePagination(keyArgs: KeyArgs?): RelayFieldPolicy<TNode_>
 			if existing == nil then
 				existing = makeEmptyData()
 			end
-			local args, isReference, readField = ref.args, ref.isReference, ref.readField
+			local args = ref.args
 
 			local incomingEdges
 			if Boolean.toJSBoolean(incoming.edges) then
 				incomingEdges = Array.map(incoming.edges, function(edge)
 					edge = Object.assign({}, edge)
-					if isReference(edge) then
-						edge.cursor = readField("cursor", edge)
+					if ref:isReference(edge) then
+						edge.cursor = ref:readField("cursor", edge)
 					end
 					return edge
 				end)

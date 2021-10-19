@@ -141,7 +141,7 @@ export type ApolloCache<TSerialized> = DataProxy & {
 	read: (self: ApolloCache<TSerialized>, query: Cache_ReadOptions<TVariables_, T_>) -> T_ | nil,
 	write: (self: ApolloCache<TSerialized>, write: Cache_WriteOptions<TResult_, TVariables_>) -> Reference | nil,
 	diff: (self: ApolloCache<TSerialized>, query: Cache_DiffOptions<any, any>) -> Cache_DiffResult<T_>,
-	watch: (self: ApolloCache<TSerialized>, watch: Cache_WatchOptions<Record<string, any>>) -> (),
+	watch: (self: ApolloCache<TSerialized>, watch: Cache_WatchOptions<Record<string, any>>) -> (() -> ()),
 	reset: (self: ApolloCache<TSerialized>) -> Promise<nil>,
 
 	-- Remove whole objects from the cache by passing just options.id, or
@@ -248,7 +248,7 @@ end
 function ApolloCache:diff(query: Cache_DiffOptions<any, any>): Cache_DiffResult<T_>
 	error("not implemented abstract method")
 end
-function ApolloCache:watch(watch: Cache_WatchOptions<Record<string, any>>): ()
+function ApolloCache:watch(watch: Cache_WatchOptions<Record<string, any>>): () -> ()
 	error("not implemented abstract method")
 end
 function ApolloCache:reset(): Promise<any>
@@ -353,7 +353,7 @@ end
 function ApolloCache:writeQuery(ref): Reference | nil
 	local id, data, options = ref.id, ref.data, Object.assign({}, ref, { id = Object.None, data = Object.None })
 	return self:write(
-		Object:assign(options, { dataId = Boolean.toJSBoolean(id) and id or "ROOT_QUERY", result = data })
+		Object.assign(options, { dataId = Boolean.toJSBoolean(id) and id or "ROOT_QUERY", result = data })
 	)
 end
 
@@ -369,7 +369,7 @@ function ApolloCache:writeFragment(ref): Reference | nil
 			{ id = Object.None, data = Object.None, fragment = Object.None, fragmentName = Object.None }
 		)
 	return self:write(
-		Object:assign(options, { query = self:getFragmentDoc(fragment, fragmentName), dataId = id, result = data })
+		Object.assign(options, { query = self:getFragmentDoc(fragment, fragmentName), dataId = id, result = data })
 	)
 end
 

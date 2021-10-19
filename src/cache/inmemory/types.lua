@@ -27,7 +27,7 @@ export type Reference = utilitiesModule.Reference
 -- ROBLOX deviation: bringing the type inline to avoid circular dependency
 type FieldValueGetter = (self: any, objectOrReference: StoreObject | Reference | nil, storeFieldName: string) -> any
 
-local policiesModule = require(script.Parent.policies)
+local policiesModule = require(script.Parent.policies_types)
 type KeyFieldsFunction = policiesModule.KeyFieldsFunction
 type StorageType = policiesModule.StorageType
 type FieldMergeFunction<T, V> = policiesModule.FieldMergeFunction<T, V>

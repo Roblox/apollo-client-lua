@@ -10,6 +10,7 @@ local Boolean = LuauPolyfill.Boolean
 local instanceOf = LuauPolyfill.instanceof
 local Object = LuauPolyfill.Object
 local Set = LuauPolyfill.Set
+local isCallable = require(srcWorkspace.luaUtils.isCallable)
 type Object = LuauPolyfill.Object
 type Array<T> = LuauPolyfill.Array<T>
 type Set<T> = LuauPolyfill.Set<T>
@@ -85,7 +86,7 @@ local supportsResultCaching
 export type EntityStore = {
 	policies: Policies,
 	group: CacheGroup,
-	addLayer: (self: EntityStore, layerId: string, replay: (layer: EntityStore) -> any) -> Layer,
+	addLayer: (self: EntityStore, layerId: string, replay: (layer: EntityStore) -> any?) -> Layer,
 	removeLayer: (self: EntityStore, layerId: string) -> EntityStore,
 	toObject: (self: EntityStore) -> NormalizedCacheObject,
 	has: (self: EntityStore, dataId: string) -> boolean,
@@ -310,7 +311,7 @@ function EntityStore:merge(older: string | StoreObject, newer: StoreObject | str
 				then
 					-- Always dirty the full storeFieldName, which may include
 					-- serialized arguments following the fieldName prefix.
-					fieldsToDirty[tostring(storeFieldName)] = 1
+					fieldsToDirty[storeFieldName] = 1
 
 					-- Also dirty fieldNameFromStoreName(storeFieldName) if it's
 					-- different from storeFieldName and this field does not have
@@ -383,10 +384,11 @@ function EntityStore:modify(dataId: string, fields: Modifier<any> | Modifiers): 
 				return
 			end
 			local modify: Modifier<StoreValue>
-			if typeof(fields) == "function" then
-				modify = fields
+			if isCallable(fields) then
+				modify = fields :: Modifier<any>
 			else
-				modify = Boolean.toJSBoolean(fields[storeFieldName]) and fields[storeFieldName] or fields[fieldName]
+				local fields_ = fields :: Modifiers
+				modify = Boolean.toJSBoolean(fields_[storeFieldName]) and fields_[storeFieldName] or fields_[fieldName]
 			end
 
 			if Boolean.toJSBoolean(modify) then
@@ -403,16 +405,14 @@ function EntityStore:modify(dataId: string, fields: Modifier<any> | Modifiers): 
 						})
 					)
 				end
-
 				if newValue == INVALIDATE then
 					self.group:dirty(dataId, storeFieldName)
 				else
 					if newValue == DELETE then
-						newValue = nil
+						newValue = DeepMerger.None
 					end
-
 					if newValue ~= fieldValue then
-						changedFields[tostring(storeFieldName)] = newValue
+						changedFields[storeFieldName] = newValue
 						needToMerge = true
 						fieldValue = newValue
 					end
@@ -435,6 +435,7 @@ function EntityStore:modify(dataId: string, fields: Modifier<any> | Modifiers): 
 				end
 				self.group:dirty(dataId, "__exists")
 			end
+
 			return true
 		end
 	end
@@ -681,7 +682,7 @@ end
 
 function CacheGroup:depend(dataId: string, storeFieldName: string)
 	if Boolean.toJSBoolean(self.d) then
-		self:d(makeDepKey(dataId, storeFieldName))
+		self.d(makeDepKey(dataId, storeFieldName))
 		local fieldName = fieldNameFromStoreName(storeFieldName)
 		if fieldName ~= storeFieldName then
 			-- Fields with arguments that contribute extra identifying
@@ -689,7 +690,7 @@ function CacheGroup:depend(dataId: string, storeFieldName: string)
 			-- depend not only on the full storeFieldName but also on the
 			-- short fieldName, so the field can be invalidated using either
 			-- level of specificity.
-			self:d(makeDepKey(dataId, fieldName))
+			self.d(makeDepKey(dataId, fieldName))
 		end
 		if Boolean.toJSBoolean(self.parent) then
 			self.parent:depend(dataId, storeFieldName)
@@ -790,7 +791,7 @@ type Layer = EntityStore & {
 	parent: EntityStore,
 	replay: (self: Layer, layer: EntityStore) -> any,
 	group: CacheGroup,
-	addLayer: (self: Layer, layerId: string, replay: (layer: EntityStore) -> any) -> Layer,
+	addLayer: (self: Layer, layerId: string, replay: (layer: EntityStore) -> any?) -> Layer,
 	removeLayer: (self: Layer, layerId: string) -> EntityStore,
 	toObject: (self: Layer) -> NormalizedCacheObject,
 	findChildRefIds: (self: Layer, dataId: string) -> Record<string, boolean>,
@@ -920,7 +921,12 @@ function Stump:merge(...)
 	return self.parent:merge(...)
 end
 
-function storeObjectReconciler(existingObject: StoreObject, incomingObject: StoreObject, property: string): StoreValue
+function storeObjectReconciler(
+	_self,
+	existingObject: StoreObject,
+	incomingObject: StoreObject,
+	property: string
+): StoreValue
 	local existingValue = existingObject[property]
 	local incomingValue = incomingObject[property]
 	-- Wherever there is a key collision, prefer the incoming value, unless

@@ -24,6 +24,12 @@ type TValue_ = any
 
 local exports = {}
 
+-- ROBLOX deviation: need None table to allow for nil values to be handled via valueGet
+local NONE = newproxy(true)
+getmetatable(NONE :: any).__tostring = function()
+	return "Value.None"
+end
+
 -- ROBLOX deviation: predefine functions
 local rememberParent
 local reallyRecompute
@@ -92,6 +98,10 @@ local function valueGet(value: Value<T_>): T_
 	if value[2] ~= nil then
 		error(value[2])
 	elseif value[1] ~= nil then
+		-- ROBLOX deviation: special handling for NONE value
+		if value[1] == NONE then
+			return nil
+		end
 		return value[1]
 	else
 		error(Error.new("unknown value"))
@@ -270,6 +280,10 @@ function recomputeNewValue(self, entry: AnyEntry, args: Array<any>)
 	local ok, e = pcall(function()
 		-- If entry.fn succeeds, entry.value will become a normal Value.
 		entry.value[1] = entry.fn(table.unpack(args))
+		-- ROBLOX deviation: if returned value is nil use None instead to be able to check in valueGet
+		if entry.value[1] == nil then
+			entry.value[1] = NONE
+		end
 		return nil
 	end)
 	if not ok then

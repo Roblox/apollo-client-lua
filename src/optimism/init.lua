@@ -83,7 +83,10 @@ export type OptimisticWrapOptions<TArgs, TKeyArgs, TCacheKey> =
 
 local caches = Set.new()
 
-local function wrap(originalFunction: (...any) -> TResult_, options_: OptimisticWrapOptions<TArgs_, TKeyArgs_, any>?)
+local function wrap(
+	originalFunction: (...any) -> ...TResult_,
+	options_: OptimisticWrapOptions<TArgs_, TKeyArgs_, any>?
+): OptimisticWrapperFunction<TArgs_, TResult_, TKeyArgs_, TCacheKey_>
 	local options: OptimisticWrapOptions<TArgs_, TKeyArgs_, any> = options_ :: any
 	if options == nil then
 		options = {} :: any

@@ -25,7 +25,7 @@ local function defaultMakeData()
 end
 
 -- Useful for processing arguments objects as well as arrays.
-local forEach, slice = Array.map, Array.slice
+local forEach, slice = Array.forEach, Array.slice
 
 local Trie = {}
 Trie.__index = Trie
@@ -101,7 +101,6 @@ function Trie:lookupArray(array: LookupArray_T): Trie_Data
 	local node: Trie<Trie_Data> = self
 	forEach(array, function(key)
 		node = node:getChildTrie(key)
-		return nil
 	end)
 	if not Boolean.toJSBoolean(node.data) then
 		node.data = ((self :: any) :: Trie<Trie_Data>).makeData(slice(array))

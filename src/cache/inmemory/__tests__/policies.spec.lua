@@ -990,10 +990,9 @@ return function()
 						Person = {
 							keyFields = { "firstName", "lastName" },
 							fields = {
-								fullName = function(self, _, ref)
-									local readField = ref.readField
-									local firstName = readField("firstName")
-									local lastName = readField("lastName")
+								fullName = function(_self, _, ref)
+									local firstName = ref:readField("firstName")
+									local lastName = ref:readField("lastName")
 									return ("%s %s"):format(firstName, lastName)
 								end,
 							},
@@ -1356,14 +1355,13 @@ return function()
 										if existing == nil then
 											existing = {}
 										end
-										local readField = ref.readField
 										if Boolean.toJSBoolean(existing) then
 											local merged = existing:slice(0)
 											local existingIsbnSet = Set.new(merged:map(function(book)
-												return readField("isbn", book)
+												return ref:readField("isbn", book)
 											end))
 											incoming:forEach(function(book)
-												local isbn = readField("isbn", book)
+												local isbn = ref:readField("isbn", book)
 												if not Boolean.toJSBoolean(existingIsbnSet:has(isbn)) then
 													existingIsbnSet:add(isbn)
 													merged:push(book)
@@ -1378,11 +1376,10 @@ return function()
 										existing: any --[[ ROBLOX TODO: Unhandled node for type: TSArrayType ]] --[[ any[] ]],
 										ref
 									)
-										local readField = ref.readField
 										if Boolean.toJSBoolean(existing) then
 											return existing:slice(0):sort(function(a, b)
-												local aTitle = readField("title", a)
-												local bTitle = readField("title", b)
+												local aTitle = ref:readField("title", a)
+												local bTitle = ref:readField("title", b)
 												if aTitle == bTitle then
 													return 0
 												end
@@ -1529,11 +1526,7 @@ return function()
 						Agenda = {
 							fields = {
 								taskCount = function(self, _, ref)
-									local readField = ref.readField
-									return (
-										error("not implemented") --[[ ROBLOX TODO: Unhandled node for type: TSNonNullExpression ]] --[[ readField<Reference[]>("tasks")! ]]
-
-									).length
+									return #(ref:readField("tasks") :: any)
 								end,
 								tasks = {
 									read = function(self, existing)
@@ -1567,8 +1560,7 @@ return function()
 						Task = {
 							fields = {
 								ownTime = function(self, _, ref)
-									local readField = ref.readField
-									local description = readField("description")
+									local description = ref:readField("description")
 									return Boolean.toJSBoolean(ownTimes[tostring(
 										error("not implemented") --[[ ROBLOX TODO: Unhandled node for type: TSNonNullExpression ]]
 										--[[ description! ]]
@@ -1578,7 +1570,6 @@ return function()
 									)](ownTimes) or 0
 								end,
 								totalTime = function(self, _, ref)
-									local readField, toReference = ref.readField, ref.toReference
 									local function total(
 										blockers: Readonly<any --[[ ROBLOX TODO: Unhandled node for type: TSArrayType ]] --[[ Reference[] ]]>,
 										seen
@@ -1595,13 +1586,13 @@ return function()
 												seen:add(blocker.__ref)
 												time += error("not implemented") --[[ readField<number>("ownTime", blocker)! ]]
 												--[[ ROBLOX TODO: Unhandled node for type: TSNonNullExpression ]]
-												time += total(readField("blockers", blocker), seen)
+												time += total(ref:readField("blockers", blocker), seen)
 											end
 										end)
 										return time
 									end
 									return total({
-										toReference({ __typename = "Task", id = readField("id") }) :: Reference,
+										ref:toReference({ __typename = "Task", id = ref:readField("id") }) :: Reference,
 									})
 								end,
 								blockers = {
@@ -1989,17 +1980,13 @@ return function()
 							fields = {
 								todos = {
 									keyArgs = {},
-									read = function(
-										self,
-										existing: any --[[ ROBLOX TODO: Unhandled node for type: TSArrayType ]] --[[ any[] ]],
-										ref
-									)
+									read = function(self, existing: Array<any>, ref)
 										local args, toReference, isReference =
 											ref.args, ref.toReference, ref.isReference
 										expect(
 											Boolean.toJSBoolean(not Boolean.toJSBoolean(existing))
 													and not Boolean.toJSBoolean(existing)
-												or Object:isFrozen(existing)
+												or Object.isFrozen(existing)
 										).toBe(true)
 										expect(typeof(toReference)).toBe("function")
 										local slice = existing:slice(
@@ -2032,7 +2019,7 @@ return function()
 										expect(
 											Boolean.toJSBoolean(not Boolean.toJSBoolean(existing))
 													and not Boolean.toJSBoolean(existing)
-												or Object:isFrozen(existing)
+												or Object.isFrozen(existing)
 										).toBe(true)
 										expect(typeof(toReference)).toBe("function")
 										local copy = (function()
@@ -3679,14 +3666,15 @@ return function()
 								end,
 							},
 							firstBook = function(self, _, ref)
-								local isReference, readField = ref.isReference, ref.readField
 								local firstBook: any --[[ ROBLOX TODO: Unhandled node for type: TSUnionType ]] --[[ Reference | null ]] =
 									nil
 								local firstYear: number
-								local bookRefs = Boolean.toJSBoolean(readField("books")) and readField("books") or {}
+								local bookRefs = Boolean.toJSBoolean(ref:readField("books"))
+										and ref:readField("books")
+									or {}
 								bookRefs:forEach(function(bookRef)
-									expect(isReference(bookRef)).toBe(true)
-									local year = readField("year", bookRef)
+									expect(ref:isReference(bookRef)).toBe(true)
+									local year = ref:readField("year", bookRef)
 									if
 										Boolean.toJSBoolean(
 											Boolean.toJSBoolean(firstYear == 0 and nil or nil)
@@ -3842,8 +3830,7 @@ return function()
 						keyFields = { "text" },
 						fields = {
 							style = function(self, _, ref)
-								local args, readField = ref.args, ref.readField
-								local text = readField("text")
+								local text = ref:readField("text")
 								repeat --[[ ROBLOX comment: switch statement conversion ]]
 									local entered_, break_ = false, false
 									local condition_ = error("not implemented") --[[ ROBLOX TODO: Unhandled node for type: OptionalMemberExpression ]]
@@ -3876,16 +3863,13 @@ return function()
 								until true
 							end,
 							upperCase = function(self, _, ref)
-								local readField = ref.readField
-								return readField({ fieldName = "style", args = { style = Style.UPPER } })
+								return ref:readField({ fieldName = "style", args = { style = Style.UPPER } })
 							end,
 							lowerCase = function(self, _, ref)
-								local readField = ref.readField
-								return readField({ fieldName = "style", args = { style = Style.LOWER } })
+								return ref:readField({ fieldName = "style", args = { style = Style.LOWER } })
 							end,
 							titleCase = function(self, _, ref)
-								local readField = ref.readField
-								return readField({ fieldName = "style", args = { style = Style.TITLE } })
+								return ref:readField({ fieldName = "style", args = { style = Style.TITLE } })
 							end,
 						},
 					},

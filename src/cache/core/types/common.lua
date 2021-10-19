@@ -79,9 +79,11 @@ export type ReadFieldOptions = FieldSpecifier & { from: (StoreObject | Reference
 -- ROBLOX deviation: luau doesnt support function generics yet. defining type to preserve information
 type V = StoreValue
 -- ROBLOX deviation: luau doesnt support function type overloading
-export type ReadFieldFunction =
-	((options: ReadFieldOptions) -> SafeReadonly<V>?)
-	| ((fieldName: string, from: (StoreObject | Reference)?) -> SafeReadonly<V>?)
+export type ReadFieldFunction = (
+	self: any,
+	optionsOrFieldName: ReadFieldOptions | string,
+	from: (StoreObject | Reference)?
+) -> SafeReadonly<V>?
 
 export type ToReferenceFunction = (
 	objOrIdOrRef: StoreObject | string | Reference,

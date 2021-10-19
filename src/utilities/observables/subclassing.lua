@@ -31,7 +31,7 @@ local function fixObservableSubclass(subclass: S_): S_
 		-- property is a getter by default in modern JS environments, so we
 		-- can't assign to it with a normal assignment expression.
 		-- ROBLOX deviation: no support for an Object.key type assignment. Assigning normally.
-		-- Object:defineProperty(subclass, key, { value = Observable })
+		-- Object.defineProperty(subclass, key, { value = Observable })
 		subclass[key] = Observable
 	end
 

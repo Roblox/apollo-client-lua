@@ -26,8 +26,8 @@ export type InclusionDirectives = directivesModule.InclusionDirectives
 -- exports.FragmentMap = fragmentsModule.FragmentMap
 export type FragmentMap = any
 -- exports.createFragmentMap = fragmentsModule.createFragmentMap
-exports.createFragmentMap = function(...)
-	error("fragments are not supported yet")
+exports.createFragmentMap = function()
+	warn("fragments are not supported yet")
 	return {}
 end
 -- exports.getFragmentQueryDocument = fragmentsModule.getFragmentQueryDocument

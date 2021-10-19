@@ -132,7 +132,7 @@ type StoreWriterPrivate = StoreWriter & {
 
 export type StoreWriter = {
 	cache: InMemoryCache,
-	writeToStore: (store: NormalizedCache, ref: Cache_WriteOptions<any, any>) -> Reference | nil,
+	writeToStore: (self: StoreWriter, store: NormalizedCache, ref: Cache_WriteOptions<any, any>) -> Reference | nil,
 }
 
 local StoreWriter = {}
@@ -182,7 +182,8 @@ function StoreWriter:writeToStore(store: NormalizedCache, writeOpts: Cache_Write
 	-- So far, the store has not been modified, so now it's time to process
 	-- context.incomingById and merge those incoming fields into context.store.
 	-- ROBLOX deviation: renamed dataId to dataId_ to resolve shadowing analyze error
-	for dataId_, incoming in context.incomingById:ipairs() do
+	for _, ref_ in context.incomingById:ipairs() do
+		local dataId_, incoming = ref_[1], ref_[2]
 		local fields: StoreObject, mergeTree: MergeTree, selections: Set<SelectionNode> =
 			incoming.fields, incoming.mergeTree, incoming.selections
 
@@ -198,7 +199,7 @@ function StoreWriter:writeToStore(store: NormalizedCache, writeOpts: Cache_Write
 				return fieldsWithSelectionSets:has(fieldNameFromStoreName(storeFieldName))
 			end
 			fieldsWithSelectionSets = Set.new()
-			for _, selection in pairs(selections) do
+			for _, selection in selections:ipairs() do
 				if isField(selection) and Boolean.toJSBoolean(selection.selectionSet) then
 					fieldsWithSelectionSets:add(selection.name.value)
 				end
