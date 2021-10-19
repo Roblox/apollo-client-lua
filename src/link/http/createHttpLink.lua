@@ -69,7 +69,7 @@ local function createHttpLink(linkOptions_: HttpOptions?)
 		headers = requestOptions.headers,
 	}
 
-	return ApolloLink.new(function(operation)
+	return ApolloLink.new(function(_self, operation)
 		local chosenURI = selectURI(operation, uri)
 
 		local context = operation:getContext()
@@ -110,7 +110,7 @@ local function createHttpLink(linkOptions_: HttpOptions?)
 		local ref = selectHttpOptionsAndBody(operation, fallbackHttpConfig, linkConfig, contextConfig)
 		local options, body = ref.options, ref.body
 
-		if body.variables ~= nil and not Boolean.toJSBoolean(includeUnusedVariables) then
+		if body.variables ~= nil and not includeUnusedVariables then
 			local unusedNames = Set.new(Object.keys(body.variables))
 			visit(operation.query, {
 				Variable = function(self, node, _key, parent)
@@ -165,13 +165,11 @@ local function createHttpLink(linkOptions_: HttpOptions?)
 			end
 			chosenURI = newURI
 		else
-			local _ok, result, hasReturned = xpcall(function()
+			local ok, result = pcall(function()
 				(options :: any).body = serializeFetchParameter(body, "Payload")
-			end, function(parseError)
-				return fromError(parseError), true
 			end)
-			if hasReturned then
-				return result
+			if not ok then
+				return fromError(result)
 			end
 		end
 		return Observable.new(function(observer)

@@ -42,25 +42,22 @@ local function rewriteURIForGET(
 	end
 	if Boolean.toJSBoolean(body.variables) then
 		local serializedVariables
-		local _ok, result, hasReturned = xpcall(function()
-			serializedVariables = serializeFetchParameter(body.variables, "Variables map")
-		end, function(parseError)
-			return { parseError = parseError }, true
+		local ok, result = pcall(function()
+			serializedVariables = serializeFetchParameter(body.variables, "Variables map", true)
 		end)
-		if hasReturned then
-			return result
+		if not ok then
+			return { parseError = result }
 		end
+
 		addQueryParam("variables", serializedVariables)
 	end
 	if Boolean.toJSBoolean(body.extensions) then
 		local serializedExtensions
-		local _ok, result, hasReturned = xpcall(function()
+		local ok, result = pcall(function()
 			serializedExtensions = serializeFetchParameter(body.extensions, "Extensions map")
-		end, function(parseError)
-			return { parseError = parseError }, true
 		end)
-		if hasReturned then
-			return result
+		if not ok then
+			return { parseError = result }
 		end
 		addQueryParam("extensions", serializedExtensions)
 	end

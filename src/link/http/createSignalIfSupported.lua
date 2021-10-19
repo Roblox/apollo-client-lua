@@ -2,9 +2,8 @@
 
 local exports = {}
 
-local AbortController = _G.AbortController
-
 local function createSignalIfSupported()
+	local AbortController = _G.AbortController
 	if typeof(AbortController) == "nil" then
 		return { controller = false, signal = false }
 	end

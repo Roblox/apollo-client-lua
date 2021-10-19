@@ -30,7 +30,7 @@ local function parseAndCheckHttpResponse(operations: Operation | Array<Operation
 		return response
 			:text()
 			:andThen(function(bodyText: string)
-				local ok, result, hasReturned = pcall(function()
+				local ok, result = pcall(function()
 					return HttpService:JSONDecode(bodyText), true
 				end)
 				if not ok then
@@ -42,13 +42,12 @@ local function parseAndCheckHttpResponse(operations: Operation | Array<Operation
 					parseError.bodyText = bodyText
 					error(parseError)
 				end
-				if hasReturned then
-					return result
-				end
-				return nil
+
+				return result
 			end)
 			:andThen(function(result: any)
-				if response.status >= 300 then
+				-- ROBLOX deviation comparison with nil is valid in JS
+				if response.status ~= nil and response.status >= 300 then
 					-- Network error
 					throwServerError(
 						response,

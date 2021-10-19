@@ -5,6 +5,7 @@ local rootWorkspace = srcWorkspace.Parent
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Error = LuauPolyfill.Error
+local Array = LuauPolyfill.Array
 type Error = LuauPolyfill.Error
 
 local HttpService = game:GetService("HttpService")
@@ -17,11 +18,18 @@ type InvariantError = invariantModule.InvariantError
 
 export type ClientParseError = InvariantError & { parseError: Error }
 
-local function serializeFetchParameter(p: any, label: string)
+local function serializeFetchParameter(p: any, label: string, treatEmptyAsObject: boolean?)
 	local serialized
 	local ok, result = pcall(function()
-		-- ROBLOX deviation: using HttpService:JSONEncode instead of JSON.stringify
-		serialized = HttpService:JSONEncode(p)
+		-- ROBLOX deviation: in Lua we can't distinguish between empty arrays, and objects.
+		-- If we know that something is an object we can force it to return a stringified object.
+		-- otherwise HttpService:JSONEncode will treat it as an array
+		if Array.isArray(p) and #p == 0 and treatEmptyAsObject then
+			serialized = "{}"
+		else
+			-- ROBLOX deviation: using HttpService:JSONEncode instead of JSON.stringify
+			serialized = HttpService:JSONEncode(p)
+		end
 	end)
 	if not ok then
 		local e = result
