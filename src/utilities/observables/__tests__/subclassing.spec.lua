@@ -59,9 +59,7 @@ return function()
 		it("Inherited Concast.of static method returns a Concast", function()
 			local concast = Concast.of("asdf", "qwer", "zxcv")
 			jestExpect(concast).toBeInstanceOf(Observable)
-			-- ROBLOX FIXME: after zen observable issue is resolved, uncomment this line
-			-- jestExpect(concast).toBeInstanceOf(Concast)
-
+			jestExpect(concast).toBeInstanceOf(Concast)
 			return toArrayPromise(concast)
 				:andThen(function(values)
 					jestExpect(values).toEqual({ "asdf", "qwer", "zxcv" })

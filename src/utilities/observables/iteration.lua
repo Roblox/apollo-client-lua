@@ -35,7 +35,7 @@ local function iterateObserversSafely(
 	end
 
 	Array.forEach(observersWithMethod, function(obs)
-		obs[method](argument)
+		obs[method](obs, argument)
 	end)
 end
 

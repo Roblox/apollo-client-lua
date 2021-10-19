@@ -26,6 +26,9 @@ local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
 type Promise<T> = PromiseTypeModule.Promise<T>
 type PromiseLike<T> = PromiseTypeModule.PromiseLike<T>
 
+-- ROBLOX deviation: initial state for Concast.sub. Needed to differentiate upstream null from undefined
+local undefined = {}
+
 local ObservableModule = require(script.Parent.Observable)
 local Observable = ObservableModule.Observable
 type Observable<T> = ObservableModule.Observable<T>
@@ -120,7 +123,7 @@ function Concast.new(sources: MaybeAsync<ConcastSourcesIterable<T_>> | Subscribe
 		Observable.new(function(observer)
 			self:addObserver(observer)
 			return function()
-				self:removeObserver(observer)
+				return self:removeObserver(observer)
 			end
 		end),
 		Concast
@@ -135,7 +138,7 @@ function Concast.new(sources: MaybeAsync<ConcastSourcesIterable<T_>> | Subscribe
 	-- subscription has not yet begun, then points to each source
 	-- subscription in turn, and finally becomes null after the sources have
 	-- been exhausted. After that, it stays null.
-	self.sub = (nil :: any) :: ObservableSubscription<any>?
+	self.sub = (undefined :: any) :: ObservableSubscription<any>?
 
 	-- A consumable array of source observables, incrementally consumed
 	-- each time this.handlers.complete is called.
@@ -169,7 +172,7 @@ function Concast.new(sources: MaybeAsync<ConcastSourcesIterable<T_>> | Subscribe
 				iterateObserversSafely(self.observers, "next", result)
 			end
 		end,
-		error = function(_self: Object, error: any)
+		error = function(_self: Object, error_: any)
 			local sub = self.sub
 			if sub ~= nil then
 				-- Delay unsubscribing from the underlying subscription slightly,
@@ -177,13 +180,13 @@ function Concast.new(sources: MaybeAsync<ConcastSourcesIterable<T_>> | Subscribe
 				-- subscription active.
 				if Boolean.toJSBoolean(sub) then
 					Promise.delay(0):andThen(function()
-						sub:unsubscribe()
+						return sub:unsubscribe()
 					end)
 				end
 				self.sub = nil
-				self.latest = { "error", error }
-				self:reject(error)
-				iterateObserversSafely(self.observers, "error", error)
+				self.latest = { "error", error_ }
+				self:reject(error_)
+				iterateObserversSafely(self.observers, "error", error_)
 			end
 		end,
 		complete = function(_self: Object)
@@ -247,7 +250,7 @@ function Concast.new(sources: MaybeAsync<ConcastSourcesIterable<T_>> | Subscribe
 end
 
 function Concast:start(sources: ConcastSourcesIterable<T_>)
-	if self.sub ~= nil then
+	if self.sub ~= undefined then
 		return
 	end
 
@@ -327,6 +330,15 @@ function Concast:cleanup(callback: () -> any)
 	-- cleanup observers by restoring this.addCount to its previous value
 	-- after adding any cleanup observer.
 	self.addCount = count
+end
+
+--ROBLOX deviation: declare static methods explicitly to keep calling them with dot notation and override "this"
+function Concast.of(...)
+	return Observable.of(Concast, ...)
+end
+
+function Concast.from(...)
+	return Observable.from(Concast, ...)
 end
 
 exports.Concast = Concast
