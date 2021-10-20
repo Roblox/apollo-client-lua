@@ -160,7 +160,7 @@ type MergeObjectsFunction = policiesTypesModule.MergeObjectsFunction
 export type FieldReadFunction<T, V> = policiesTypesModule.FieldReadFunction<T, V>
 export type FieldMergeFunction<T, V> = policiesTypesModule.FieldMergeFunction<T, V>
 
-local function defaultDataIdFromObject(ref, context: KeyFieldsContext?): string | nil
+local function defaultDataIdFromObject(_self, ref, context: KeyFieldsContext?): string | nil
 	local __typename, id, _id = ref.__typename, ref.id, ref._id
 	if typeof(__typename) == "string" then
 		if context then
@@ -999,11 +999,6 @@ function makeFieldFunctionOptions(
 	local storeFieldName = policies:getStoreFieldName(fieldSpec)
 	local fieldName = fieldNameFromStoreName(storeFieldName)
 	local variables = Boolean.toJSBoolean(fieldSpec.variables) and fieldSpec.variables or context.variables
-	local toReference, canRead
-	do
-		local ref = context.store
-		toReference, canRead = ref.toReference, ref.canRead
-	end
 	return {
 		args = argsFromFieldSpecifier(fieldSpec),
 		field = Boolean.toJSBoolean(fieldSpec.field) and fieldSpec.field or nil,
@@ -1011,11 +1006,11 @@ function makeFieldFunctionOptions(
 		storeFieldName = storeFieldName,
 		variables = variables,
 		isReference = isReference,
-		toReference = toReference,
+		toReference = context.store.toReference,
 		storage = storage,
 		cache = policies.cache,
-		canRead = canRead,
-		readField = function(self, fieldNameOrOptions: string | ReadFieldOptions, from: (StoreObject | Reference)?)
+		canRead = context.store.canRead,
+		readField = function(_self, fieldNameOrOptions: string | ReadFieldOptions, from: (StoreObject | Reference)?)
 			local options: ReadFieldOptions = typeof(fieldNameOrOptions) == "string"
 					and { fieldName = fieldNameOrOptions, from = from }
 				or Object.assign({}, fieldNameOrOptions)

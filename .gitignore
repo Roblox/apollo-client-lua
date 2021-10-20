@@ -7,4 +7,5 @@ rotriever.lock
 
 .vscode/launch.json
 .vscode/settings.json
+.vscode/tasks.json
 .idea

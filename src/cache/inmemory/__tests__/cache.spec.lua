@@ -18,12 +18,14 @@ return function()
 	local Error = LuauPolyfill.Error
 	local Map = LuauPolyfill.Map
 	local Object_ = LuauPolyfill.Object
-	local Object: typeof(Object_) & { isFrozen: (any) -> boolean } = Object_.assign({}, Object_, {
+	local Object: typeof(Object_) & { isFrozen: (any) -> boolean } = setmetatable({
 		-- ROBLOX deviation: no real way to check for this currently.
 		isFrozen = function(_obj: any)
 			return true
 		end,
-	})
+	}, {
+		__index = Object_,
+	}) :: any
 	local String = LuauPolyfill.String
 	type Array<T> = LuauPolyfill.Array<T>
 	type Record<T, U> = { [T]: U }
@@ -2281,7 +2283,7 @@ return function()
 							ref: {
 								fieldName: string,
 								storeFieldName: string,
-								isReference: typeof(isReference),
+								isReference: (self: any, obj: any) -> boolean, -- typeof(isReference),
 								readField: ReadFieldFunction,
 								DELETE: any,
 							}

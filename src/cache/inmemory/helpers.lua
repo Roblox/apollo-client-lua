@@ -48,7 +48,8 @@ local function getTypenameFromStoreObject(
 end
 exports.getTypenameFromStoreObject = getTypenameFromStoreObject
 
-local TypeOrFieldNameRegExp = RegExp("^[_a-z][_0-9a-z]*", "i")
+-- ROBLOX deviation: LuauRegExp doesn't seem to handle "i" flag so adding additional A-Z ranges
+local TypeOrFieldNameRegExp = RegExp("^[_a-zA-Z][_0-9a-zA-Z]*", "i")
 exports.TypeOrFieldNameRegExp = TypeOrFieldNameRegExp
 
 local function fieldNameFromStoreName(storeFieldName: string): string

@@ -78,6 +78,7 @@ export type KeyFieldsContext = {
 	keyObject: Record<string, any>?,
 }
 export type KeyFieldsFunction = (
+	self: any,
 	object: Readonly<StoreObject>,
 	context: KeyFieldsContext
 ) -> KeySpecifier | boolean | ReturnType<IdGetter> -- ROBLOX deviation: KeySpecifier | false | ReturnType<IdGetter>
@@ -160,7 +161,7 @@ export type FieldFunctionOptions<TArgs, TVars> = {
 	variables: TVars?,
 
 	-- Utilities for dealing with { __ref } objects.
-	isReference: (obj: any) -> boolean, -- typeof(isReference)
+	isReference: (self: any, obj: any) -> boolean, -- typeof(isReference)
 	toReference: ToReferenceFunction,
 
 	-- A handy place to put field-specific data that you want to survive

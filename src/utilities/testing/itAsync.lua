@@ -6,7 +6,7 @@ local Boolean = LuauPolyfill.Boolean
 local Promise = require(rootWorkspace.Promise)
 
 -- ROBLOX deviation: wrapping in function to pass "it" as argument
-return function(it)
+return function(it: any)
 	local function wrap(key: string?)
 		return function(message: string, callback: any, timeout: number?)
 			local fn: any

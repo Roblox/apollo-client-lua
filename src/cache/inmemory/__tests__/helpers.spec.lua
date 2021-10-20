@@ -1,4 +1,4 @@
--- ROBLOX upstream: no upstream
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/cache/inmemory/__tests__/helpers.ts
 
 return function()
 	local srcWorkspace = script.Parent.Parent.Parent.Parent
@@ -7,22 +7,17 @@ return function()
 	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
 	local jestExpect = JestGlobals.expect
 
-	local helpersModule = require(script.Parent.Parent.helpers)
-	local getTypenameFromStoreObject = helpersModule.getTypenameFromStoreObject
-	local TypeOrFieldNameRegExp = helpersModule.TypeOrFieldNameRegExp
-	local fieldNameFromStoreName = helpersModule.fieldNameFromStoreName
-	local selectionSetMatchesResult = helpersModule.selectionSetMatchesResult
-	local storeValueIsStoreObject = helpersModule.storeValueIsStoreObject
-	local makeProcessedFieldsMerger = helpersModule.makeProcessedFieldsMerger
+	local entityStoreModule = require(script.Parent.Parent.entityStore)
+	local EntityStore = entityStoreModule.EntityStore
+	local EntityStore_Root = entityStoreModule.EntityStore_Root
 
-	describe("inmemory helpers", function()
-		it("ensure helper functions import correctly", function()
-			jestExpect(typeof(getTypenameFromStoreObject)).toBe("function")
-			jestExpect(typeof(TypeOrFieldNameRegExp)).toBe("table")
-			jestExpect(typeof(fieldNameFromStoreName)).toBe("function")
-			jestExpect(typeof(selectionSetMatchesResult)).toBe("function")
-			jestExpect(typeof(storeValueIsStoreObject)).toBe("function")
-			jestExpect(typeof(makeProcessedFieldsMerger)).toBe("function")
+	local defaultNormalizedCacheFactory = require(script.Parent.helpers).defaultNormalizedCacheFactory
+
+	describe("defaultNormalizedCacheFactory", function()
+		it("should return an EntityStore", function()
+			local store = defaultNormalizedCacheFactory()
+			jestExpect(store).toBeInstanceOf(EntityStore)
+			jestExpect(store).toBeInstanceOf(EntityStore_Root)
 		end)
 	end)
 end

@@ -364,7 +364,9 @@ function EntityStore:modify(dataId: string, fields: Modifier<any> | Modifiers): 
 		local sharedDetails = {
 			DELETE = DELETE,
 			INVALIDATE = INVALIDATE,
-			isReference = isReference,
+			isReference = function(_self, ...)
+				return isReference(...)
+			end,
 			toReference = self.toReference,
 			canRead = self.canRead,
 			readField = function(_self, fieldNameOrOptions: string | ReadFieldOptions, from: (StoreObject | Reference)?)

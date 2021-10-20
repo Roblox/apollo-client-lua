@@ -241,7 +241,7 @@ function StoreReader.new(config: StoreReaderConfig): StoreReader
 		return self:execSubSelectedArrayImpl(options)
 	end, {
 		max = self.config.resultCacheMaxSize,
-		makeCacheKey = function(ref): Object | nil
+		makeCacheKey = function(_self, ref): Object | nil
 			local field, array, context = ref.field, ref.array, ref.context
 			if supportsResultCaching(context.store) then
 				return ((context.store :: any) :: EntityStore):makeCacheKey(field, array, context.varString)

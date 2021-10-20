@@ -19,7 +19,6 @@ local utilitiesModule = require(srcWorkspace.utilities)
 type Reference = utilitiesModule.Reference
 type StoreObject = utilitiesModule.StoreObject
 type StoreValue = utilitiesModule.StoreValue
-local isReference = utilitiesModule.isReference
 
 -- ROBLOX deviation: causes circular dep, inline trivial type
 -- local Policies = require(script.Parent.Parent.Parent.inmemory.policies)
@@ -86,11 +85,12 @@ export type ReadFieldFunction = (
 ) -> SafeReadonly<V>?
 
 export type ToReferenceFunction = (
+	self: any,
 	objOrIdOrRef: StoreObject | string | Reference,
 	mergeIntoStore: boolean?
 ) -> Reference?
 
-export type CanReadFunction = (value: StoreValue) -> boolean
+export type CanReadFunction = (self: any, value: StoreValue) -> boolean
 
 type ModifierDetails = {
 	DELETE: any,
@@ -99,7 +99,7 @@ type ModifierDetails = {
 	storeFieldName: string,
 	readField: ReadFieldFunction,
 	canRead: CanReadFunction,
-	isReference: typeof(isReference),
+	isReference: (self: any, obj: any) -> boolean, -- typeof(isReference),
 	toReference: ToReferenceFunction,
 	storage: StorageType,
 }
