@@ -16,8 +16,8 @@ local GLOBAL_KEY = __ .. "DEV" .. __
 
 local function getDEV()
 	do --[[ ROBLOX COMMENT: try-catch block conversion ]]
-		local _ok, result, hasReturned = xpcall(function()
-			return Boolean.toJSBoolean(_G.__DEV__), true
+		local _ok, result = xpcall(function()
+			return Boolean.toJSBoolean(_G.__DEV__)
 		end, function()
 			-- ROBLOX deviation: Roblox doesn't have a concept of process.env. Because we already checked _G.__DEV, defaults to true
 			--[[
@@ -36,12 +36,9 @@ local function getDEV()
 	// Using computed property access rather than global.__DEV__ here prevents
 	// string-based find/replace strategies from munging this to global.false:
 	]]
-			return global[GLOBAL_KEY], true
+			return global[GLOBAL_KEY]
 		end)
-		if hasReturned then
-			return result
-		end
-		return false
+		return result
 	end
 end
 exports.default = getDEV()

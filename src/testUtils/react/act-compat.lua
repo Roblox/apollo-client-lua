@@ -73,18 +73,16 @@ local function asyncAct(cb)
 				end
 
 				local cbReturn, result
-				local _ok, hasReturned = xpcall(function()
+				local ok, result_ = pcall(function()
 					result = reactAct(function()
 						cbReturn = cb()
 						return cbReturn :: Thenable<any>
 					end)
-					return false
-				end, function(err)
-					console.error = originalConsoleError
-					reject(err)
-					return true
 				end)
-				if hasReturned then
+
+				if not ok then
+					console.error = originalConsoleError
+					reject(result_)
 					return
 				end
 

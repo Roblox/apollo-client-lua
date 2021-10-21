@@ -429,21 +429,18 @@ end
 
 function maybeSubscribe(entry: AnyEntry, args: Array<any>)
 	if typeof(entry.subscribe) == "function" then
-		local _ok, result, hasReturned = xpcall(function()
+		local ok = pcall(function()
 			maybeUnsubscribe((entry :: any) :: Unsubscribable)
 			entry.unsubscribe = (entry.subscribe :: any)(table.unpack(args))
-			-- ROBLOX deviation: returning result = nil and hasReturned = false to make CLI analyze happy
 			return nil, false
-		end, function(e)
+		end)
+		if not ok then
 			-- If this Entry has a subscribe function and it threw an exception
 			-- (or an unsubscribe function it previously returned now throws),
 			-- return false to indicate that we were not able to subscribe (or
 			-- unsubscribe), and this Entry should remain dirty.
 			entry:setDirty()
-			return false, true
-		end)
-		if hasReturned then
-			return result
+			return false
 		end
 	end
 	return true
