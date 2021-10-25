@@ -68,7 +68,7 @@ return function()
 	local InMemoryCache = require(script.Parent.Parent.inMemoryCache).InMemoryCache
 	local withErrorSpy = require(script.Parent.Parent.Parent.Parent.testing).withErrorSpy
 
-	local function getIdField(ref: { id: string }): string
+	local function getIdField(_self, ref: { id: string }): string
 		return ref.id
 	end
 
@@ -1210,7 +1210,7 @@ return function()
 				}):toObject()).toEqual(expStore:toObject())
 			end)
 
-			itFIXME("should correctly escape real ids", function()
+			it("should correctly escape real ids", function()
 				local query = gql([[
 
         query {
@@ -1246,7 +1246,7 @@ return function()
 				}):toObject()).toEqual(expStore:toObject())
 			end)
 
-			itFIXME("should not need to escape json blobs", function()
+			it("should not need to escape json blobs", function()
 				local query = gql([[
 
         query {
@@ -1283,7 +1283,7 @@ return function()
 			end)
 		end)
 
-		itFIXME("should not merge unidentified data when replacing with ID reference", function()
+		it("should not merge unidentified data when replacing with ID reference", function()
 			local dataWithoutId = {
 				author = {
 					firstName = "John",
@@ -2115,7 +2115,7 @@ return function()
 			})
 		end)
 
-		itFIXME("should keep reference when type of mixed inlined field changes", function()
+		it("should keep reference when type of mixed inlined field changes", function()
 			local store = defaultNormalizedCacheFactory()
 
 			local query = gql([[
@@ -2195,7 +2195,7 @@ return function()
 		end)
 
 		withErrorSpy(
-			itFIXME,
+			it,
 			"should not keep reference when type of mixed inlined field changes to non-inlined field",
 			function()
 				local store = defaultNormalizedCacheFactory()

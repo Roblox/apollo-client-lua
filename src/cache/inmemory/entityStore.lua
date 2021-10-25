@@ -421,7 +421,7 @@ function EntityStore:modify(dataId: string, fields: Modifier<any> | Modifiers): 
 				end
 			end
 
-			if fieldValue ~= nil then
+			if fieldValue ~= nil and fieldValue ~= DeepMerger.None then
 				allDeleted = false
 			end
 		end)

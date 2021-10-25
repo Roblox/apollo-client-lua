@@ -392,7 +392,8 @@ function Policies:identify(
 		keyFn = self.config.dataIdFromObject
 	end
 	while Boolean.toJSBoolean(keyFn) do
-		local specifierOrId = keyFn(object, context)
+		-- ROBLOX deviation: passing policy as self
+		local specifierOrId = keyFn(policy, object, context)
 		if Array.isArray(specifierOrId) then
 			keyFn = keyFieldsFnFromSpecifier(specifierOrId)
 		else
@@ -1119,7 +1120,7 @@ function keyArgsFnFromSpecifier(specifier: KeySpecifier): KeyArgsFunction
 end
 function keyFieldsFnFromSpecifier(specifier: KeySpecifier): KeyFieldsFunction
 	local trie = Trie.new(canUseWeakMap)
-	return function(object, context)
+	return function(_self, object, context)
 		local aliasMap: AliasMap | nil
 		if context.selectionSet and context.fragmentMap then
 			local info = trie:lookupArray({ context.selectionSet, context.fragmentMap })
@@ -1146,9 +1147,10 @@ type AliasMap = {
 }
 function makeAliasMap(selectionSet: SelectionSetNode, fragmentMap: FragmentMap): AliasMap
 	local map: AliasMap = {}
+	-- TODO Cache this work, perhaps by storing selectionSet._aliasMap?
 	local workQueue = Set.new({ selectionSet })
-	workQueue:forEach(function(selectionSet)
-		selectionSet.selections:forEach(function(selection)
+	for _, selectionSet in workQueue:ipairs() do
+		Array.forEach(selectionSet.selections, function(selection)
 			if Boolean.toJSBoolean(isField(selection)) then
 				if Boolean.toJSBoolean(selection.alias) then
 					local responseKey = selection.alias.value
@@ -1181,7 +1183,7 @@ function makeAliasMap(selectionSet: SelectionSetNode, fragmentMap: FragmentMap):
 				end
 			end
 		end)
-	end)
+	end
 	return map
 end
 function computeKeyObject(

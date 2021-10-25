@@ -18,6 +18,7 @@ local exports = {}
 -- ROBLOX deviation: predeclare functions:
 local getStoreKeyName
 local stringify
+local isField
 
 local graphqlModule = require(rootWorkspace.GraphQL)
 type DirectiveNode = graphqlModule.DirectiveNode
@@ -44,6 +45,9 @@ local isNonNullObject = require(script.Parent.Parent.common.objects).isNonNullOb
 -- local FragmentMap = fragmentsModule.FragmentMap
 type FragmentMap = Object
 -- local getFragmentFromSelection = fragmentsModule.getFragmentFromSelection
+local function getFragmentFromSelection(...): ...any
+	error("fragments are not supported yet")
+end
 
 export type Reference = { __ref: string }
 
@@ -328,41 +332,37 @@ local function resultKeyNameFromField(field: FieldNode): string
 end
 exports.resultKeyNameFromField = resultKeyNameFromField
 
--- ROBLOX deviation: not supporting fragments
 local function getTypenameFromResult(
-	_result: Record<string, any>,
-	_selectionSet: SelectionSetNode,
-	_fragmentMap: FragmentMap
+	result: Record<string, any>,
+	selectionSet: SelectionSetNode,
+	fragmentMap: FragmentMap
 ): string | nil
+	if typeof(result.__typename) == "string" then
+		return result.__typename
+	end
+
+	for _, selection in ipairs(selectionSet.selections) do
+		if isField(selection) then
+			if (selection :: FieldNode).name.value == "__typename" then
+				return result[resultKeyNameFromField(selection :: FieldNode)]
+			end
+		else
+			local typename = getTypenameFromResult(
+				result,
+				getFragmentFromSelection(selection, fragmentMap).selectionSet,
+				fragmentMap
+			)
+
+			if typeof(typename) == "string" then
+				return typename
+			end
+		end
+	end
 	return nil
 end
--- local function getTypenameFromResult(
--- 	result: Record<string, any>,
--- 	selectionSet: SelectionSetNode,
--- 	fragmentMap: FragmentMap
--- ): string | nil
--- 	if typeof(result.__typename) == "string" then
--- 		return result.__typename
--- 	end
-
--- 	error("not implemented") --[[ ROBLOX TODO: Unhandled node for type: ForOfStatement ]]
--- 	--[[ for (const selection of selectionSet.selections) {
---     if (isField(selection)) {
---       if (selection.name.value === '__typename') {
---         return result[resultKeyNameFromField(selection)];
---       }
---     } else {
---       const typename = getTypenameFromResult(result, getFragmentFromSelection(selection, fragmentMap)!.selectionSet, fragmentMap);
-
---       if (typeof typename === 'string') {
---         return typename;
---       }
---     }
---   } ]]
--- end
 exports.getTypenameFromResult = getTypenameFromResult
 
-local function isField(selection: SelectionNode): boolean
+function isField(selection: SelectionNode): boolean
 	return selection.kind == "Field"
 end
 exports.isField = isField
