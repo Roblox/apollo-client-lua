@@ -19,7 +19,6 @@ return function()
 	local Array = LuauPolyfill.Array
 	local Object = LuauPolyfill.Object
 	local Boolean = LuauPolyfill.Boolean
-	local String = LuauPolyfill.String
 
 	type Array<T> = LuauPolyfill.Array<T>
 	type Object = LuauPolyfill.Object
@@ -1514,13 +1513,23 @@ return function()
 				gql(
 					[[query { a b { c d } } ]]
 				)
+
 			local bQuery: TypedDocumentNode<{ b: { c: string, d: string } }, { [string]: any }> = gql(
 				[[query { b { d c } } ]]
 			)
 
-			local abData1 = { a = { "a", "y" }, b = { c = "see", d = "dee" } }
+			local abData1 = {
+				a = { "a", "y" },
+				b = {
+					c = "see",
+					d = "dee",
+				},
+			}
 
-			cache:writeQuery({ query = abQuery, data = abData1 })
+			cache:writeQuery({
+				query = abQuery,
+				data = abData1,
+			})
 
 			local function read(query: TypedDocumentNode<Data_, Vars_>)
 				return cache:readQuery({
@@ -1529,63 +1538,62 @@ return function()
 			end
 
 			local aResult1 = read(aQuery)
-
 			local abResult1 = read(abQuery)
-
 			local bResult1 = read(bQuery)
 
 			jestExpect(aResult1.a).toBe(abResult1.a)
-
 			jestExpect(abResult1).toEqual(abData1)
-
 			jestExpect(aResult1).toEqual({ a = abData1.a })
-
 			jestExpect(bResult1).toEqual({ b = abData1.b })
-
 			jestExpect(abResult1.b).toBe(bResult1.b)
 
-			local aData2 = { a = String.split("ayy", "") }
+			local aData2 = {
+				--[[
+					ROBLOX deviation: creating an array explicitely as String.split doesn't work correctly for "" separator
+					original code:
+					a: "ayy".split(""),
+				]]
+				a = { "a", "y", "y" },
+			}
 
-			cache:writeQuery({ query = aQuery, data = aData2 })
+			cache:writeQuery({
+				query = aQuery,
+				data = aData2,
+			})
 
 			local aResult2 = read(aQuery)
-
 			local abResult2 = read(abQuery)
-
 			local bResult2 = read(bQuery)
 
 			jestExpect(aResult2).toEqual(aData2)
-
 			jestExpect(abResult2).toEqual(Object.assign({}, abData1, aData2))
-
 			jestExpect(aResult2.a).toBe(abResult2.a)
-
 			jestExpect(bResult2).toBe(bResult1)
-
 			jestExpect(abResult2.b).toBe(bResult2.b)
-
 			jestExpect(abResult2.b).toBe(bResult1.b)
 
-			local bData3 = { b = { d = "D", c = "C" } }
+			local bData3 = {
+				b = {
+					d = "D",
+					c = "C",
+				},
+			}
 
-			cache:writeQuery({ query = bQuery, data = bData3 })
+			cache:writeQuery({
+				query = bQuery,
+				data = bData3,
+			})
 
 			local aResult3 = read(aQuery)
-
 			local abResult3 = read(abQuery)
-
 			local bResult3 = read(bQuery)
 
 			jestExpect(aResult3).toBe(aResult2)
-
 			jestExpect(bResult3).toEqual(bData3)
-
 			jestExpect(bResult3).never.toBe(bData3)
-
 			jestExpect(abResult3).toEqual(Object.assign({}, abResult2, bData3))
 
-			-- ROBLOX TODO: write snapshot
-			-- jestExpect(cache:extract()).toMatchSnapshot()
+			jestExpect(cache:extract()).toMatchSnapshot()
 		end)
 
 		it("does not canonicalize custom scalar objects", function()

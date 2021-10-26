@@ -995,8 +995,7 @@ return function()
 			jestExpect(cache:retain(allieId)).toBe(1)
 
 			local snapshot = cache:extract()
-			-- ROBLOX TODO: figure out snapshots
-			-- jestExpect(snapshot).toMatchSnapshot()
+			jestExpect(snapshot).toMatchSnapshot()
 
 			jestExpect(cache:gc()).toEqual({})
 
@@ -1018,8 +1017,7 @@ return function()
 				"Book:1982156945",
 			})
 
-			-- ROBLOX TODO: figure out snapshots
-			-- jestExpect(cache2:extract()).toMatchSnapshot()
+			jestExpect(cache2:extract()).toMatchSnapshot()
 
 			jestExpect(cache2:release(allieId)).toBe(0)
 

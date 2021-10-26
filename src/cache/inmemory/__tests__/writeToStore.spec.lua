@@ -1774,9 +1774,7 @@ return function()
 					},
 				})
 
-				-- ROBLOX FIXME: figure out how to use snapshots
-				warn("ROBLOX FIXME: figure out how to use snapshots")
-				-- jestExpect(cache:extract()).toMatchSnapshot()
+				jestExpect(cache:extract()).toMatchSnapshot()
 				jestExpect(warnings).toEqual({})
 
 				cache:writeQuery({
@@ -1798,8 +1796,7 @@ return function()
 					},
 				})
 
-				-- ROBLOX FIXME: figure out how to use snapshots
-				warn("ROBLOX FIXME: figure out how to use snapshots")
+				jestExpect(cache:extract()).toMatchSnapshot()
 				jestExpect(warnings).toEqual({})
 			end)
 		end)
@@ -2650,7 +2647,7 @@ return function()
 			})
 		end)
 
-		itFIXME('user objects should be able to have { __typename: "Mutation" }', function()
+		it('user objects should be able to have { __typename: "Mutation" }', function()
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					Mutation = {
