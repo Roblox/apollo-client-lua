@@ -246,6 +246,7 @@ return function()
 			end)
 
 			itWithInitialData(
+				-- ROBLOX TODO: this test is not passing because we can't properly encode NULL constant ATM
 				itFIXME,
 				"will read some data from the store with null variables",
 				{ { ROOT_QUERY = {
@@ -851,6 +852,7 @@ return function()
 			end)
 
 			itWithInitialData(
+				-- ROBLOX TODO: this test is not passing because we can't properly encode NULL constant ATM
 				itFIXME,
 				"will write some data to the store with variables where some are null",
 				{ {} },
@@ -869,7 +871,7 @@ return function()
           ]]),
 						variables = {
 							literal = false,
-							value = nil,
+							value = NULL,
 						},
 					})
 
@@ -1449,7 +1451,7 @@ return function()
 		end)
 	end)
 
-	xdescribe("InMemoryCache#broadcastWatches", function()
+	describe("InMemoryCache#broadcastWatches", function()
 		it("should keep distinct consumers distinct (issue #5733)", function()
 			local cache = InMemoryCache.new()
 			local query = gql([[
@@ -1472,7 +1474,7 @@ return function()
 					query = query,
 					variables = { arg = arg },
 					optimistic = false,
-					callback = function(result)
+					callback = function(_self, result)
 						table.insert(receivedCallbackResults, { watchId :: any, arg, result })
 					end,
 				})
@@ -1605,7 +1607,7 @@ return function()
 			cache:modify({
 				-- Passing a function for options.fields is equivalent to invoking
 				-- that function for all fields within the object.
-				fields = function(value: number, ref: { fieldName: string })
+				fields = function(_self, value: number, ref: { fieldName: string })
 					local fieldName = ref.fieldName
 					if fieldName == "a" then
 						return value + 1
@@ -1655,13 +1657,13 @@ return function()
 			local checkedTypename = false
 			cache:modify({
 				fields = {
-					a = function(value: number)
+					a = function(_self, value: number)
 						return value + 1
 					end,
-					b = function(value: number)
+					b = function(_self, value: number)
 						return value - 1
 					end,
-					__typename = function(t: string, ref: { readField: ReadFieldFunction })
+					__typename = function(_self, t: string, ref: { readField: ReadFieldFunction })
 						jestExpect(t).toBe("Query")
 						jestExpect(ref:readField("c")).toBe(0)
 						checkedTypename = true
@@ -1684,7 +1686,7 @@ return function()
 			jestExpect(resultAfterModify).toEqual({ a = 1, b = -1, c = 0 })
 		end)
 
-		itFIXME("should allow invalidation using details.INVALIDATE", function()
+		it("should allow invalidation using details.INVALIDATE", function()
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					Book = {
@@ -1738,6 +1740,8 @@ return function()
 			local initialResult = read()
 
 			-- ROBLOX TODO: use after Jest update
+			-- ROBLOX NOTE: we need to call cache:extract() to make the reset of the test pass. Remove when snapshot line is uncommented
+			cache:extract()
 			-- jestExpect(cache:extract()).toMatchSnapshot()
 
 			jestExpect(cache:modify({
@@ -1746,7 +1750,7 @@ return function()
 					name = "Maria Dahvana Headley",
 				}),
 				fields = {
-					name = function(_, ref)
+					name = function(_self, _, ref)
 						return ref.INVALIDATE
 					end,
 				},
@@ -1762,7 +1766,7 @@ return function()
 					isbn = "0374110034",
 				}),
 				-- Invalidate all fields of the Book entity.
-				fields = function(_, ref)
+				fields = function(_self, _, ref)
 					return ref.INVALIDATE
 				end,
 			})).toBe(false) -- Nothing actually modified.
@@ -1779,7 +1783,8 @@ return function()
 			)
 		end)
 
-		itFIXME("should allow deletion using details.DELETE", function()
+		-- ROBLOX TODO: fragments are not supported yet
+		xit("should allow deletion using details.DELETE", function()
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					Book = {
@@ -1851,7 +1856,7 @@ return function()
 			cache:modify({
 				id = authorId,
 				fields = {
-					yearOfBirth = function(yob: number)
+					yearOfBirth = function(_self, yob: number)
 						return yob + 1
 					end,
 				},
@@ -1871,12 +1876,12 @@ return function()
 			cache:modify({
 				id = bookId,
 				fields = {
-					author = function(author: Reference, ref: { readField: ReadFieldFunction })
+					author = function(_self, author: Reference, ref: { readField: ReadFieldFunction })
 						jestExpect(ref:readField("title")).toBe("Why We're Polarized")
 						jestExpect(ref:readField("name", author)).toBe("Ezra Klein")
 						cache:modify({
 							fields = {
-								yearOfBirth = function(yob, ref: { DELETE: any })
+								yearOfBirth = function(_self, yob, ref: { DELETE: any })
 									local DELETE = ref.DELETE
 									jestExpect(yob).toBe(1984)
 									return DELETE
@@ -1922,7 +1927,7 @@ return function()
 			-- Delete the whole Book.
 			cache:modify({
 				id = bookId,
-				fields = function(_, ref)
+				fields = function(_self, _, ref)
 					return ref.DELETE
 				end,
 			})
@@ -1947,10 +1952,10 @@ return function()
 			cache:modify({
 				id = authorId,
 				fields = {
-					__typename = function(_, ref)
+					__typename = function(_self, _, ref)
 						return ref.DELETE
 					end,
-					name = function(_, ref)
+					name = function(_self, _, ref)
 						return ref.DELETE
 					end,
 				},
@@ -1969,7 +1974,7 @@ return function()
 			})
 
 			cache:modify({
-				fields = function(_, ref)
+				fields = function(_self, _, ref)
 					return ref.DELETE
 				end,
 			})
@@ -1985,6 +1990,7 @@ return function()
 						fields = {
 							comments = {
 								merge = function(
+									_self,
 									existing: Array<Reference>,
 									incoming: Array<Reference>,
 									ref: FieldFunctionOptions<{ offset: number, limit: number }, Record<string, any>>
@@ -2005,7 +2011,7 @@ return function()
 									end
 									return merged
 								end,
-								read = function(existing: Array<Reference>, ref): Array<Reference>?
+								read = function(_self, existing: Array<Reference>, ref): Array<Reference>?
 									local args = ref.args
 									local page
 									if Boolean.toJSBoolean(existing) then
@@ -2072,7 +2078,7 @@ return function()
 			})
 			cache:modify({
 				fields = {
-					comments = function(comments: Array<Reference>, ref)
+					comments = function(_self, comments: Array<Reference>, ref)
 						jestExpect(Object.isFrozen(comments)).toBe(true)
 						jestExpect(#comments).toBe(3)
 						local filtered = Array.filter(comments, function(comment)
@@ -2114,7 +2120,7 @@ return function()
 
 			cache:modify({
 				fields = {
-					b = function(value, ref)
+					b = function(_self, value, ref)
 						local DELETE = ref.DELETE
 						jestExpect(value).toBe(2)
 						return DELETE
@@ -2132,7 +2138,7 @@ return function()
 			})
 
 			cache:modify({
-				fields = function(value, ref)
+				fields = function(_self, value, ref)
 					local fieldName = ref.fieldName
 					jestExpect(fieldName).never.toBe("b")
 					if fieldName == "a" then
@@ -2280,6 +2286,7 @@ return function()
 				cache:modify({
 					fields = {
 						book = function(
+							_self,
 							book: Reference,
 							ref: {
 								fieldName: string,
@@ -2388,7 +2395,7 @@ return function()
 		end)
 	end)
 
-	xdescribe("ReactiveVar and makeVar", function()
+	describe("ReactiveVar and makeVar", function()
 		local function makeCacheAndVar(
 			resultCaching: boolean
 		): { cache: InMemoryCache, nameVar: ReactiveVar<string>, query: DocumentNode }
@@ -2415,22 +2422,42 @@ return function()
 			return { cache = cache, nameVar = nameVar, query = query }
 		end
 
-		it("should work with resultCaching enabled (default)", function()
+		-- ROBLOX FIXME: result2 is not correct after changing nameVar to "Hugh"
+		itFIXME("should work with resultCaching enabled (default)", function()
 			local ref = makeCacheAndVar(true)
 			local cache, nameVar, query = ref.cache, ref.nameVar, ref.query
 
 			local result1 = cache:readQuery({ query = query })
-			jestExpect(result1).toEqual({ onCall = { __typename = "Person", name = "Ben" } })
+			jestExpect(result1).toEqual({
+				onCall = {
+					__typename = "Person",
+					name = "Ben",
+				},
+			})
+
+			-- No change before updating the nameVar.
 			jestExpect(cache:readQuery({ query = query })).toBe(result1)
+
 			jestExpect(nameVar()).toBe("Ben")
 			jestExpect(nameVar("Hugh")).toBe("Hugh")
+
 			local result2 = cache:readQuery({ query = query })
 			jestExpect(result2).never.toBe(result1)
-			jestExpect(result2).toEqual({ onCall = { __typename = "Person", name = "Hugh" } })
+			jestExpect(result2).toEqual({
+				onCall = {
+					__typename = "Person",
+					name = "Hugh",
+				},
+			})
+
 			jestExpect(nameVar()).toBe("Hugh")
 			jestExpect(nameVar("James")).toBe("James")
+
 			jestExpect(cache:readQuery({ query = query })).toEqual({
-				onCall = { __typename = "Person", name = "James" },
+				onCall = {
+					__typename = "Person",
+					name = "James",
+				},
 			})
 		end)
 
@@ -2439,17 +2466,31 @@ return function()
 			local cache, nameVar, query = ref.cache, ref.nameVar, ref.query
 
 			local result1 = cache:readQuery({ query = query })
-			jestExpect(result1).toEqual({ onCall = { __typename = "Person", name = "Ben" } })
+			jestExpect(result1).toEqual({
+				onCall = {
+					__typename = "Person",
+					name = "Ben",
+				},
+			})
+
 			local result2 = cache:readQuery({ query = query })
 			jestExpect(result2).toEqual(result1)
 			jestExpect(result2).toBe(result1)
+
 			jestExpect(nameVar()).toBe("Ben")
 			jestExpect(nameVar("Hugh")).toBe("Hugh")
+
 			local result3 = cache:readQuery({ query = query })
-			jestExpect(result3).toEqual({ onCall = { __typename = "Person", name = "Hugh" } })
+			jestExpect(result3).toEqual({
+				onCall = {
+					__typename = "Person",
+					name = "Hugh",
+				},
+			})
 		end)
 
-		it("should forget cache once all watches are cancelled", function()
+		-- ROBLOX TODO: needs jest.spyOn
+		itFIXME("should forget cache once all watches are cancelled", function()
 			local ref = makeCacheAndVar(false)
 			local cache, nameVar, query = ref.cache :: any, ref.nameVar, ref.query
 
@@ -2460,7 +2501,7 @@ return function()
 					query = query,
 					optimistic = true,
 					immediate = true,
-					callback = function(diff)
+					callback = function(_self, diff)
 						table.insert(diffs, diff)
 					end,
 				})
@@ -2490,7 +2531,8 @@ return function()
 			jestExpect(spy).toBeCalledWith(cache)
 		end)
 
-		it("should recall forgotten vars once cache has watches again", function()
+		-- ROBLOX TODO: needs jest.spyOn
+		itFIXME("should recall forgotten vars once cache has watches again", function()
 			local ref = makeCacheAndVar(false)
 			local cache, nameVar, query = ref.cache :: any, ref.nameVar, ref.query
 
@@ -2547,12 +2589,13 @@ return function()
 			jestExpect(names()).toEqual({ "Ben", "Ben", "Ben", "Hugh", "Jenn" })
 		end)
 
-		it("should broadcast only once for multiple reads of same variable", function()
+		-- ROBLOX FIXME: doesn't call the watch callback for the second time
+		itFIXME("should broadcast only once for multiple reads of same variable", function()
 			local nameVar = makeVar("Ben")
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					Query = { fields = {
-						name = function(self)
+						name = function()
 							return nameVar()
 						end,
 					} },
@@ -2576,7 +2619,7 @@ return function()
 			cache:watch({
 				query = query,
 				optimistic = true,
-				callback = function(diff)
+				callback = function(_self, diff)
 					table.insert(watchDiffs, diff)
 				end,
 			})
@@ -2600,7 +2643,8 @@ return function()
 			})
 		end)
 
-		it("should broadcast to manually added caches", function()
+		-- ROBLOX FIXME: calling cancel causes nil exception
+		itFIXME("should broadcast to manually added caches", function()
 			local rv = makeVar(0) :: ReactiveVar<number>
 			local cache = InMemoryCache.new()
 			local query = gql("query { value }")
@@ -2608,7 +2652,7 @@ return function()
 			local watch: Cache_WatchOptions<Watcher_> = {
 				query = query,
 				optimistic = true,
-				callback = function(diff)
+				callback = function(_self, diff)
 					table.insert(diffs, diff)
 				end,
 			}

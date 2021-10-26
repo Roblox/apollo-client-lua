@@ -1236,7 +1236,7 @@ return function()
 					query = rulerQuery,
 					immediate = immediate,
 					optimistic = true,
-					callback = function(diff)
+					callback = function(_self, diff)
 						table.insert(diffs, diff)
 					end,
 				})

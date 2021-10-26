@@ -965,6 +965,7 @@ function Policies:runMergeFunction(
 	end
 
 	return merge(
+		ref,
 		existing,
 		incoming,
 		makeFieldFunctionOptions(
@@ -1006,7 +1007,9 @@ function makeFieldFunctionOptions(
 		fieldName = fieldName,
 		storeFieldName = storeFieldName,
 		variables = variables,
-		isReference = isReference,
+		isReference = function(_self, ...)
+			return isReference(...)
+		end,
 		toReference = context.store.toReference,
 		storage = storage,
 		cache = policies.cache,

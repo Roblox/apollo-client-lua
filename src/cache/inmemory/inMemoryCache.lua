@@ -243,7 +243,7 @@ function InMemoryCache:resetResultCache(resetResultIdentities: boolean?): ()
 		return self:broadcastWatch(c, options)
 	end, {
 		max = self.config.resultCacheMaxSize,
-		makeCacheKey = function(_self, c: Cache_WatchOptions<Watcher_>): ...Object
+		makeCacheKey = function(_self, __self, c: Cache_WatchOptions<Watcher_>): ...Object
 			-- Return a cache key (thus enabling result caching) only if we're
 			-- currently using a data store that can track cache dependencies.
 			local store: EntityStore
@@ -707,7 +707,7 @@ function InMemoryCache:broadcastWatch(c: Cache_WatchOptions<Watcher_>, options: 
 
 	if not lastDiff or not equal(lastDiff.result, diff.result) then
 		c.lastDiff = diff :: any
-		c.callback(c.lastDiff, lastDiff)
+		c:callback(c.lastDiff, lastDiff)
 	end
 end
 

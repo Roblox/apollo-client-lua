@@ -104,7 +104,7 @@ type ModifierDetails = {
 	storage: StorageType,
 }
 
-export type Modifier<T> = (value: T, details: ModifierDetails) -> T
+export type Modifier<T> = (self: any, value: T, details: ModifierDetails) -> T
 
 export type Modifiers = { [string]: Modifier<any> }
 

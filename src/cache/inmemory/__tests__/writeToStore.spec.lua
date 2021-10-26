@@ -548,6 +548,7 @@ return function()
 			})
 		end)
 
+		-- ROBLOX FIXME: null handling
 		itFIXME("properly normalizes a nested array without IDs and a null item", function()
 			local query = gql([[
 
@@ -1099,6 +1100,7 @@ return function()
 			end)
 		end)
 
+		-- ROBLOX FIXME: null handling
 		itFIXME("properly normalizes a mutation with object or array parameters and variables", function()
 			local mutation = gql([[
 
@@ -2281,7 +2283,8 @@ return function()
 			end
 		)
 
-		itFIXME("should not deep-freeze scalar objects", function()
+		-- ROBLOX TODO: no way to check if an object is frozen
+		xit("should not deep-freeze scalar objects", function()
 			local query = gql([[
 
       query {
@@ -2318,7 +2321,7 @@ return function()
 			jestExpect(Object.isFrozen(result.scalarFieldWithObjectValue.c)).toBe(true)
 		end)
 
-		itFIXME("should skip writing still-fresh result objects", function()
+		it("should skip writing still-fresh result objects", function()
 			-- ROBLOX deviation: predefine variable
 			local mergeCounts: Record<string, number>
 			local cache = InMemoryCache.new({
@@ -2327,7 +2330,7 @@ return function()
 						fields = {
 							text = {
 								merge = function(_self, _, text: string)
-									mergeCounts[text] = bit32.bnot(bit32.bnot(mergeCounts[text])) + 1
+									mergeCounts[text] = bit32.bnot(bit32.bnot(mergeCounts[text] or 0)) + 1
 									return text
 								end,
 							},
@@ -2403,7 +2406,7 @@ return function()
 			jestExpect(mergeCounts).toEqual({ first = 1, second = 1, third = 1, fourth = 1 })
 		end)
 
-		itAsync(itFIXME)("should allow silencing broadcast of cache updates", function(resolve, reject)
+		itAsync(it)("should allow silencing broadcast of cache updates", function(resolve, reject)
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					Counter = {
@@ -2460,10 +2463,18 @@ return function()
 				ROOT_QUERY = {
 					__typename = "Query",
 					counter = {
-						__ref = "Counter:{}",
+						--[[
+							ROBLOX deviation: in Lua we can't distinguish between empty arrays, and objects.
+							empty variables will be serialized to "[]"
+						]]
+						__ref = "Counter:[]",
 					},
 				},
-				["Counter:{}"] = {
+				--[[
+					ROBLOX deviation: in Lua we can't distinguish between empty arrays, and objects.
+					empty variables will be serialized to "[]"
+				]]
+				["Counter:[]"] = {
 					__typename = "Counter",
 					count = 1,
 				},
@@ -2471,62 +2482,63 @@ return function()
 
 			jestExpect(results).toEqual({})
 
-			local counterId = cache:identify({
-				__typename = "Counter",
-			}) :: string
+			-- ROBLOX TODO: fragments are not supported yet
+			-- local counterId = cache:identify({
+			-- 	__typename = "Counter",
+			-- }) :: string
 
-			cache:writeFragment({
-				id = counterId,
-				fragment = gql("fragment Count on Counter { count }"),
-				data = { count = (function()
-					count += 1
-					return count
-				end)() },
-				broadcast = false,
-			})
+			-- cache:writeFragment({
+			-- 	id = counterId,
+			-- 	fragment = gql("fragment Count on Counter { count }"),
+			-- 	data = { count = (function()
+			-- 		count += 1
+			-- 		return count
+			-- 	end)() },
+			-- 	broadcast = false,
+			-- })
 
-			local counterMeta = {
-				extraRootIds = {
-					"Counter:{}",
-				},
-			}
+			-- local counterMeta = {
+			-- 	extraRootIds = {
+			-- 		"Counter:{}",
+			-- 	},
+			-- }
 
-			jestExpect(cache:extract()).toEqual({
-				__META = counterMeta,
-				ROOT_QUERY = {
-					__typename = "Query",
-					counter = {
-						__ref = "Counter:{}",
-					},
-				},
-				["Counter:{}"] = {
-					__typename = "Counter",
-					count = 2,
-				},
-			})
+			-- jestExpect(cache:extract()).toEqual({
+			-- 	__META = counterMeta,
+			-- 	ROOT_QUERY = {
+			-- 		__typename = "Query",
+			-- 		counter = {
+			-- 			__ref = "Counter:{}",
+			-- 		},
+			-- 	},
+			-- 	["Counter:{}"] = {
+			-- 		__typename = "Counter",
+			-- 		count = 2,
+			-- 	},
+			-- })
 
-			jestExpect(results).toEqual({})
+			-- jestExpect(results).toEqual({})
 
-			jestExpect(cache:evict({
-				id = counterId,
-				fieldName = "count",
-				broadcast = false,
-			})).toBe(true)
+			-- jestExpect(cache:evict({
+			-- 	id = counterId,
+			-- 	fieldName = "count",
+			-- 	broadcast = false,
+			-- })).toBe(true)
 
-			jestExpect(cache:extract()).toEqual({
-				__META = counterMeta,
-				ROOT_QUERY = {
-					__typename = "Query",
-					counter = {
-						__ref = "Counter:{}",
-					},
-				},
-				["Counter:{}"] = {
-					__typename = "Counter",
-				},
-			})
+			-- jestExpect(cache:extract()).toEqual({
+			-- 	__META = counterMeta,
+			-- 	ROOT_QUERY = {
+			-- 		__typename = "Query",
+			-- 		counter = {
+			-- 			__ref = "Counter:{}",
+			-- 		},
+			-- 	},
+			-- 	["Counter:{}"] = {
+			-- 		__typename = "Counter",
+			-- 	},
+			-- })
 
-			jestExpect(results).toEqual({})
+			-- jestExpect(results).toEqual({})
 
 			-- Only this write should trigger a broadcast.
 			cache:writeQuery({

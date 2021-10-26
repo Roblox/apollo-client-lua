@@ -51,7 +51,7 @@ type TCacheKey_ = any
 local function makeDefaultMakeCacheKeyFunction(): (...any) -> TCacheKey_
 	-- ROBLOX deviation: typeof(WeakMap) == "function" is always true
 	local keyTrie = Trie.new(true)
-	return function(...)
+	return function(_self, ...)
 		-- ROBLOX deviation: there is no implicit arguments param available in Lua
 		local arguments = { ... }
 		return keyTrie:lookupArray(arguments)
@@ -107,13 +107,16 @@ local function wrap(
 					-- ROBLOX deviation: there is no implicit arguments param available in Lua
 					local arguments = { ... }
 
-					local key = makeCacheKey(table.unpack((function()
-						if Boolean.toJSBoolean(keyArgs) then
-							return (keyArgs :: any)(table.unpack(arguments :: any))
-						else
-							return arguments :: any
-						end
-					end)()))
+					local key = makeCacheKey(
+						nil,
+						table.unpack((function()
+							if Boolean.toJSBoolean(keyArgs) then
+								return (keyArgs :: any)(table.unpack(arguments :: any))
+							else
+								return arguments :: any
+							end
+						end)())
+					)
 
 					if key == nil then
 						return originalFunction(table.unpack(arguments :: any))
@@ -189,8 +192,7 @@ local function wrap(
 	optimistic.dirtyKey = asMethod(dirtyKey)
 	-- ROBLOX deviation: needs modified signature when used as method
 	optimistic.dirty = asMethod(function(...)
-		local arguments = { ... }
-		dirtyKey(makeCacheKey(table.unpack(arguments :: any)))
+		dirtyKey(makeCacheKey(nil, ...))
 	end)
 
 	local function peekKey(key: TCacheKey_)
@@ -204,8 +206,7 @@ local function wrap(
 	optimistic.peekKey = asMethod(peekKey)
 	-- ROBLOX deviation: needs modified signature when used as method
 	optimistic.peek = asMethod(function(...)
-		local arguments = { ... }
-		return peekKey(makeCacheKey(table.unpack(arguments :: any)))
+		return peekKey(makeCacheKey(nil, ...))
 	end)
 
 	local function forgetKey(key: TCacheKey_)
@@ -215,21 +216,19 @@ local function wrap(
 	optimistic.forgetKey = asMethod(forgetKey)
 	-- ROBLOX deviation: needs modified signature when used as method
 	optimistic.forget = asMethod(function(...)
-		local arguments = { ... }
-		return forgetKey(makeCacheKey(table.unpack(arguments :: any)))
+		return forgetKey(makeCacheKey(nil, ...))
 	end)
 
 	-- ROBLOX deviation: needs modified signature when used as method
-	optimistic.makeCacheKey = asMethod(makeCacheKey)
+	optimistic.makeCacheKey = makeCacheKey
 	if Boolean.toJSBoolean(keyArgs) then
 		-- ROBLOX deviation: needs modified signature when used as method
 		optimistic.getKey = asMethod(function(...)
-			local arguments = { ... }
-			return makeCacheKey(table.unpack((keyArgs :: any)(table.unpack(arguments :: any))))
+			return makeCacheKey(nil, table.unpack((keyArgs :: any)(...)))
 		end)
 	else
 		-- ROBLOX deviation: needs modified signature when used as method
-		optimistic.getKey = asMethod(makeCacheKey :: ((...any) -> TCacheKey_))
+		optimistic.getKey = makeCacheKey :: ((...any) -> TCacheKey_)
 	end
 	-- ROBLOX FIX: Object.freeze replaces the existing metatable and therefore the __call propertie seizes to exist
 	return optimistic -- Object.freeze(optimistic)

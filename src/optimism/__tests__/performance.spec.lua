@@ -82,7 +82,7 @@ return function()
 				counter += 1
 				return Array.sort(Array.slice(array, 1))
 			end, {
-				makeCacheKey = function(array)
+				makeCacheKey = function(_self, array)
 					return trie:lookupArray(array)
 				end,
 			})

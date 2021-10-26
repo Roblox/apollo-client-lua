@@ -565,7 +565,8 @@ function StoreWriter:applyMerges(
 			end
 		end
 
-		for storeFieldName, childTree in mergeTree.map:ipairs() do
+		for _, ref in mergeTree.map:ipairs() do
+			local storeFieldName, childTree = table.unpack(ref, 1, 2)
 			local eVal = getValue(e, storeFieldName)
 			local iVal = getValue(i, storeFieldName)
 			-- If we have no incoming data, leave any existing data untouched.
@@ -593,7 +594,8 @@ function StoreWriter:applyMerges(
 			else
 				incoming = Object.assign({}, i) :: T_
 			end
-			for name, value in changedFields:ipairs() do
+			for _, ref_ in changedFields:ipairs() do
+				local name, value = table.unpack(ref_, 1, 2)
 				incoming[name] = value
 			end
 		end

@@ -34,7 +34,7 @@ return function()
 			local test = wrap(function(x: string)
 				return x .. salt
 			end, {
-				makeCacheKey = function(x: string)
+				makeCacheKey = function(_self, x: string)
 					return x
 				end,
 			})
@@ -301,7 +301,7 @@ return function()
 				callCount += 1
 				return key
 			end, {
-				makeCacheKey = function(key)
+				makeCacheKey = function(_self, key)
 					return key
 				end,
 			})
@@ -433,7 +433,7 @@ return function()
 				end
 				return sumEven(n)
 			end, {
-				makeCacheKey = function(n)
+				makeCacheKey = function(_self, n)
 					-- Even though the computation completes, returning "constant" causes
 					-- cycles in the Entry graph.
 					return chaos and "constant" or n
@@ -696,7 +696,7 @@ return function()
 				table.insert(ns, n)
 				return n < 1 and 0 or n + sumFirst(n - 1)
 			end, {
-				makeCacheKey = function(x: number)
+				makeCacheKey = function(_self, x: number)
 					return x * 2
 				end,
 			})
@@ -745,7 +745,7 @@ return function()
 					end
 				end)()
 			end, {
-				makeCacheKey = function(n)
+				makeCacheKey = function(_self, n)
 					return n
 				end,
 			})

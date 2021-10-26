@@ -33,7 +33,7 @@ type Record<T, U> = { [T]: U }
 
 export type Cache_DiffResult<T> = DataProxy_DiffResult<T>
 
-export type Cache_WatchCallback = (diff: Cache_DiffResult<any>, lastDiff: Cache_DiffResult<any>?) -> ()
+export type Cache_WatchCallback = (self: any, diff: Cache_DiffResult<any>, lastDiff: Cache_DiffResult<any>?) -> ()
 
 -- ROBLOX deviation: no generic type parameter defaults in luau
 export type Cache_ReadOptions<TVariables, TData> = DataProxy_Query<TVariables, TData> & {

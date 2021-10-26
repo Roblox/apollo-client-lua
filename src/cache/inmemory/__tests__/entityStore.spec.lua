@@ -135,11 +135,7 @@ return function()
 			}
 		end
 
-		--[[
-			ROBLOX FIXME: this is temporary test with the fragment related code removed.
-			Please remove when the next test -> "should reclaim no-longer-reachable, unretained entities" is passing
-		]]
-		it("_should reclaim no-longer-reachable, unretained entities", function()
+		it("should reclaim no-longer-reachable, unretained entities", function()
 			local ref = newBookAuthorCache()
 			local cache, query = ref.cache, ref.query
 
@@ -305,241 +301,71 @@ return function()
 			cache:restore(snapshot)
 			jestExpect(cache:extract()).toEqual(snapshot)
 
-			-- ROBLOX deviation: passing test until fragments related code is reached
-			warn("should reclaim no-longer-reachable, unretained entities is passing until fragment related code")
-		end)
+			-- ROBLOX TODO: fragments are not supported yet
+			-- 		-- Reading a specific fragment causes it to be retained during garbage collection.
+			-- 		local authorNameFragment = gql([[
 
-		-- ROBLOX TODO: fragments are not supported yet
-		xit("should reclaim no-longer-reachable, unretained entities", function()
-			local ref = newBookAuthorCache()
-			local cache, query = ref.cache, ref.query
+			--   fragment AuthorName on Author {
+			--     name
+			--   }
+			-- ]])
+			-- 		local ray = cache:readFragment({
+			-- 			id = "Author:Ray Bradbury",
+			-- 			fragment = authorNameFragment,
+			-- 		})
 
-			cache:writeQuery({
-				query = query,
-				data = {
-					book = {
-						__typename = "Book",
-						isbn = "9781451673319",
-						title = "Fahrenheit 451",
-						author = {
-							__typename = "Author",
-							name = "Ray Bradbury",
-						},
-					},
-				},
-			})
+			-- 		jestExpect(cache:retain("Author:Ray Bradbury")).toBe(1)
 
-			local extracted = cache:extract()
-			jestExpect(extracted.ROOT_QUERY).toEqual({
-				__typename = "Query",
-				book = {
-					__ref = "Book:9781451673319",
-				},
-			})
-			jestExpect(extracted["Book:9781451673319"]).toEqual({
-				__typename = "Book",
-				title = "Fahrenheit 451",
-				author = {
-					__ref = "Author:Ray Bradbury",
-				},
-			})
-			jestExpect(extracted["Author:Ray Bradbury"]).toEqual({
-				__typename = "Author",
-				name = "Ray Bradbury",
-			})
-			jestExpect(extracted).toEqual({
-				ROOT_QUERY = {
-					__typename = "Query",
-					book = {
-						__ref = "Book:9781451673319",
-					},
-				},
-				["Book:9781451673319"] = {
-					__typename = "Book",
-					title = "Fahrenheit 451",
-					author = {
-						__ref = "Author:Ray Bradbury",
-					},
-				},
-				["Author:Ray Bradbury"] = {
-					__typename = "Author",
-					name = "Ray Bradbury",
-				},
-			})
+			-- 		jestExpect(ray).toEqual({
+			-- 			__typename = "Author",
+			-- 			name = "Ray Bradbury",
+			-- 		})
 
-			cache:writeQuery({
-				query = query,
-				data = {
-					book = {
-						__typename = "Book",
-						isbn = "0312429215",
-						title = "2666",
-						author = {
-							__typename = "Author",
-							name = "Roberto Bola\u{F1}o",
-						},
-					},
-				},
-			})
+			-- 		jestExpect(cache:gc()).toEqual({
+			-- 			-- Only Fahrenheit 451 (the book) is reclaimed this time.
+			-- 			"Book:9781451673319",
+			-- 		})
 
-			local snapshot = cache:extract()
+			-- 		local rayMeta = {
+			-- 			extraRootIds = {
+			-- 				"Author:Ray Bradbury",
+			-- 			},
+			-- 		}
 
-			jestExpect(snapshot).toEqual({
-				ROOT_QUERY = {
-					__typename = "Query",
-					book = {
-						__ref = "Book:0312429215",
-					},
-				},
-				["Book:9781451673319"] = {
-					__typename = "Book",
-					title = "Fahrenheit 451",
-					author = {
-						__ref = "Author:Ray Bradbury",
-					},
-				},
-				["Author:Ray Bradbury"] = {
-					__typename = "Author",
-					name = "Ray Bradbury",
-				},
-				["Book:0312429215"] = {
-					__typename = "Book",
-					author = {
-						__ref = "Author:Roberto Bola\u{F1}o",
-					},
-					title = "2666",
-				},
-				["Author:Roberto Bola\u{F1}o"] = {
-					__typename = "Author",
-					name = "Roberto Bola\u{F1}o",
-				},
-			})
+			-- 		jestExpect(cache:extract()).toEqual({
+			-- 			__META = rayMeta,
+			-- 			ROOT_QUERY = {
+			-- 				__typename = "Query",
+			-- 				book = {
+			-- 					__ref = "Book:0312429215",
+			-- 				},
+			-- 			},
+			-- 			["Author:Ray Bradbury"] = {
+			-- 				__typename = "Author",
+			-- 				name = "Ray Bradbury",
+			-- 			},
+			-- 			["Book:0312429215"] = {
+			-- 				__typename = "Book",
+			-- 				author = {
+			-- 					__ref = "Author:Roberto Bola\u{F1}o",
+			-- 				},
+			-- 				title = "2666",
+			-- 			},
+			-- 			["Author:Roberto Bola\u{F1}o"] = {
+			-- 				__typename = "Author",
+			-- 				name = "Roberto Bola\u{F1}o",
+			-- 			},
+			-- 		})
 
-			local resultBeforeGC = cache:readQuery({ query = query })
+			-- 		jestExpect(cache:gc()).toEqual({})
 
-			jestExpect(Array.sort(cache:gc())).toEqual({
-				"Author:Ray Bradbury",
-				"Book:9781451673319",
-			})
+			-- 		jestExpect(cache:release("Author:Ray Bradbury")).toBe(0)
 
-			local resultAfterGC = cache:readQuery({ query = query })
-			jestExpect(resultBeforeGC).toBe(resultAfterGC)
+			-- 		jestExpect(cache:gc()).toEqual({
+			-- 			"Author:Ray Bradbury",
+			-- 		})
 
-			jestExpect(cache:extract()).toEqual({
-				ROOT_QUERY = {
-					__typename = "Query",
-					book = {
-						__ref = "Book:0312429215",
-					},
-				},
-				["Book:0312429215"] = {
-					__typename = "Book",
-					author = {
-						__ref = "Author:Roberto Bola\u{F1}o",
-					},
-					title = "2666",
-				},
-				["Author:Roberto Bola\u{F1}o"] = {
-					__typename = "Author",
-					name = "Roberto Bola\u{F1}o",
-				},
-			})
-
-			-- Nothing left to collect, but let's also reset the result cache to
-			-- demonstrate that the recomputed cache results are unchanged.
-			local originalReader = cache["storeReader"]
-			jestExpect(cache:gc({
-				resetResultCache = true,
-			})).toEqual({})
-			jestExpect(cache["storeReader"]).never.toBe(originalReader)
-			local resultAfterResetResultCache = cache:readQuery({ query = query })
-			jestExpect(resultAfterResetResultCache).toBe(resultBeforeGC)
-			jestExpect(resultAfterResetResultCache).toBe(resultAfterGC)
-
-			-- Now discard cache.storeReader.canon as well.
-			jestExpect(cache:gc({
-				resetResultCache = true,
-				resetResultIdentities = true,
-			})).toEqual({})
-
-			local resultAfterFullGC = cache:readQuery({ query = query })
-			jestExpect(resultAfterFullGC).toEqual(resultBeforeGC)
-			jestExpect(resultAfterFullGC).toEqual(resultAfterGC)
-			-- These !== relations are triggered by passing resetResultIdentities:true
-			-- to cache.gc, above.
-			jestExpect(resultAfterFullGC).never.toBe(resultBeforeGC)
-			jestExpect(resultAfterFullGC).never.toBe(resultAfterGC)
-			-- Result caching immediately begins working again after the intial reset.
-			jestExpect(cache:readQuery({ query = query })).toBe(resultAfterFullGC)
-
-			-- Go back to the pre-GC snapshot.
-			cache:restore(snapshot)
-			jestExpect(cache:extract()).toEqual(snapshot)
-
-			-- Reading a specific fragment causes it to be retained during garbage collection.
-			local authorNameFragment = gql([[
-
-      fragment AuthorName on Author {
-        name
-      }
-    ]])
-			local ray = cache:readFragment({
-				id = "Author:Ray Bradbury",
-				fragment = authorNameFragment,
-			})
-
-			jestExpect(cache:retain("Author:Ray Bradbury")).toBe(1)
-
-			jestExpect(ray).toEqual({
-				__typename = "Author",
-				name = "Ray Bradbury",
-			})
-
-			jestExpect(cache:gc()).toEqual({
-				-- Only Fahrenheit 451 (the book) is reclaimed this time.
-				"Book:9781451673319",
-			})
-
-			local rayMeta = {
-				extraRootIds = {
-					"Author:Ray Bradbury",
-				},
-			}
-
-			jestExpect(cache:extract()).toEqual({
-				__META = rayMeta,
-				ROOT_QUERY = {
-					__typename = "Query",
-					book = {
-						__ref = "Book:0312429215",
-					},
-				},
-				["Author:Ray Bradbury"] = {
-					__typename = "Author",
-					name = "Ray Bradbury",
-				},
-				["Book:0312429215"] = {
-					__typename = "Book",
-					author = {
-						__ref = "Author:Roberto Bola\u{F1}o",
-					},
-					title = "2666",
-				},
-				["Author:Roberto Bola\u{F1}o"] = {
-					__typename = "Author",
-					name = "Roberto Bola\u{F1}o",
-				},
-			})
-
-			jestExpect(cache:gc()).toEqual({})
-
-			jestExpect(cache:release("Author:Ray Bradbury")).toBe(0)
-
-			jestExpect(cache:gc()).toEqual({
-				"Author:Ray Bradbury",
-			})
-
-			jestExpect(cache:gc()).toEqual({})
+			-- 		jestExpect(cache:gc()).toEqual({})
 		end)
 
 		-- ROBLOX TODO: fragments are not supported yet
@@ -1142,7 +968,7 @@ return function()
 			-- 		})
 		end)
 
-		itFIXME("ignores retainment count for ROOT_QUERY", function()
+		it("ignores retainment count for ROOT_QUERY", function()
 			local ref = newBookAuthorCache()
 			local cache, query = ref.cache, ref.query
 
@@ -1169,7 +995,8 @@ return function()
 			jestExpect(cache:retain(allieId)).toBe(1)
 
 			local snapshot = cache:extract()
-			jestExpect(snapshot).toMatchSnapshot()
+			-- ROBLOX TODO: figure out snapshots
+			-- jestExpect(snapshot).toMatchSnapshot()
 
 			jestExpect(cache:gc()).toEqual({})
 
@@ -1191,7 +1018,8 @@ return function()
 				"Book:1982156945",
 			})
 
-			jestExpect(cache2:extract()).toMatchSnapshot()
+			-- ROBLOX TODO: figure out snapshots
+			-- jestExpect(cache2:extract()).toMatchSnapshot()
 
 			jestExpect(cache2:release(allieId)).toBe(0)
 
@@ -1508,7 +1336,7 @@ return function()
 			})
 		end)
 
-		itFIXME("allows evicting specific fields with specific arguments", function()
+		it("allows evicting specific fields with specific arguments", function()
 			local query: DocumentNode = gql([[
 
       query {
@@ -1580,7 +1408,11 @@ return function()
 						name = "Isaac Asimov",
 						hobby = "chemistry",
 					},
-					["authorOfBook({})"] = {
+					--[[
+						ROBLOX deviation: in Lua we can't distinguish between empty arrays, and objects.
+						empty variables will be serialized to "[]"
+					]]
+					["authorOfBook([])"] = {
 						__typename = "Author",
 						name = "James S.A. Corey",
 						hobby = "tabletop games",
@@ -1601,7 +1433,11 @@ return function()
 						name = "Isaac Asimov",
 						hobby = "chemistry",
 					},
-					["authorOfBook({})"] = {
+					--[[
+						ROBLOX deviation: in Lua we can't distinguish between empty arrays, and objects.
+						empty variables will be serialized to "[]"
+					]]
+					["authorOfBook([])"] = {
 						__typename = "Author",
 						name = "James S.A. Corey",
 						hobby = "tabletop games",
@@ -1622,7 +1458,11 @@ return function()
 						name = "Isaac Asimov",
 						hobby = "chemistry",
 					},
-					["authorOfBook({})"] = {
+					--[[
+						ROBLOX deviation: in Lua we can't distinguish between empty arrays, and objects.
+						empty variables will be serialized to "[]"
+					]]
+					["authorOfBook([])"] = {
 						__typename = "Author",
 						name = "James S.A. Corey",
 						hobby = "tabletop games",
@@ -1657,7 +1497,7 @@ return function()
 			})
 		end)
 
-		itFIXME("allows evicting specific fields with specific arguments using EvictOptions", function()
+		it("allows evicting specific fields with specific arguments using EvictOptions", function()
 			local query: DocumentNode = gql([[
 
       query {
@@ -1729,7 +1569,11 @@ return function()
 						name = "Isaac Asimov",
 						hobby = "chemistry",
 					},
-					["authorOfBook({})"] = {
+					--[[
+						ROBLOX deviation: in Lua we can't distinguish between empty arrays, and objects.
+						empty variables will be serialized to "[]"
+					]]
+					["authorOfBook([])"] = {
 						__typename = "Author",
 						name = "James S.A. Corey",
 						hobby = "tabletop games",
@@ -1751,7 +1595,11 @@ return function()
 						name = "Isaac Asimov",
 						hobby = "chemistry",
 					},
-					["authorOfBook({})"] = {
+					--[[
+						ROBLOX deviation: in Lua we can't distinguish between empty arrays, and objects.
+						empty variables will be serialized to "[]"
+					]]
+					["authorOfBook([])"] = {
 						__typename = "Author",
 						name = "James S.A. Corey",
 						hobby = "tabletop games",
@@ -1773,7 +1621,11 @@ return function()
 						name = "Isaac Asimov",
 						hobby = "chemistry",
 					},
-					["authorOfBook({})"] = {
+					--[[
+						ROBLOX deviation: in Lua we can't distinguish between empty arrays, and objects.
+						empty variables will be serialized to "[]"
+					]]
+					["authorOfBook([])"] = {
 						__typename = "Author",
 						name = "James S.A. Corey",
 						hobby = "tabletop games",
@@ -2171,37 +2023,41 @@ return function()
 			})
 		end)
 
-		itFIXME("supports toReference(obj, true) to persist obj", function()
+		it("supports toReference(obj, true) to persist obj", function()
 			-- ROBLOX deviation: predefine variable
 			local titlesByISBN: Map<string, string>
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					Query = {
 						fields = {
-							book = function(_self, _, ref: FieldFunctionOptions_)
-								local args = ref.args
-								local ref_ =
-									ref:toReference(
-										{ __typename = "Book", isbn = (args :: any).isbn },
-										true
-									) :: Reference
-								jestExpect(ref:readField("__typename", ref_)).toEqual("Book")
-								local isbn = ref:readField("isbn", ref_)
+							book = function(_self, _, ref_: FieldFunctionOptions_)
+								local args = ref_.args
+								local ref = ref_:toReference({
+									__typename = "Book",
+									isbn = (args :: any).isbn,
+								}, true) :: Reference
+
+								jestExpect(ref_:readField("__typename", ref)).toEqual("Book")
+								local isbn = ref_:readField("isbn", ref)
 								jestExpect(isbn).toEqual((args :: any).isbn)
-								jestExpect(ref:readField("title", ref_)).toBe(titlesByISBN:get(isbn :: any))
-								return ref_
+								jestExpect(ref_:readField("title", ref)).toBe(titlesByISBN:get(isbn :: any))
+
+								return ref
 							end,
+
 							books = {
-								merge = function(_self, existing: Array<Reference>?, incoming: Array<any>, ref: ModifierDetails)
+								merge = function(_self, existing: Array<Reference>?, incoming: Array<any>, ref_: ModifierDetails)
 									if existing == nil then
 										existing = {}
 									end
+
 									Array.forEach(incoming, function(book)
-										jestExpect(ref:isReference(book)).toBe(false)
+										jestExpect(ref_:isReference(book)).toBe(false)
 										jestExpect(book.__typename).toBeUndefined()
 									end)
+
 									local refs = Array.map(incoming, function(book)
-										return ref:toReference(
+										return ref_:toReference(
 											Object.assign({}, {
 												__typename = "Book",
 												title = titlesByISBN:get(book.isbn),
@@ -2209,21 +2065,26 @@ return function()
 											true
 										) :: Reference
 									end)
-									Array.forEach(refs, function(ref_, i)
-										jestExpect(ref:isReference(ref_)).toBe(true)
-										jestExpect(ref:readField("__typename", ref_)).toBe("Book")
-										local isbn = ref:readField("isbn", ref_)
+
+									Array.forEach(refs, function(ref, i)
+										jestExpect(ref_:isReference(ref)).toBe(true)
+										jestExpect(ref_:readField("__typename", ref)).toBe("Book")
+										local isbn = ref_:readField("isbn", ref)
 										jestExpect(typeof(isbn)).toBe("string")
-										jestExpect(isbn).toBe(ref:readField("isbn", incoming[i]))
+										jestExpect(isbn).toBe(ref_:readField("isbn", incoming[i]))
 									end)
+
 									return Array.concat({}, existing, refs)
 								end,
 							},
 						},
 					},
-					Book = { keyFields = { "isbn" } },
+					Book = {
+						keyFields = { "isbn" },
+					},
 				},
 			})
+
 			local booksQuery = gql([[
 
       query {
@@ -2232,6 +2093,7 @@ return function()
         }
       }
     ]])
+
 			local bookQuery = gql([[
 
       query {
@@ -2241,15 +2103,28 @@ return function()
         }
       }
     ]])
+
 			titlesByISBN = Map.new({
 				{ "9781451673319", "Fahrenheit 451" },
 				{ "1603589082", "Eager" },
 				{ "1760641790", "How To Do Nothing" },
 			})
+
 			cache:writeQuery({
 				query = booksQuery,
-				data = { books = { { isbn = "9781451673319" }, { isbn = "1603589082" } } },
+				data = {
+					books = {
+						{
+							-- Note: intentionally omitting __typename:"Book" here.
+							isbn = "9781451673319",
+						},
+						{
+							isbn = "1603589082",
+						},
+					},
+				},
 			})
+
 			local twoBookSnapshot = {
 				ROOT_QUERY = {
 					__typename = "Query",
@@ -2269,8 +2144,19 @@ return function()
 					title = "Eager",
 				},
 			}
+
+			-- Check that the __typenames were appropriately added.
 			jestExpect(cache:extract()).toEqual(twoBookSnapshot)
-			cache:writeQuery({ query = booksQuery, data = { books = { { isbn = "1760641790" } } } })
+
+			cache:writeQuery({
+				query = booksQuery,
+				data = {
+					books = { {
+						isbn = "1760641790",
+					} },
+				},
+			})
+
 			local threeBookSnapshot = Object.assign({}, twoBookSnapshot, {
 				ROOT_QUERY = Object.assign({}, twoBookSnapshot.ROOT_QUERY, {
 					books = Array.concat(
@@ -2285,7 +2171,9 @@ return function()
 					title = "How To Do Nothing",
 				},
 			})
+
 			jestExpect(cache:extract()).toEqual(threeBookSnapshot)
+
 			local howToDoNothingResult = cache:readQuery({
 				query = bookQuery,
 				variables = { isbn = "1760641790" },
@@ -2293,81 +2181,137 @@ return function()
 			jestExpect(howToDoNothingResult).toEqual({
 				book = { __typename = "Book", isbn = "1760641790", title = "How To Do Nothing" },
 			})
+
+			-- Check that reading the query didn't change anything.
 			jestExpect(cache:extract()).toEqual(threeBookSnapshot)
+
 			local f451Result = cache:readQuery({
 				query = bookQuery,
-				variables = { isbn = "9781451673319" },
+				variables = {
+					isbn = "9781451673319",
+				},
 			})
+
 			jestExpect(f451Result).toEqual({
-				book = { __typename = "Book", isbn = "9781451673319", title = "Fahrenheit 451" },
+				book = {
+					__typename = "Book",
+					isbn = "9781451673319",
+					title = "Fahrenheit 451",
+				},
 			})
+
 			local cuckoosCallingDiffResult = cache:diff({
 				query = bookQuery,
 				optimistic = true,
-				variables = { isbn = "031648637X" },
+				variables = {
+					isbn = "031648637X",
+				},
 			})
-			jestExpect(cuckoosCallingDiffResult).toEqual({
+
+			-- ROBLOX deviation: extract a variable to overwrite stack properties with jestExpect.anything() so that they don't cause failures
+			local expected = {
 				complete = false,
-				result = { book = { __typename = "Book", isbn = "031648637X" } },
+				result = {
+					book = {
+						__typename = "Book",
+						isbn = "031648637X",
+					},
+				},
 				missing = {
 					MissingFieldError.new(
 						'Can\'t find field \'title\' on Book:{"isbn":"031648637X"} object',
-						{ "book", "title" }
-						-- ROBLOX TODO
-						-- expect:anything(),
-						-- expect:anything()
+						{ "book", "title" },
+						jestExpect.anything(), -- query
+						jestExpect.anything() -- variables
 					),
 				},
-			})
-			jestExpect(cache:extract()).toEqual(
-				Object.assign(
-					{},
-					threeBookSnapshot,
-					{ ['Book:{"isbn":"031648637X"}'] = { __typename = "Book", isbn = "031648637X" } }
-				)
-			)
-			local cuckoosCallingId = cache:identify({ __typename = "Book", isbn = "031648637X" }) :: any
+			}
+			-- ROBLOX deviation: assign jestExpect.anything() to avoid comparing stacks
+			expected.missing[1].stack = jestExpect.anything()
+
+			jestExpect(cuckoosCallingDiffResult).toEqual(expected)
+
+			jestExpect(cache:extract()).toEqual(Object.assign(
+				{},
+				threeBookSnapshot,
+				-- This book was added as a side effect of the read function.
+				{ ['Book:{"isbn":"031648637X"}'] = {
+					__typename = "Book",
+					isbn = "031648637X",
+				} }
+			))
+
+			local cuckoosCallingId = cache:identify({
+				__typename = "Book",
+				isbn = "031648637X",
+			}) :: any
+
 			jestExpect(cuckoosCallingId).toBe('Book:{"isbn":"031648637X"}')
+
 			cache:writeQuery({
 				id = cuckoosCallingId,
 				query = gql("{ title }"),
-				data = { title = "The Cuckoo's Calling" },
+				data = {
+					title = "The Cuckoo's Calling",
+				},
 			})
-			local cuckooMeta = { extraRootIds = { 'Book:{"isbn":"031648637X"}' } }
+
+			local cuckooMeta = {
+				extraRootIds = {
+					'Book:{"isbn":"031648637X"}',
+				},
+			}
+
 			jestExpect(cache:extract()).toEqual(Object.assign({}, threeBookSnapshot, {
 				__META = cuckooMeta,
+				-- This book was added as a side effect of the read function.
 				['Book:{"isbn":"031648637X"}'] = {
 					__typename = "Book",
 					isbn = "031648637X",
 					title = "The Cuckoo's Calling",
 				},
 			}))
+
 			cache:modify({
 				id = cuckoosCallingId,
 				fields = {
-					title = function(_self, title: string, ref: ModifierDetails)
+					title = function(_self, title: string, ref_: ModifierDetails)
 						local book = {
 							__typename = "Book",
-							isbn = ref:readField("isbn"),
+							isbn = ref_:readField("isbn"),
 							author = "J.K. Rowling",
 						}
-						local refWithoutAuthor = ref:toReference(book)
-						jestExpect(ref:isReference(refWithoutAuthor)).toBe(true)
-						jestExpect(ref:readField("author", refWithoutAuthor :: Reference)).toBeUndefined()
-						local ref_ = ref:toReference(book, true)
-						jestExpect(ref:isReference(ref_)).toBe(true)
-						jestExpect(ref:readField("author", ref_ :: Reference)).toBe("J.K. Rowling")
-						jestExpect(ref:readField("author")).toBe("J.K. Rowling")
-						return Array.join(String.split(title, "'"), "\u{2019}")
+
+						-- By not passing true as the second argument to toReference, we
+						-- get back a Reference object, but the book.author field is not
+						-- persisted into the store.
+						local refWithoutAuthor = ref_:toReference(book)
+						jestExpect(ref_:isReference(refWithoutAuthor)).toBe(true)
+						jestExpect(ref_:readField("author", refWithoutAuthor :: Reference)).toBeUndefined()
+
+						-- Update this very Book entity before we modify its title.
+						-- Passing true for the second argument causes the extra
+						-- book.author field to be persisted into the store.
+						local ref = ref_:toReference(book, true)
+						jestExpect(ref_:isReference(ref)).toBe(true)
+						jestExpect(ref_:readField("author", ref :: Reference)).toBe("J.K. Rowling")
+
+						-- In fact, readField doesn't need the ref if we're reading from
+						-- the same entity that we're modifying.
+						jestExpect(ref_:readField("author")).toBe("J.K. Rowling")
+
+						-- Typography matters!
+						return Array.join(String.split(title, "'"), "’")
 					end,
 				},
 			})
+
 			jestExpect(cache:extract()).toEqual(Object.assign({}, threeBookSnapshot, {
 				__META = cuckooMeta,
 				['Book:{"isbn":"031648637X"}'] = {
 					__typename = "Book",
 					isbn = "031648637X",
-					title = "The Cuckoo\u{2019}s Calling",
+					title = "The Cuckoo’s Calling",
 					author = "J.K. Rowling",
 				},
 			}))
@@ -2393,14 +2337,15 @@ return function()
 					},
 					Query = {
 						fields = {
-							book = function(_self, _, ref: FieldFunctionOptions_)
-								local args = ref.args
-								local ref_ = ref:toReference({
+							book = function(_self, _, ref_: FieldFunctionOptions_)
+								local args = ref_.args
+								local ref = ref_:toReference({
 									__typename = "Book",
 									isbn = (args :: any).isbn,
 									title = titlesByISBN:get((args :: any).isbn),
 								}, true)
-								return ref_
+
+								return ref
 							end,
 						},
 					},
@@ -2478,11 +2423,21 @@ return function()
 
 		itFIXME("should not over-invalidate fields with keyArgs", function()
 			local isbnsWeHaveRead: Array<string> = {}
+
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					Query = {
 						fields = {
 							book = {
+								-- The presence of this keyArgs configuration permits the
+								-- cache to track result caching dependencies at the level
+								-- of individual Books, so writing one Book does not
+								-- invalidate other Books with different ISBNs. If the cache
+								-- doesn't know which arguments are "important," it can't
+								-- make any assumptions about the relationships between
+								-- field values with the same field name but different
+								-- arguments, so it has to err on the side of invalidating
+								-- all Query.book data whenever any Book is written.
 								keyArgs = { "isbn" },
 								read = function(_self, book, ref: FieldFunctionOptions_)
 									local args = ref.args
@@ -2499,6 +2454,7 @@ return function()
 					Book = { keyFields = { "isbn" } },
 				},
 			})
+
 			local query = gql([[
 
       query Book($isbn: string) {
@@ -2511,61 +2467,158 @@ return function()
         }
       }
     ]])
+
 			local diffs: Array<Cache_DiffResult<any>> = {}
 			cache:watch({
 				query = query,
 				optimistic = true,
-				variables = { isbn = "1449373321" },
+				variables = {
+					isbn = "1449373321",
+				},
 				callback = function(_self, diff)
 					table.insert(diffs, diff)
 				end,
 			})
+
 			local ddiaData = {
 				book = {
 					__typename = "Book",
 					isbn = "1449373321",
 					title = "Designing Data-Intensive Applications",
-					author = { __typename = "Author", name = "Martin Kleppmann" },
+					author = {
+						__typename = "Author",
+						name = "Martin Kleppmann",
+					},
 				},
 			}
+
 			jestExpect(isbnsWeHaveRead).toEqual({})
-			cache:writeQuery({ query = query, variables = { isbn = "1449373321" }, data = ddiaData })
-			jestExpect(isbnsWeHaveRead).toEqual({ "1449373321" })
-			jestExpect(diffs).toEqual({ { complete = true, result = ddiaData } })
+
+			cache:writeQuery({
+				query = query,
+				variables = {
+					isbn = "1449373321",
+				},
+				data = ddiaData,
+			})
+
+			jestExpect(isbnsWeHaveRead).toEqual({
+				"1449373321",
+			})
+
+			jestExpect(diffs).toEqual({ {
+				complete = true,
+				result = ddiaData,
+			} })
+
 			local theEndData = {
 				book = {
 					__typename = "Book",
 					isbn = "1982103558",
 					title = "The End of Everything",
-					author = { __typename = "Author", name = "Katie Mack" },
+					author = {
+						__typename = "Author",
+						name = "Katie Mack",
+					},
 				},
 			}
-			cache:writeQuery({ query = query, variables = { isbn = "1982103558" }, data = theEndData })
-			jestExpect(diffs).toEqual({ { complete = true, result = ddiaData } })
-			jestExpect(isbnsWeHaveRead).toEqual({ "1449373321" })
+
+			cache:writeQuery({
+				query = query,
+				variables = {
+					isbn = "1982103558",
+				},
+				data = theEndData,
+			})
+
+			-- This list does not include the book we just wrote, because the
+			-- cache.watch we started above only depends on the Query.book field
+			-- value corresponding to the 1449373321 ISBN.
+			jestExpect(diffs).toEqual({ {
+				complete = true,
+				result = ddiaData,
+			} })
+
+			-- Likewise, this list is unchanged, because we did not need to read
+			-- the 1449373321 Book again after writing the 1982103558 data.
+			jestExpect(isbnsWeHaveRead).toEqual({
+				"1449373321",
+			})
+
 			local theEndResult = cache:readQuery({
 				query = query,
-				variables = { isbn = "1982103558" },
+				variables = {
+					isbn = "1982103558",
+				},
+				-- TODO It's a regrettable accident of history that cache.readQuery is
+				-- non-optimistic by default. Perhaps the default can be swapped to true
+				-- in the next major version of Apollo Client.
 				optimistic = true,
 			})
+
 			jestExpect(theEndResult).toEqual(theEndData)
-			jestExpect(isbnsWeHaveRead).toEqual({ "1449373321", "1982103558" })
-			jestExpect(cache:readQuery({ query = query, variables = { isbn = "1449373321" }, optimistic = true })).toBe(
-				diffs[1 --[[ ROBLOX adaptation: added 1 to array index ]]].result
-			)
-			jestExpect(cache:readQuery({ query = query, variables = { isbn = "1982103558" }, optimistic = true })).toBe(
-				theEndResult
-			)
-			jestExpect(isbnsWeHaveRead).toEqual({ "1449373321", "1982103558" })
-			jestExpect(cache:evict({ id = cache:identify({ __typename = "Book", isbn = "1982103558" }) })).toBe(true)
-			jestExpect(diffs).toEqual({ { complete = true, result = ddiaData } })
-			jestExpect(isbnsWeHaveRead).toEqual({ "1449373321", "1982103558" })
+
+			jestExpect(isbnsWeHaveRead).toEqual({
+				"1449373321",
+				"1982103558",
+			})
+
 			jestExpect(cache:readQuery({
 				query = query,
-				variables = { isbn = "1449373321" },
+				variables = {
+					isbn = "1449373321",
+				},
+				optimistic = true,
+			})).toBe(diffs[1].result)
+
+			jestExpect(cache:readQuery({
+				query = query,
+				variables = {
+					isbn = "1982103558",
+				},
+				optimistic = true,
+			})).toBe(theEndResult)
+
+			-- Still no additional reads, because both books are cached.
+			jestExpect(isbnsWeHaveRead).toEqual({
+				"1449373321",
+				"1982103558",
+			})
+
+			-- Evicting the 1982103558 Book should not invalidate the 1449373321
+			-- Book, so diffs and isbnsWeHaveRead should remain unchanged.
+			jestExpect(cache:evict({
+				id = cache:identify({
+					__typename = "Book",
+					isbn = "1982103558",
+				}),
+			})).toBe(true)
+
+			jestExpect(diffs).toEqual({ {
+				complete = true,
+				result = ddiaData,
+			} })
+
+			jestExpect(isbnsWeHaveRead).toEqual({
+				"1449373321",
+				"1982103558",
+			})
+
+			jestExpect(cache:readQuery({
+				query = query,
+				variables = {
+					isbn = "1449373321",
+				},
+				-- Read this query non-optimistically, to test that the read function
+				-- runs again, adding "1449373321" again to isbnsWeHaveRead.
 				optimistic = false,
-			})).toBe(diffs[1 --[[ ROBLOX adaptation: added 1 to array index ]]].result)
-			jestExpect(isbnsWeHaveRead).toEqual({ "1449373321", "1982103558", "1449373321" })
+			})).toBe(diffs[1].result)
+
+			jestExpect(isbnsWeHaveRead).toEqual({
+				"1449373321",
+				"1982103558",
+				"1449373321",
+			})
 		end)
 	end)
 end

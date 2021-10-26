@@ -399,6 +399,8 @@ function EntityStore:modify(dataId: string, fields: Modifier<any> | Modifiers): 
 					newValue = DELETE
 				else
 					newValue = modify(
+						-- ROBLOX deviation: passing fields as self
+						not isCallable(fields) and fields :: Modifiers or nil,
 						maybeDeepFreeze(fieldValue),
 						Object.assign({}, sharedDetails, {
 							fieldName = fieldName,
