@@ -10,6 +10,7 @@ return function()
 	local jestExpect = JestGlobals.expect
 	local jest = JestGlobals.jest
 
+	local NULL = require(script.Parent.Parent.null).NULL
 	type JestMock = any
 
 	local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
@@ -260,7 +261,7 @@ return function()
               ]]),
 						variables = {
 							literal = false,
-							value = nil,
+							value = NULL,
 						},
 					}))).toEqual({ a = 1 })
 				end
@@ -1163,7 +1164,7 @@ return function()
 
 				cache:restore({})
 				jestExpect(cache:extract()).toEqual({})
-				jestExpect(cache:readQuery({ query = query })).toBe(nil)
+				jestExpect(cache:readQuery({ query = query })).toBe(NULL)
 
 				cache:restore(snapshot)
 				jestExpect(cache:extract()).toEqual(snapshot)
@@ -1976,7 +1977,7 @@ return function()
 			jestExpect(cache:extract()).toEqual({})
 		end)
 
-		xit("can remove specific items from paginated lists", function()
+		it("can remove specific items from paginated lists", function()
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					Thread = {
@@ -2225,7 +2226,7 @@ return function()
 			jestExpect(bResults).toEqual({ b321, b322 })
 		end)
 
-		xit("should handle argument-determined field identities", function()
+		it("should handle argument-determined field identities", function()
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					Query = { fields = { book = { keyArgs = { "isbn" } } } },

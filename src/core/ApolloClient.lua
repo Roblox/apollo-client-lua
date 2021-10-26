@@ -76,7 +76,7 @@ export type DefaultOptions = { [string]: any }
 
 local _hasSuggestedDevtools = false
 export type ApolloClientOptions<TCacheShape> = {
-	uri: string? | UriFunction?,
+	uri: (string | UriFunction)?,
 	credentials: string?,
 	-- headers: Record<string, string>?,
 	headers: { [string]: string }?,
@@ -89,8 +89,8 @@ export type ApolloClientOptions<TCacheShape> = {
 	queryDeduplication: boolean?,
 	defaultOptions: DefaultOptions?,
 	assumeImmutableResults: boolean?,
-	resolvers: Resolvers? | Array<Resolvers>?,
-	typeDefs: string? | Array<string>? | DocumentNode? | Array<DocumentNode>?,
+	resolvers: (Resolvers | Array<Resolvers>)?,
+	typeDefs: (string | Array<string> | DocumentNode | Array<DocumentNode>)?,
 	fragmentMatcher: FragmentMatcher?,
 	name: string?,
 	version: string?,
@@ -132,7 +132,7 @@ export type ApolloClient<TCacheShape> = {
 	version: string,
 	queryDeduplication: boolean,
 	defaultOptions: DefaultOptions,
-	typeDefs: string? | Array<string>? | DocumentNode? | Array<DocumentNode>?,
+	typeDefs: (string | Array<string> | DocumentNode | Array<DocumentNode>)?,
 }
 
 local ApolloClient = {}

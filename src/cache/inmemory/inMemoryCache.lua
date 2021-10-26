@@ -9,6 +9,7 @@ local Map = LuauPolyfill.Map
 local Object = LuauPolyfill.Object
 local Set = LuauPolyfill.Set
 local instanceof = LuauPolyfill.instanceof
+local NULL = require(script.Parent.null).NULL
 type Array<T> = LuauPolyfill.Array<T>
 type Map<K, V> = LuauPolyfill.Map<K, V>
 type Object = LuauPolyfill.Object
@@ -325,7 +326,7 @@ function InMemoryCache:read(options: Cache_ReadOptions<TVariables_, TData_>): T_
 			config = self.config,
 			returnPartialData = returnPartialData,
 		})).result
-		return Boolean.toJSBoolean(ref) and ref or nil
+		return Boolean.toJSBoolean(ref) and ref or NULL
 	end)
 	if not ok then
 		local e = result
@@ -335,7 +336,7 @@ function InMemoryCache:read(options: Cache_ReadOptions<TVariables_, TData_>): T_
 			-- incomplete cache data. Unexpected errors will be re-thrown. If
 			-- you need more information about which fields were missing, use
 			-- cache.diff instead, and examine diffResult.missing.
-			return nil
+			return NULL
 		end
 		error(e)
 	end

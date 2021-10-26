@@ -3,9 +3,6 @@ local exports: { [string]: any } = {}
 local srcWorkspace = script.Parent
 local Packages = srcWorkspace.Parent
 local invariant = require(srcWorkspace.jsutils.invariant).invariant
--- local DEV = require(srcWorkspace.utilities).DEV
--- invariant("boolean" == typeof(DEV), DEV)
--- local invariant = require(Packages["ts-invariant"]).invariant
 local DEV = require(script.globals).DEV
 invariant("boolean" == typeof(DEV), tostring(DEV))
 exports.DEV = DEV

@@ -14,7 +14,7 @@ local global = require(script.Parent.Parent.common.global).default
 local __ = "__"
 local GLOBAL_KEY = __ .. "DEV" .. __
 
-local function getDEV()
+local function getDEV(): boolean
 	do --[[ ROBLOX COMMENT: try-catch block conversion ]]
 		local _ok, result = xpcall(function()
 			return Boolean.toJSBoolean(_G.__DEV__)

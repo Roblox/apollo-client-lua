@@ -25,6 +25,8 @@ type Tuple<T, V> = Array<T | V>
 ]]
 type T_ = any
 
+local NULL = require(script.Parent.null).NULL
+
 local HttpService = game:GetService("HttpService")
 
 local graphQLModule = require(rootWorkspace.GraphQL)
@@ -300,10 +302,13 @@ function StoreWriter:processSelectionSet(ref_: ProcessSelectionSetOptions): Stor
 		else
 			return dataId
 		end
-	end)() or getTypenameFromResult(result, selectionSet, context.fragmentMap) or (dataId and (context.store:get(
-		dataId,
-		"__typename"
-	) :: string))
+	end)() or getTypenameFromResult(result, selectionSet, context.fragmentMap) or (function()
+		if Boolean.toJSBoolean(dataId) then
+			return context.store:get(dataId :: string, "__typename") :: string
+		else
+			return dataId :: any
+		end
+	end)()
 
 	if "string" == typeof(typename) then
 		incomingFields.__typename = typename
@@ -467,7 +472,7 @@ function StoreWriter:processFieldValue(
 	context: WriteContext,
 	mergeTree: MergeTree
 ): StoreValue
-	if not Boolean.toJSBoolean(field.selectionSet) or value == nil then
+	if not Boolean.toJSBoolean(field.selectionSet) or value == NULL then
 		-- In development, we need to clone scalar values so that they can be
 		-- safely frozen with maybeDeepFreeze in readFromStore.ts. In production,
 		-- it's cheaper to store the scalar values directly in the cache.

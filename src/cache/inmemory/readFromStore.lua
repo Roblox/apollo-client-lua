@@ -15,7 +15,7 @@ type WeakMap<T, U> = LuauPolyfill.WeakMap<T, U>
 type Record<T, U> = { [T]: U }
 
 local HttpService = game:GetService("HttpService")
-
+local NULL = require(script.Parent.null).NULL
 --[[
 	ROBLOX deviation: no generic params for functions are supported.
 	T_, TCacheKey_ is placeholder for generic T, TCacheKey param
@@ -227,7 +227,7 @@ function StoreReader.new(config: StoreReaderConfig): StoreReader
 			if supportsResultCaching(context.store) then
 				return ((context.store :: any) :: EntityStore):makeCacheKey(
 					selectionSet,
-					Boolean.toJSBoolean(isReference(parent)) and parent.__ref or parent,
+					isReference(parent) and parent.__ref or parent,
 					context.varString,
 					canonizeResults
 				)
@@ -411,11 +411,7 @@ function StoreReader:execSelectionSetImpl(ref: ExecSelectionSetOptions): ExecRes
 
 			local resultName = resultKeyNameFromField(selection)
 			table.insert(context.path, resultName)
-			--[[
-				ROBLOX CHECK:
-				check if this behaves as expected when tests are implemented
-				`fieldValue` can be either `null` or `undefined` upstream and seems to be treated separately
-			]]
+
 			if fieldValue == nil then
 				if not Boolean.toJSBoolean(addTypenameToDocument:added(selection)) then
 					table.insert(
@@ -454,7 +450,7 @@ function StoreReader:execSelectionSetImpl(ref: ExecSelectionSetOptions): ExecRes
 				if context.canonizeResults then
 					fieldValue = self.canon:pass(fieldValue)
 				end
-			elseif fieldValue ~= nil then
+			elseif fieldValue ~= NULL then
 				-- In this case, because we know the field has a selection set,
 				-- it must be trying to query a GraphQLObjectType, which is why
 				-- fieldValue must be != null.
@@ -519,13 +515,15 @@ function StoreReader:execSubSelectedArrayImpl(ref: ExecSubSelectedArrayOptions):
 	end
 
 	if Boolean.toJSBoolean(field.selectionSet) then
-		array = Array.filter(array, context.store.canRead)
+		array = Array.filter(array, function(item)
+			return context.store:canRead(item)
+		end)
 	end
 
 	array = Array.map(array, function(item: any, i: number)
 		-- null value in array
-		if item == nil then
-			return nil
+		if item == NULL then
+			return NULL
 		end
 
 		table.insert(context.path, i)
@@ -582,18 +580,18 @@ exports.StoreReader = StoreReader
 function assertSelectionSetForIdValue(store: NormalizedCache, field: FieldNode, fieldValue: any)
 	if not Boolean.toJSBoolean(field.selectionSet) then
 		local workSet = Set.new({ fieldValue })
-		Array.forEach(workSet, function(value)
+		for _, value in workSet:ipairs() do
 			if isNonNullObject(value) then
 				invariant(
 					not isReference(value),
 					("Missing selection set for object of type %s returned for query field %s"):format(
-						getTypenameFromStoreObject(store, value) :: string,
+						getTypenameFromStoreObject(store, value) or "nil" :: string,
 						field.name.value
 					)
 				)
 				Array.forEach(Object.values(value), workSet.add, workSet)
 			end
-		end)
+		end
 	end
 end
 

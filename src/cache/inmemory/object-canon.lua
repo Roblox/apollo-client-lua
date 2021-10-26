@@ -277,7 +277,7 @@ type SortedKeysInfo = { sorted: Array<string>, json: string }
 local canonicalStringify = Object.assign(
 	setmetatable({}, {
 		__call = function(_self, value: any): string
-			if Boolean.toJSBoolean(isObjectOrArray(value)) then
+			if isObjectOrArray(value) then
 				local canonical = stringifyCanon:admit(value)
 				local json = stringifyCache:get(canonical)
 				if json == nil then
