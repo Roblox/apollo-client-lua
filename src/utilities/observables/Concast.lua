@@ -94,9 +94,9 @@ type ConcastPrivate<T> = Concast<T> & {
 	-- to deliver latest results immediately to new observers.
 	latest: Tuple<string, any>?,
 	handlers: {
-		next: (_self: Object, result: T) -> (),
-		error: (_self: Object, error: any) -> (),
-		complete: (_self: Object) -> (),
+		next: (_self: any, result: T) -> (),
+		error: (_self: any, error: any) -> (),
+		complete: (_self: any) -> (),
 	},
 	start: (self: Concast<T>, sources: ConcastSourcesIterable<T>) -> (),
 	deliverLastMessage: (self: Concast<T>, observer: Observer<T>) -> (),

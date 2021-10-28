@@ -253,7 +253,7 @@ function EntityStore:lookup(dataId: string, dependOnExistence: boolean?): StoreO
 	end
 
 	if Boolean.toJSBoolean(self.policies.rootTypenamesById[dataId]) then
-		return {}
+		return {} :: StoreObject
 	end
 
 	return nil

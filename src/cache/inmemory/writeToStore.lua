@@ -285,7 +285,7 @@ function StoreWriter:processSelectionSet(ref_: ProcessSelectionSetOptions): Stor
 
 	-- This variable will be repeatedly updated using context.merge to
 	-- accumulate all fields that need to be written into the store.
-	local incomingFields: StoreObject = {}
+	local incomingFields: StoreObject = {} :: StoreObject
 
 	-- Write any key fields that were used during identification, even if
 	-- they were not mentioned in the original query.
@@ -542,7 +542,7 @@ function StoreWriter:applyMerges(
 			if isReference(e) then
 				getStorageArgs = { (e :: Reference).__ref }
 			else
-				getStorageArgs = { e }
+				getStorageArgs = { e :: StoreObject }
 			end
 		end
 

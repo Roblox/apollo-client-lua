@@ -1,5 +1,8 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/cache/inmemory/readFromStore.ts
 
+-- ROBLOX FIXME: remove when analyze is fixed
+type InvalidAnalyzeErrorFix = any
+
 local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 
@@ -403,11 +406,11 @@ function StoreReader:execSelectionSetImpl(ref: ExecSelectionSetOptions): ExecRes
 
 		if isField(selection) then
 			local fieldValue = policies:readField({
-				fieldName = selection.name.value,
-				field = selection,
+				fieldName = (selection :: FieldNode).name.value,
+				field = selection :: FieldNode,
 				variables = context.variables,
 				from = objectOrReference,
-			}, context)
+			} :: InvalidAnalyzeErrorFix, context)
 
 			local resultName = resultKeyNameFromField(selection)
 			table.insert(context.path, resultName)

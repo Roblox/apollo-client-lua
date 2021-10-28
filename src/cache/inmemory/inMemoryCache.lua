@@ -1,5 +1,8 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/cache/inmemory/inMemoryCache.ts
 
+-- ROBLOX FIXME: remove when analyze is fixed
+type InvalidAnalyzeErrorFix = any
+
 local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 
@@ -222,7 +225,7 @@ function InMemoryCache:resetResultCache(resetResultIdentities: boolean?): ()
 	-- reset, but it does need to have its writer.storeReader reference updated,
 	-- so it's simpler to update this.storeWriter as well.
 	self.storeReader = StoreReader.new({
-		cache = self,
+		cache = (self :: any) :: InMemoryCache,
 		addTypename = self.addTypename,
 		resultCacheMaxSize = self.config.resultCacheMaxSize,
 		canon = (function(): ObjectCanon | nil
@@ -236,7 +239,7 @@ function InMemoryCache:resetResultCache(resetResultIdentities: boolean?): ()
 				end
 			end
 		end)(),
-	})
+	} :: InvalidAnalyzeErrorFix)
 	self.storeWriter = StoreWriter.new(self, self.storeReader)
 
 	self.maybeBroadcastWatch = wrap(function(_self, c: Cache_WatchOptions<Watcher_>, options: BroadcastOptions?): ()
