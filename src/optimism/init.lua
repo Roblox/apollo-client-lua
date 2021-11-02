@@ -8,6 +8,8 @@ local Array = LuauPolyfill.Array
 local Set = LuauPolyfill.Set
 local Boolean = LuauPolyfill.Boolean
 
+type Function = (...any) -> ...any
+
 local exports = {}
 
 local Trie = require(srcWorkspace.wry.trie).Trie
@@ -176,7 +178,7 @@ local function wrap(
 		calling function as a method needs slightly different signature
 		creating helper function to achieve that
 	]]
-	local asMethod = function(fn)
+	local function asMethod(fn: Function)
 		return function(_, ...)
 			return fn(...)
 		end
