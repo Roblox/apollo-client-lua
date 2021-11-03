@@ -2,7 +2,6 @@
 local exports: { [string]: any } = {}
 local MockedProviderModule = require(script.mocking.MockedProvider)
 exports.MockedProvider = MockedProviderModule.MockedProvider
-export type MockedProvider = MockedProviderModule.MockedProvider
 export type MockedProviderProps<TSerializedCache> = MockedProviderModule.MockedProviderProps<TSerializedCache>
 local mockLinkModule = require(script.mocking.mockLink)
 exports.MockLink = mockLinkModule.MockLink
