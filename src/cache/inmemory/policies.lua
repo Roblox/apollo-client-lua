@@ -21,6 +21,8 @@ type ReturnType<T> = any
 type Exclude<T, V> = T
 type Readonly<T> = T
 
+local isCallable = require(srcWorkspace.luaUtils.isCallable)
+
 local RegExp = require(rootWorkspace.LuauRegExp)
 type RegExp = RegExp.RegExp
 
@@ -74,9 +76,11 @@ local storeValueIsStoreObject = helpersModule.storeValueIsStoreObject
 local selectionSetMatchesResult = helpersModule.selectionSetMatchesResult
 local TypeOrFieldNameRegExp = helpersModule.TypeOrFieldNameRegExp
 local cacheSlot = require(script.Parent.reactiveVars).cacheSlot
+
+-- ROBLOX TODO: Circular dependency
 -- local inMemoryCacheModule = require(script.Parent.inMemoryCache)
--- local InMemoryCache = inMemoryCacheModule.InMemoryCache
-type InMemoryCache = any -- inMemoryCacheModule.InMemoryCache
+-- type InMemoryCache = inMemoryCacheModule.InMemoryCache
+type InMemoryCache = any
 -- ROBLOX TODO: use real dependency when implemented
 -- local commonModule = require(script.Parent.Parent.core.types.common)
 -- ROBLOX TODO: use real dependency when implemented
@@ -99,9 +103,8 @@ type WriteContext = { [string]: any } -- writeToStoreModule.WriteContext
 -- Upgrade to a faster version of the default stable JSON.stringify function
 -- used by getStoreKeyName. This function is used when computing storeFieldName
 -- strings (when no keyArgs has been configured for a field).
--- ROBLOX TODO: use real dependency when implemented
--- local canonicalStringify = require(script.Parent["object-canon"]).canonicalStringify
--- getStoreKeyName:setStringify(canonicalStringify)
+local canonicalStringify = require(script.Parent["object-canon"]).canonicalStringify
+getStoreKeyName:setStringify(canonicalStringify)
 
 local policiesTypesModule = require(script.Parent.policies_types)
 
@@ -196,17 +199,16 @@ local function defaultDataIdFromObject(_self, ref, context: KeyFieldsContext?): 
 	return nil
 end
 exports.defaultDataIdFromObject = defaultDataIdFromObject
-local function nullKeyFieldsFn() -- : KeyFieldsFunction
+local function nullKeyFieldsFn(_self) -- : KeyFieldsFunction
 	return nil
 end
 local function simpleKeyArgsFn(_args, context) -- : KeyArgsFunction
 	return context.fieldName
 end
-local function mergeTrueFn(existing, incoming, ref) -- : FieldMergeFunction<any>
-	local mergeObjects = ref.mergeObjects
-	return mergeObjects(existing, incoming)
+local function mergeTrueFn(_self, existing, incoming, ref) -- : FieldMergeFunction<any>
+	return ref:mergeObjects(existing, incoming)
 end
-local function mergeFalseFn(_, incoming) -- : FieldMergeFunction<any>
+local function mergeFalseFn(_self, _, incoming) -- : FieldMergeFunction<any>
 	return incoming
 end
 export type PossibleTypesMap = { [string]: Array<string> }
@@ -460,7 +462,7 @@ function Policies:updateTypePolicy(typename: string, incoming: TypePolicy): ()
 		existing: { merge: (FieldMergeFunction<any, any> | boolean)? },
 		merge: (FieldMergeFunction<any, any> | boolean)?
 	)
-		if typeof(merge) == "function" then
+		if isCallable(merge) then
 			existing.merge = merge
 		else
 			-- Pass merge:true as a shorthand for a merge implementation
@@ -1030,7 +1032,7 @@ function makeFieldFunctionOptions(
 	}
 end
 function makeMergeObjectsFunction(store: NormalizedCache): MergeObjectsFunction
-	return function(existing, incoming)
+	return function(self, existing, incoming)
 		if
 			Boolean.toJSBoolean(
 				Boolean.toJSBoolean(Array.isArray(existing)) and Array.isArray(existing) or Array.isArray(incoming)
@@ -1099,7 +1101,7 @@ function makeMergeObjectsFunction(store: NormalizedCache): MergeObjectsFunction
 			end
 			if
 				Boolean.toJSBoolean((function()
-					if Boolean.toJSBoolean(storeValueIsStoreObject(existing)) then
+					if storeValueIsStoreObject(existing) then
 						return storeValueIsStoreObject(incoming)
 					else
 						return storeValueIsStoreObject(existing)
@@ -1112,15 +1114,54 @@ function makeMergeObjectsFunction(store: NormalizedCache): MergeObjectsFunction
 		return incoming
 	end
 end
+
+-- ROBLOX deviation: preserve order of keyFieldsFn when encoding
+local function keyObjEncode(object: Record<string, any>, specifier): string
+	if Array.isArray(specifier) and #specifier == 0 then
+		return "[]"
+	end
+	return "{"
+		.. Array.join(
+			Array.filter(
+				Array.map(specifier, function(s, i)
+					if Array.isArray(s) then
+						return ""
+					else
+						local arg
+						if i < #specifier then
+							if Array.isArray(specifier[i + 1]) then
+								arg = keyObjEncode(object[s], specifier[i + 1])
+							else
+								arg = HttpService:JSONEncode(object[s])
+							end
+							return HttpService:JSONEncode(s) .. ":" .. arg
+						else
+							return HttpService:JSONEncode(s) .. ":" .. HttpService:JSONEncode(object[s])
+						end
+					end
+				end),
+				function(val)
+					return val ~= ""
+				end
+			),
+			","
+		)
+		.. "}"
+end
+
 function keyArgsFnFromSpecifier(specifier: KeySpecifier): KeyArgsFunction
 	return function(args, context)
 		if args then
-			return ("%s:%s"):format(context.fieldName, HttpService:JSONEncode(computeKeyObject(args, specifier, false)))
+			return ("%s:%s"):format(
+				context.fieldName,
+				keyObjEncode(computeKeyObject(args, specifier, false), specifier)
+			)
 		else
 			return context.fieldName
 		end
 	end
 end
+
 function keyFieldsFnFromSpecifier(specifier: KeySpecifier): KeyFieldsFunction
 	local trie = Trie.new(canUseWeakMap)
 	return function(_self, object, context)
@@ -1137,7 +1178,7 @@ function keyFieldsFnFromSpecifier(specifier: KeySpecifier): KeyFieldsFunction
 		context.keyObject = computeKeyObject(object, specifier, true, aliasMap)
 		local keyObject = context.keyObject
 		-- ROBLOX deviation: typename is string?, so a fallback is necessary
-		return ("%s:%s"):format(context.typename or "null", HttpService:JSONEncode(keyObject))
+		return ("%s:%s"):format(context.typename or "null", keyObjEncode(keyObject :: Record<string, any>, specifier))
 	end
 end
 type AliasMap = {

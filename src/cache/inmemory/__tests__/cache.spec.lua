@@ -1993,8 +1993,7 @@ return function()
 									incoming: Array<Reference>,
 									ref: FieldFunctionOptions<{ offset: number, limit: number }, Record<string, any>>
 								)
-									local args, mergeObjects =
-										ref.args :: { offset: number, limit: number }, ref.mergeObjects
+									local args = ref.args :: { offset: number, limit: number }
 									local merged
 									if Boolean.toJSBoolean(existing) then
 										merged = Array.slice(existing, 1)
@@ -2004,7 +2003,7 @@ return function()
 									local end_ = (args :: any).offset + math.min(args.limit, #incoming)
 									local i = args.offset + 1
 									while i <= end_ do
-										merged[i] = mergeObjects(merged[i], incoming[i - args.offset]) :: Reference
+										merged[i] = ref:mergeObjects(merged[i], incoming[i - args.offset]) :: Reference
 										i += 1
 									end
 									return merged
