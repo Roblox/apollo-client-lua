@@ -30,7 +30,19 @@ export type Cache_WriteQueryOptions<TData, TVariables> = cacheTypesModule.Cache_
 export type Cache_WriteFragmentOptions<TData, TVariables> = cacheTypesModule.Cache_WriteFragmentOptions<TData, TVariables>
 export type Cache_Fragment<TData, TVariables> = cacheTypesModule.Cache_Fragment<TData, TVariables>
 
--- exports.DataProxy = require(script.core.types.DataProxy).DataProxy
+local dataProxyModule = require(script.core.types.DataProxy)
+export type DataProxy_Query<TVariables, TData> = dataProxyModule.DataProxy_Query<TVariables, TData>
+export type DataProxy_Fragment<TVariables, TData> = dataProxyModule.DataProxy_Fragment<TVariables, TData>
+export type DataProxy_ReadQueryOptions<TData, TVariables> = dataProxyModule.DataProxy_ReadQueryOptions<TData, TVariables>
+export type DataProxy_ReadFragmentOptions<TData, TVariables> =
+	dataProxyModule.DataProxy_ReadFragmentOptions<TData, TVariables>
+export type DataProxy_WriteOptions<TData> = dataProxyModule.DataProxy_WriteOptions<TData>
+export type DataProxy_WriteQueryOptions<TData, TVariables> = dataProxyModule.DataProxy_WriteQueryOptions<TData, TVariables>
+export type DataProxy_WriteFragmentOptions<TData, TVariables> =
+	dataProxyModule.DataProxy_WriteFragmentOptions<TData, TVariables>
+export type DataProxy_DiffResult<T> = dataProxyModule.DataProxy_DiffResult<T>
+export type DataProxy = dataProxyModule.DataProxy
+
 local commonModule = require(script.core.types.common)
 exports.MissingFieldError = commonModule.MissingFieldError
 export type MissingFieldError = commonModule.MissingFieldError
@@ -40,15 +52,22 @@ local utilitiesModule = require(script.Parent.utilities)
 export type Reference = utilitiesModule.Reference
 exports.isReference = utilitiesModule.isReference
 exports.makeReference = utilitiesModule.makeReference
--- exports.EntityStore = require(script.inmemory.entityStore).EntityStore
+
+local entityStoreModule = require(script.inmemory.entityStore)
+export type EntityStore = entityStoreModule.EntityStore
+exports.EntityStore = entityStoreModule.EntityStore
 exports.fieldNameFromStoreName = require(script.inmemory.helpers).fieldNameFromStoreName
--- local inMemoryCacheModule = require(script.inmemory.inMemoryCache)
--- exports.InMemoryCache = inMemoryCacheModule.InMemoryCache
--- exports.InMemoryCacheConfig = inMemoryCacheModule.InMemoryCacheConfig
+
+local inMemoryCacheModule = require(script.inmemory.inMemoryCache)
+export type InMemoryCache = inMemoryCacheModule.InMemoryCache
+exports.InMemoryCache = inMemoryCacheModule.InMemoryCache
+export type InMemoryCacheConfig = inMemoryCacheModule.InMemoryCacheConfig
+
 local reactiveVarsModule = require(script.inmemory.reactiveVars)
 export type ReactiveVar<T> = reactiveVarsModule.ReactiveVar<T>
 exports.makeVar = reactiveVarsModule.makeVar
 exports.cacheSlot = reactiveVarsModule.cacheSlot
+
 local policiesModule = require(script.inmemory.policies)
 exports.defaultDataIdFromObject = policiesModule.defaultDataIdFromObject
 export type TypePolicies = policiesModule.TypePolicies
@@ -59,6 +78,7 @@ export type FieldMergeFunction<T, V> = policiesModule.FieldMergeFunction<T, V>
 export type FieldFunctionOptions<TArgs, TVars> = policiesModule.FieldFunctionOptions<TArgs, TVars>
 export type PossibleTypesMap = policiesModule.PossibleTypesMap
 exports.Policies = policiesModule.Policies
+
 exports.canonicalStringify = require(script.inmemory["object-canon"]).canonicalStringify
 
 local inMemoryTypesModule = require(script.inmemory.types)

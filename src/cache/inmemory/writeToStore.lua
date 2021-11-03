@@ -77,9 +77,8 @@ type StoreReader = any
 type InMemoryCache = any
 local entityStoreModule = require(script.Parent.entityStore)
 type EntityStore = entityStoreModule.EntityStore
-
--- ROBLOX deviation: importing directly from cache
-local CacheModule = require(script.Parent.Parent)
+-- ROBLOX deviation: importing directly from cache to avoid circular dependency
+local CacheModule = require(script.Parent.Parent.core.types.Cache)
 type Cache_WriteOptions<TResult, TVariables> = CacheModule.Cache_WriteOptions<TResult, TVariables>
 local canonicalStringify = require(script.Parent["object-canon"]).canonicalStringify
 

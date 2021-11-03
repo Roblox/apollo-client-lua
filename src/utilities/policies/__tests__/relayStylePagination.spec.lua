@@ -5,9 +5,12 @@ return function()
 	local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 	local Boolean = LuauPolyfill.Boolean
 	local Error = LuauPolyfill.Error
-	local _Array = LuauPolyfill.Array
-	local _Object = LuauPolyfill.Object
+	local Array = LuauPolyfill.Array
+	local Object = LuauPolyfill.Object
+
 	type Object = LuauPolyfill.Object
+	type Record<T, U> = { [T]: U }
+	type Function = (...any) -> ...any
 
 	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
 	local jestExpect = JestGlobals.expect
@@ -15,10 +18,9 @@ return function()
 	local cacheModule = require(script.Parent.Parent.Parent.Parent.cache)
 	type FieldFunctionOptions<TArgs, TVars> = cacheModule.FieldFunctionOptions<TArgs, TVars>
 
-	-- ROBLOX TODO: uncomment/remove underscore when available/used
-	-- local InMemoryCache = cacheModule.InMemoryCache
-	local _isReference = cacheModule.isReference
-	local _makeReference = cacheModule.makeReference
+	local InMemoryCache = cacheModule.InMemoryCache
+	local isReference = cacheModule.isReference
+	local makeReference = cacheModule.makeReference
 	type StoreObject = cacheModule.StoreObject
 	local paginationModule = require(script.Parent.Parent.pagination)
 	local relayStylePagination = paginationModule.relayStylePagination
@@ -122,131 +124,153 @@ return function()
 		end)
 
 		describe("merge", function()
-			local merge = policy.merge
+			local merge_ = policy.merge
 			-- The merge function should exist, make TS aware
-			if typeof(merge) ~= "function" then
+			if typeof(merge_) ~= "function" then
 				error(Error.new("Expecting merge function"))
 			end
 
-			-- ROBLOX TODO: needs InMemoryCache
-			-- local options: FieldFunctionOptions = {
-			-- 	args = nil,
-			-- 	fieldName = "fake",
-			-- 	storeFieldName = "fake",
-			-- 	field = nil,
-			-- 	isReference = isReference,
-			-- 	toReference = function()
-			-- 		return nil
-			-- 	end,
-			-- 	storage = {},
-			-- 	cache = InMemoryCache.new(),
-			-- 	readField = function(_self)
-			-- 		return nil
-			-- 	end,
-			-- 	canRead = function(_self)
-			-- 		return false
-			-- 	end,
-			-- 	mergeObjects = function(_self, existing, _incoming)
-			-- 		return existing
-			-- 	end,
-			-- }
+			-- ROBLOX deviation: casting as function to help analyze
+			local merge = merge_ :: Function
 
-			-- ROBLOX TODO:needs inMemoryCache
-			-- it("should maintain endCursor and startCursor with empty edges", function()
-			-- 	local incoming: Object --[[ Parameters<typeof merge>[1] ]] = {
-			-- 		pageInfo = { hasPreviousPage = false, hasNextPage = true, startCursor = "abc", endCursor = "xyz" },
-			-- 	}
+			local options: FieldFunctionOptions<Record<string, any>, Record<string, any>> = {
+				args = nil,
+				fieldName = "fake",
+				storeFieldName = "fake",
+				field = nil,
+				isReference = function(_self, ...)
+					return isReference(...)
+				end,
+				toReference = function()
+					return nil
+				end,
+				storage = {},
+				cache = InMemoryCache.new(),
+				readField = function(_self)
+					return nil
+				end,
+				canRead = function(_self)
+					return false
+				end,
+				mergeObjects = function(_self, existing, _incoming)
+					return existing
+				end,
+			}
 
-			-- 	local result = merge(nil, incoming, options)
+			it("should maintain endCursor and startCursor with empty edges", function()
+				local incoming --[[ Parameters<typeof merge>[1] ]] = {
+					pageInfo = { hasPreviousPage = false, hasNextPage = true, startCursor = "abc", endCursor = "xyz" },
+				}
+				local result = merge(policy, nil, incoming, options)
+				jestExpect(result).toEqual({
+					edges = {},
+					pageInfo = {
+						hasPreviousPage = false,
+						hasNextPage = true,
+						startCursor = "abc",
+						endCursor = "xyz",
+					},
+				})
+			end)
 
-			-- 	jestExpect(result).toEqual({
-			-- 		edges = {},
-			-- 		pageInfo = { hasPreviousPage = false, hasNextPage = true, startCursor = "abc", endCursor = "xyz" },
-			-- 	})
-			-- end)
+			it("should maintain existing PageInfo when adding a page", function()
+				local existingEdges = {
+					{ cursor = "alpha", node = makeReference("fakeAlpha") },
+				}
 
-			-- ROBLOX TODO:needs inMemoryCache
-			-- it("should maintain existing PageInfo when adding a page", function()
-			-- 	local existingEdges = { { cursor = "alpha", node = makeReference("fakeAlpha") } }
+				local incomingEdges = {
+					{ cursor = "omega", node = makeReference("fakeOmega") },
+				}
 
-			-- 	local incomingEdges = { { cursor = "omega", node = makeReference("fakeOmega") } }
+				local result = merge(
+					policy,
+					{
+						edges = existingEdges,
+						pageInfo = {
+							hasPreviousPage = false,
+							hasNextPage = true,
+							startCursor = "alpha",
+							endCursor = "alpha",
+						},
+					},
+					{
+						edges = incomingEdges,
+						pageInfo = {
+							hasPreviousPage = true,
+							hasNextPage = true,
+							startCursor = incomingEdges[1].cursor,
+							endCursor = incomingEdges[#incomingEdges].cursor,
+						},
+					},
+					Object.assign({}, options, {
+						args = {
+							after = "alpha",
+						},
+					})
+				)
 
-			-- 	local result = merge({
-			-- 		edges = existingEdges,
-			-- 		pageInfo = {
-			-- 			hasPreviousPage = false,
-			-- 			hasNextPage = true,
-			-- 			startCursor = "alpha",
-			-- 			endCursor = "alpha",
-			-- 		},
-			-- 	}, {
-			-- 		edges = incomingEdges,
-			-- 		pageInfo = {
-			-- 			hasPreviousPage = true,
-			-- 			hasNextPage = true,
-			-- 			startCursor = incomingEdges[1].cursor,
-			-- 			endCursor = incomingEdges[#incomingEdges --[[ ROBLOX deviation: added 1 to index]]].cursor,
-			-- 		},
-			-- 	}, Object.assign(
-			-- 		{},
-			-- 		options,
-			-- 		{ args = { after = "alpha" } }
-			-- 	))
+				jestExpect(result).toEqual({
+					edges = Array.concat({}, existingEdges, incomingEdges),
+					pageInfo = {
+						hasPreviousPage = false,
+						hasNextPage = true,
+						startCursor = "alpha",
+						endCursor = "omega",
+					},
+				})
+			end)
 
-			-- 	jestExpect(result).toEqual({
-			-- 		edges = Array.concat({}, table.unpack(existingEdges), table.unpack(incomingEdges)),
-			-- 		pageInfo = {
-			-- 			hasPreviousPage = false,
-			-- 			hasNextPage = true,
-			-- 			startCursor = "alpha",
-			-- 			endCursor = "omega",
-			-- 		},
-			-- 	})
-			-- end)
+			it("should maintain extra PageInfo properties", function()
+				local existingEdges = {
+					{ cursor = "alpha", node = makeReference("fakeAlpha") },
+				}
 
-			-- ROBLOX TODO:needs inMemoryCache
-			-- it("should maintain extra PageInfo properties", function()
-			-- 	local existingEdges = { { cursor = "alpha", node = makeReference("fakeAlpha") } }
+				local incomingEdges = {
+					{ cursor = "omega", node = makeReference("fakeOmega") },
+				}
 
-			-- 	local incomingEdges = { { cursor = "omega", node = makeReference("fakeOmega") } }
+				local result = merge(
+					policy,
+					{
+						edges = existingEdges,
+						pageInfo = ({
+							hasPreviousPage = false,
+							hasNextPage = true,
+							startCursor = "alpha",
+							endCursor = "alpha",
+							extra = "existing.pageInfo.extra",
+						} :: any) :: TRelayPageInfo,
+					},
+					{
+						edges = incomingEdges,
+						pageInfo = ({
+							hasPreviousPage = true,
+							hasNextPage = true,
+							startCursor = incomingEdges[1].cursor,
+							endCursor = incomingEdges[#incomingEdges].cursor,
+							extra = "incoming.pageInfo.extra",
+						} :: any) :: TRelayPageInfo,
+					},
+					Object.assign({}, options, {
+						args = {
+							after = "alpha",
+						},
+					})
+				)
 
-			-- 	local result = merge({
-			-- 		edges = existingEdges,
-			-- 		pageInfo = {
-			-- 			hasPreviousPage = false,
-			-- 			hasNextPage = true,
-			-- 			startCursor = "alpha",
-			-- 			endCursor = "alpha",
-			-- 			extra = "existing.pageInfo.extra",
-			-- 		} :: TRelayPageInfo,
-			-- 	}, {
-			-- 		edges = incomingEdges,
-			-- 		pageInfo = {
-			-- 			hasPreviousPage = true,
-			-- 			hasNextPage = true,
-			-- 			startCursor = incomingEdges[1].cursor,
-			-- 			endCursor = incomingEdges[#incomingEdges.length --[[ROBLOX deviation: added 1 to index]]].cursor,
-			-- 			extra = "incoming.pageInfo.extra",
-			-- 		} :: TRelayPageInfo,
-			-- 	}, Object.assign(
-			-- 		{},
-			-- 		options,
-			-- 		{ args = { after = "alpha" } }
-			-- 	))
-
-			-- 	jestExpect(result).toEqual({
-			-- 		edges = Array.concat({}, table.unpack(existingEdges), table.unpack(incomingEdges)),
-			-- 		pageInfo = {
-			-- 			hasPreviousPage = false,
-			-- 			hasNextPage = true,
-			-- 			startCursor = "alpha",
-			-- 			endCursor = "omega",
-			-- -- This is the most important line in this test, since it proves
-			-- -- incoming.pageInfo.extra was not lost.
-			-- 			extra = "incoming.pageInfo.extra",
-			-- 		},
-			-- 	})
-			-- end)
+				jestExpect(result).toEqual({
+					edges = Array.concat({}, existingEdges, incomingEdges),
+					pageInfo = {
+						hasPreviousPage = false,
+						hasNextPage = true,
+						startCursor = "alpha",
+						endCursor = "omega",
+						-- This is the most important line in this test, since it proves
+						-- incoming.pageInfo.extra was not lost.
+						extra = "incoming.pageInfo.extra",
+					},
+				})
+			end)
 		end)
 	end)
 end
