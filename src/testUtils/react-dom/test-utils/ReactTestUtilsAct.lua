@@ -117,13 +117,17 @@ local function act(callback: (() -> Thenable<any>) | () -> ())
 		end
 	end
 	local result
-	xpcall(function()
+
+	local ok, res = pcall(function()
 		result = batchedUpdates(callback)
-	end, function(error_)
-		onDone()
-		error(error_)
 	end)
-	if result ~= nil and typeof(result) == "table" and typeof(result["then"]) == "function" then
+
+	if not ok then
+		onDone()
+		error(res)
+	end
+
+	if result ~= nil and typeof(result) == "table" and typeof(result["andThen"]) == "function" then
 		-- setup a boolean that gets set to true only
 		-- once this act() call is await-ed
 		local called = false
@@ -182,7 +186,7 @@ local function act(callback: (() -> Thenable<any>) | () -> ())
 			)
 		end
 		-- flush effects until none remain, and cleanup
-		xpcall(function()
+		local ok_, res_ = pcall(function()
 			if
 				actingUpdatesScopeDepth == 1
 				and (isSchedulerMocked == false or previousIsSomeRendererActing == false)
@@ -192,10 +196,11 @@ local function act(callback: (() -> Thenable<any>) | () -> ())
 				flushWork()
 			end
 			onDone()
-		end, function(err)
-			onDone()
-			error(err)
 		end)
+		if not ok_ then
+			onDone()
+			error(res_)
+		end
 
 		-- in the sync case, the returned thenable only warns *if* await-ed
 		return {
