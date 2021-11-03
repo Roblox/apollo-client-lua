@@ -10,6 +10,8 @@ exports.DEV = DEV
 local LuauPolyfill = require(Packages.LuauPolyfill)
 local Object = LuauPolyfill.Object
 
+exports.NULL = require(script.globals).NULL
+
 local directivesModule = require(script.graphql.directives)
 exports.shouldInclude = directivesModule.shouldInclude
 exports.hasDirectives = directivesModule.hasDirectives

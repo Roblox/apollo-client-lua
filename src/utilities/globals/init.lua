@@ -14,6 +14,10 @@ exports.DEV = DEV
 local removeTemporaryGlobals = require(script.graphql).removeTemporaryGlobals
 exports.removeTemporaryGlobals = removeTemporaryGlobals
 
+-- ROBLOX deviation: not upstream
+local NULL = require(script.null).NULL
+exports.NULL = NULL
+
 --[[
 // Synchronously undo the global process.env.NODE_ENV polyfill that we created
 // temporarily while importing the offending graphql/jsutils/instanceOf module.

@@ -8,7 +8,7 @@ return function()
 	local jestExpect = JestGlobals.expect
 	local _jest = JestGlobals.jest
 
-	local NULL = require(script.Parent.Parent.null).NULL
+	local NULL = require(srcWorkspace.utilities).NULL
 	type JestMock = { mockClear: (self: any, ...any) -> (), mock: any } & typeof(setmetatable({}, {
 		__call = function(self, ...: any): ...any
 			return ...

@@ -15,6 +15,8 @@ type Map<T, V> = LuauPolyfill.Map<T, V>
 -- ROBLOX deviation: type T_ is placeholder for cloneDeep's and cloneDeepHelper's generic variable T
 type T_ = any
 
+local NULL = require(script.Parent.Parent.globals.null).NULL
+
 -- ROBLOX deviation: not using javascript toString logic for main logic
 -- const { toString } = Object.prototype;
 
@@ -41,7 +43,7 @@ function cloneDeepHelper(val: T_, seen: Map<any, any>?): T_
 			copy[i] = cloneDeepHelper(child, seen)
 		end)
 		return copy
-	elseif typeof(val) == "table" then
+	elseif typeof(val) == "table" and val ~= NULL then
 		seen = seen or Map.new(nil)
 		if (seen :: Map<any, any>):has(val) then
 			return (seen :: Map<any, any>):get(val)

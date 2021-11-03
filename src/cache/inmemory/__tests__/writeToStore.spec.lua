@@ -8,6 +8,8 @@ return function()
 	local jestExpect = JestGlobals.expect
 	local jest = JestGlobals.jest
 
+	local NULL = require(srcWorkspace.utilities).NULL
+
 	local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 	local Array = LuauPolyfill.Array
 	local Object_ = LuauPolyfill.Object
@@ -97,7 +99,7 @@ return function()
 				id = "abcd",
 				stringField = "This is a string!",
 				numberField = 5,
-				nullField = nil,
+				nullField = NULL,
 			}
 			jestExpect(writeQueryToStore({ writer = writer, query = query, result = cloneDeep(result) }):toObject()).toEqual({
 				ROOT_QUERY = Object.assign({}, { __typename = "Query" }, result),
@@ -118,7 +120,7 @@ return function()
 				id = "abcd",
 				aliasedField = "This is a string!",
 				numberField = 5,
-				nullField = nil,
+				nullField = NULL,
 			}
 			local normalized = writeQueryToStore({ writer = writer, result = result, query = query })
 			jestExpect(normalized:toObject()).toEqual({
@@ -127,7 +129,7 @@ return function()
 					id = "abcd",
 					stringField = "This is a string!",
 					numberField = 5,
-					nullField = nil,
+					nullField = NULL,
 				},
 			})
 		end)
@@ -148,7 +150,7 @@ return function()
 				aliasedField1 = "The arg was 1!",
 				aliasedField2 = "The arg was 2!",
 				numberField = 5,
-				nullField = nil,
+				nullField = NULL,
 			}
 			local normalized = writeQueryToStore({ writer = writer, result = result, query = query })
 			jestExpect(normalized:toObject()).toEqual({
@@ -158,7 +160,7 @@ return function()
 					['stringField({"arg":1})'] = "The arg was 1!",
 					['stringField({"arg":2})'] = "The arg was 2!",
 					numberField = 5,
-					nullField = nil,
+					nullField = NULL,
 				},
 			})
 		end)
@@ -174,7 +176,7 @@ return function()
       }
     ]])
 			local variables = { intArg = 5, floatArg = 3.14, stringArg = "This is a string!" }
-			local result: any = { id = "abcd", stringField = "Heyo", numberField = 5, nullField = nil }
+			local result: any = { id = "abcd", stringField = "Heyo", numberField = 5, nullField = NULL }
 			local normalized = writeQueryToStore({
 				writer = writer,
 				result = result,
@@ -186,7 +188,7 @@ return function()
 				ROOT_QUERY = {
 					__typename = "Query",
 					id = "abcd",
-					nullField = nil,
+					nullField = NULL,
 					-- ROBLOX deviation: HttpService:JSONEncode(3.14) output is different than JSON.stringify(3.14) (JSONEncode gives more precision)
 					[('numberField({"floatArg":%s,"intArg":5})'):format(HttpService:JSONEncode(3.14))] = 5,
 					['stringField({"arg":"This is a string!"})'] = "Heyo",
@@ -209,7 +211,7 @@ return function()
       }
     ]])
 			local variables = { intArg = 5, floatArg = 3.14 }
-			local result: any = { id = "abcd", stringField = "Heyo", numberField = 5, nullField = nil }
+			local result: any = { id = "abcd", stringField = "Heyo", numberField = 5, nullField = NULL }
 			local normalized = writeQueryToStore({
 				writer = writer,
 				result = result,
@@ -220,7 +222,7 @@ return function()
 				ROOT_QUERY = {
 					__typename = "Query",
 					id = "abcd",
-					nullField = nil,
+					nullField = NULL,
 					-- ROBLOX deviation: HttpService:JSONEncode(3.14) output is different than JSON.stringify(3.14) (JSONEncode gives more precision)
 					[('numberField({"floatArg":%s,"intArg":5})'):format(HttpService:JSONEncode(3.14))] = 5,
 					['stringField({"arg":"This is a default string!"})'] = "Heyo",
@@ -283,12 +285,12 @@ return function()
 				id = "abcd",
 				stringField = "This is a string!",
 				numberField = 5,
-				nullField = nil,
+				nullField = NULL,
 				nestedObj = {
 					id = "abcde",
 					stringField = "This is a string too!",
 					numberField = 6,
-					nullField = nil,
+					nullField = NULL,
 				},
 			}
 
@@ -331,11 +333,11 @@ return function()
 				id = "abcd",
 				stringField = "This is a string!",
 				numberField = 5,
-				nullField = nil,
+				nullField = NULL,
 				nestedObj = {
 					stringField = "This is a string too!",
 					numberField = 6,
-					nullField = nil,
+					nullField = NULL,
 				},
 			}
 
@@ -370,11 +372,11 @@ return function()
 				id = "abcd",
 				stringField = "This is a string!",
 				numberField = 5,
-				nullField = nil,
+				nullField = NULL,
 				nestedObj = {
 					stringField = "This is a string too!",
 					numberField = 6,
-					nullField = nil,
+					nullField = NULL,
 				},
 			}
 
@@ -411,19 +413,19 @@ return function()
 				id = "abcd",
 				stringField = "This is a string!",
 				numberField = 5,
-				nullField = nil,
+				nullField = NULL,
 				nestedArray = {
 					{
 						id = "abcde",
 						stringField = "This is a string too!",
 						numberField = 6,
-						nullField = nil,
+						nullField = NULL,
 					},
 					{
 						id = "abcdef",
 						stringField = "This is a string also!",
 						numberField = 7,
-						nullField = nil,
+						nullField = NULL,
 					},
 				},
 			}
@@ -469,15 +471,15 @@ return function()
 				id = "abcd",
 				stringField = "This is a string!",
 				numberField = 5,
-				nullField = nil,
+				nullField = NULL,
 				nestedArray = {
 					{
 						id = "abcde",
 						stringField = "This is a string too!",
 						numberField = 6,
-						nullField = nil,
+						nullField = NULL,
 					} :: any,
-					nil,
+					NULL,
 				},
 			}
 
@@ -494,7 +496,7 @@ return function()
 					__typename = "Query",
 					nestedArray = {
 						makeReference(result.nestedArray[1].id) :: any,
-						nil,
+						NULL,
 					},
 				}),
 				[result.nestedArray[1].id] = result.nestedArray[1],
@@ -521,17 +523,17 @@ return function()
 				id = "abcd",
 				stringField = "This is a string!",
 				numberField = 5,
-				nullField = nil,
+				nullField = NULL,
 				nestedArray = {
 					{
 						stringField = "This is a string too!",
 						numberField = 6,
-						nullField = nil,
+						nullField = NULL,
 					},
 					{
 						stringField = "This is a string also!",
 						numberField = 7,
-						nullField = nil,
+						nullField = NULL,
 					},
 				},
 			}
@@ -548,8 +550,7 @@ return function()
 			})
 		end)
 
-		-- ROBLOX FIXME: null handling
-		itFIXME("properly normalizes a nested array without IDs and a null item", function()
+		it("properly normalizes a nested array without IDs and a null item", function()
 			local query = gql([[
 
       {
@@ -568,13 +569,13 @@ return function()
 				id = "abcd",
 				stringField = "This is a string!",
 				numberField = 5,
-				nullField = nil,
+				nullField = NULL,
 				nestedArray = {
-					nil :: any,
+					NULL :: any,
 					{
 						stringField = "This is a string also!",
 						numberField = 7,
-						nullField = nil,
+						nullField = NULL,
 					},
 				},
 			}
@@ -584,6 +585,7 @@ return function()
 				query = query,
 				result = cloneDeep(result),
 			})
+
 			jestExpect(normalized:toObject()).toEqual({
 				ROOT_QUERY = Object.assign({}, {
 					__typename = "Query",
@@ -607,7 +609,7 @@ return function()
 				id = "abcd",
 				stringField = "This is a string!",
 				numberField = 5,
-				nullField = nil,
+				nullField = NULL,
 				simpleArray = { "one", "two", "three" },
 			}
 
@@ -644,8 +646,8 @@ return function()
 				id = "abcd",
 				stringField = "This is a string!",
 				numberField = 5,
-				nullField = nil,
-				simpleArray = { nil :: any, "two", "three" },
+				nullField = NULL,
+				simpleArray = { NULL :: any, "two", "three" },
 			}
 
 			local normalized = writeQueryToStore({
@@ -885,7 +887,7 @@ return function()
 			local result: any = {
 				id = "abcd",
 				numberField = 5,
-				nullField = nil,
+				nullField = NULL,
 			}
 
 			local writer = StoreWriter.new(InMemoryCache.new({
@@ -908,7 +910,7 @@ return function()
 			local result2: any = {
 				id = "abcd",
 				stringField = "This is a string!",
-				nullField = nil,
+				nullField = NULL,
 			}
 
 			local store2 = writeQueryToStore({
@@ -946,8 +948,8 @@ return function()
 				id = "abcd",
 				stringField = "This is a string!",
 				numberField = 5,
-				nullField = nil,
-				nestedObj = nil,
+				nullField = NULL,
+				nestedObj = NULL,
 			}
 
 			jestExpect(writeQueryToStore({
@@ -962,7 +964,7 @@ return function()
 					},
 					result,
 					{
-						nestedObj = nil,
+						nestedObj = NULL,
 					}
 				),
 			})
@@ -1100,8 +1102,7 @@ return function()
 			end)
 		end)
 
-		-- ROBLOX FIXME: null handling
-		itFIXME("properly normalizes a mutation with object or array parameters and variables", function()
+		it("properly normalizes a mutation with object or array parameters and variables", function()
 			local mutation = gql([[
 
       mutation some_mutation($nil: ID, $in: Object) {
@@ -1133,13 +1134,13 @@ return function()
 			}
 
 			local variables: any = {
-				["nil"] = nil,
+				["nil"] = NULL,
 				["in"] = {
 					id = "5",
 					arr = { 1 :: any, { a = "b" } },
 					obj = { a = "b" },
 					num = 5.5,
-					["nil"] = nil,
+					["nil"] = NULL,
 					bo = true,
 				},
 			}
@@ -1168,12 +1169,12 @@ return function()
 					}):toObject()).toEqual({
 						["5"] = {
 							id = "id",
-							['some_mutation({"input":{"arr":[1,{"a":"b"}],"bo":true,"id":"5","nil":null,"num":5.5,"obj":{"a":"b"}}})'] = makeReference(
-								"5"
-							),
-							['some_mutation_with_variables({"input":{"arr":[1,{"a":"b"}],"bo":true,"id":"5","nil":null,"num":5.5,"obj":{"a":"b"}}})'] = makeReference(
-								"5"
-							),
+							[(
+								'some_mutation({"input":{"arr":[1,{"a":"b"}],"bo":true,"id":"5","nil":%s,"num":5.5,"obj":{"a":"b"}}})'
+							):format(HttpService:JSONEncode(NULL))] = makeReference("5"),
+							[(
+								'some_mutation_with_variables({"input":{"arr":[1,{"a":"b"}],"bo":true,"id":"5","nil":%s,"num":5.5,"obj":{"a":"b"}}})'
+							):format(HttpService:JSONEncode(NULL))] = makeReference("5"),
 						},
 					})
 				else
@@ -1517,7 +1518,7 @@ return function()
 							c = {
 								__typename = "CType",
 								title = "Your experience",
-								titleSize = nil,
+								titleSize = NULL,
 							},
 						},
 					},
@@ -1697,7 +1698,7 @@ return function()
 				id = "abcd",
 				stringField = "This is a string!",
 				numberField = 5,
-				nullField = nil,
+				nullField = NULL,
 			}
 			local store = writeQueryToStore({
 				writer = writer,
@@ -1934,7 +1935,7 @@ return function()
 
 			it("should not warn if a field is null", function()
 				local result: any = {
-					todos = nil,
+					todos = NULL,
 				}
 
 				local writer = StoreWriter.new(InMemoryCache.new({
@@ -1949,7 +1950,7 @@ return function()
 
 				jestExpect((newStore :: any):lookup("ROOT_QUERY")).toEqual({
 					__typename = "Query",
-					todos = nil,
+					todos = NULL,
 				})
 			end)
 			it("should not warn if a field is defered", function()

@@ -25,7 +25,7 @@ type Tuple<T, V> = Array<T | V>
 ]]
 type T_ = any
 
-local NULL = require(script.Parent.null).NULL
+local NULL = require(srcWorkspace.utilities).NULL
 
 local HttpService = game:GetService("HttpService")
 

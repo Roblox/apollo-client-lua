@@ -10,7 +10,7 @@ return function()
 	local jestExpect = JestGlobals.expect
 	local jest = JestGlobals.jest
 
-	local NULL = require(script.Parent.Parent.null).NULL
+	local NULL = require(srcWorkspace.utilities).NULL
 	type JestMock = any
 
 	local LuauPolyfill = require(rootWorkspace.LuauPolyfill)

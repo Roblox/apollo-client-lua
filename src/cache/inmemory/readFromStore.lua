@@ -18,7 +18,7 @@ type WeakMap<T, U> = LuauPolyfill.WeakMap<T, U>
 type Record<T, U> = { [T]: U }
 
 local HttpService = game:GetService("HttpService")
-local NULL = require(script.Parent.null).NULL
+local NULL = require(srcWorkspace.utilities).NULL
 --[[
 	ROBLOX deviation: no generic params for functions are supported.
 	T_, TCacheKey_ is placeholder for generic T, TCacheKey param
