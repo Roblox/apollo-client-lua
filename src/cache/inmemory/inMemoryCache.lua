@@ -246,7 +246,7 @@ function InMemoryCache:resetResultCache(resetResultIdentities: boolean?): ()
 		return self:broadcastWatch(c, options)
 	end, {
 		max = self.config.resultCacheMaxSize,
-		makeCacheKey = function(_self, __self, c: Cache_WatchOptions<Watcher_>): ...Object
+		makeCacheKey = function(_self, c: Cache_WatchOptions<Watcher_>): ...Object
 			-- Return a cache key (thus enabling result caching) only if we're
 			-- currently using a data store that can track cache dependencies.
 			local store: EntityStore
@@ -275,7 +275,7 @@ function InMemoryCache:resetResultCache(resetResultIdentities: boolean?): ()
 			end
 			return
 		end,
-	})
+	}, self)
 
 	-- Since we have thrown away all the cached functions that depend on the
 	-- CacheGroup dependencies maintained by EntityStore, we should also reset
@@ -581,7 +581,13 @@ function InMemoryCache:batch(options: Cache_BatchOptions<InMemoryCache>)
 		end
 	end
 
+	-- ROBLOX deviation: perform passed to addLayer as a callback need a self param
+	local function perform_(_self, ...)
+		return perform(...)
+	end
+
 	local alreadyDirty = Set.new()
+
 	if Boolean.toJSBoolean(onWatchUpdated) and not Boolean.toJSBoolean(self.txCount) then
 		-- If an options.onWatchUpdated callback is provided, we want to call it
 		-- with only the Cache.WatchOptions objects affected by options.update,
@@ -604,7 +610,7 @@ function InMemoryCache:batch(options: Cache_BatchOptions<InMemoryCache>)
 		-- Note that there can be multiple layers with the same optimistic ID.
 		-- When removeOptimistic(id) is called for that id, all matching layers
 		-- will be removed, and the remaining layers will be reapplied.
-		self.optimisticData = self.optimisticData:addLayer(optimistic, perform)
+		self.optimisticData = self.optimisticData:addLayer(optimistic, perform_)
 	elseif optimistic == false then
 		-- Ensure both this.data and this.optimisticData refer to the root
 		-- (non-optimistic) layer of the cache during the update. Note that

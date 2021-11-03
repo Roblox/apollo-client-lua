@@ -271,7 +271,7 @@ function reallyRecompute(entry: AnyEntry, args: Array<any>)
 	return valueGet(entry.value)
 end
 
-function recomputeNewValue(self, entry: AnyEntry, args: Array<any>)
+function recomputeNewValue(_self, entry: AnyEntry, args: Array<any>)
 	entry.recomputing = true
 	-- Set entry.value as unknown.
 	-- ROBLOX check: upstream prop is readonly. Check if something relies on ref not changing

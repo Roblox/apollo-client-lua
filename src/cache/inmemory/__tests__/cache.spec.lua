@@ -245,28 +245,26 @@ return function()
 				}))).toEqual({ a = 1, b = 2 })
 			end)
 
-			itWithInitialData(
-				-- ROBLOX TODO: this test is not passing because we can't properly encode NULL constant ATM
-				itFIXME,
-				"will read some data from the store with null variables",
-				{ { ROOT_QUERY = {
-					['field({"literal":false,"value":null})'] = 1,
-				} } },
-				function(proxy)
-					jestExpect(stripSymbols(proxy:readQuery({
-						query = gql([[
+			itWithInitialData(it, "will read some data from the store with null variables", {
+				{
+					ROOT_QUERY = {
+						[('field({"literal":false,"value":%s})'):format(HttpService:JSONEncode(NULL))] = 1,
+					},
+				},
+			}, function(proxy)
+				jestExpect(stripSymbols(proxy:readQuery({
+					query = gql([[
 
                 query($literal: Boolean, $value: Int) {
                   a: field(literal: $literal, value: $value)
                 }
               ]]),
-						variables = {
-							literal = false,
-							value = NULL,
-						},
-					}))).toEqual({ a = 1 })
-				end
-			)
+					variables = {
+						literal = false,
+						value = NULL,
+					},
+				}))).toEqual({ a = 1 })
+			end)
 
 			itWithInitialData(it, "should not mutate arguments passed in", {
 				{
@@ -853,7 +851,7 @@ return function()
 
 			itWithInitialData(
 				-- ROBLOX TODO: this test is not passing because we can't properly encode NULL constant ATM
-				itFIXME,
+				it,
 				"will write some data to the store with variables where some are null",
 				{ {} },
 				function(proxy)
@@ -879,7 +877,7 @@ return function()
 						ROOT_QUERY = {
 							__typename = "Query",
 							['field({"literal":true,"value":42})'] = 1,
-							['field({"literal":false,"value":null})'] = 2,
+							[('field({"literal":false,"value":%s})'):format(HttpService:JSONEncode(NULL))] = 2,
 						},
 					})
 				end
@@ -2489,12 +2487,22 @@ return function()
 			})
 		end)
 
-		-- ROBLOX TODO: needs jest.spyOn
-		itFIXME("should forget cache once all watches are cancelled", function()
+		it("should forget cache once all watches are cancelled", function()
 			local ref = makeCacheAndVar(false)
 			local cache, nameVar, query = ref.cache :: any, ref.nameVar, ref.query
 
-			local spy = jest.spyOn(nameVar, "forgetCache")
+			--[[
+				ROBLOX deviation:
+				using jest.fn instead of jest.spyOn until spyOn is implemented
+				original code:
+				local spy = jest.spyOn(nameVar, "forgetCache")
+			]]
+			local originalForgetCache = nameVar.forgetCache
+			local spy = jest.fn(nameVar.forgetCache)
+			nameVar["forgetCache"] = function(_, ...)
+				spy(...)
+			end
+
 			local diffs: Array<Cache_DiffResult<any>> = {}
 			local function watch()
 				return cache:watch({
@@ -2506,37 +2514,65 @@ return function()
 					end,
 				})
 			end
-			local unwatchers = { watch(), watch(), watch(), watch(), watch() }
+
+			local unwatchers = {
+				watch(),
+				watch(),
+				watch(),
+				watch(),
+				watch(),
+			}
+
 			jestExpect(#diffs).toBe(5)
+
 			jestExpect(cache["watches"].size).toBe(5)
 			jestExpect(spy).never.toBeCalled();
+
 			(table.remove(unwatchers) :: any)()
 			jestExpect(cache["watches"].size).toBe(4)
 			jestExpect(spy).never.toBeCalled();
+
 			(table.remove(unwatchers, 1) :: any)()
 			jestExpect(cache["watches"].size).toBe(3)
 			jestExpect(spy).never.toBeCalled();
+
 			(table.remove(unwatchers) :: any)()
 			jestExpect(cache["watches"].size).toBe(2)
 			jestExpect(spy).never.toBeCalled()
+
 			jestExpect(#diffs).toBe(5)
 			table.insert(unwatchers, watch())
 			jestExpect(#diffs).toBe(6)
+
 			jestExpect(#unwatchers).toBe(3)
 			Array.forEach(unwatchers, function(unwatch)
 				return unwatch()
 			end)
+
 			jestExpect(cache["watches"].size).toBe(0)
 			jestExpect(spy).toBeCalledTimes(1)
 			jestExpect(spy).toBeCalledWith(cache)
+
+			-- ROBLOX deviation: restoring original forgetCache function
+			nameVar.forgetCache = originalForgetCache
 		end)
 
-		-- ROBLOX TODO: needs jest.spyOn
-		itFIXME("should recall forgotten vars once cache has watches again", function()
+		it("should recall forgotten vars once cache has watches again", function()
 			local ref = makeCacheAndVar(false)
 			local cache, nameVar, query = ref.cache :: any, ref.nameVar, ref.query
 
-			local spy = jest.spyOn(nameVar, "forgetCache")
+			--[[
+				ROBLOX deviation:
+				using jest.fn instead of jest.spyOn until spyOn is implemented
+				original code:
+				local spy = jest.spyOn(nameVar, "forgetCache")
+			]]
+			local originalForgetCache = nameVar.forgetCache
+			local spy = jest.fn(nameVar.forgetCache)
+			nameVar["forgetCache"] = function(_, ...)
+				spy(...)
+			end
+
 			local diffs: Array<Cache_DiffResult<any>> = {}
 			local function watch(immediate: boolean?)
 				if immediate == nil then
@@ -2546,47 +2582,103 @@ return function()
 					query = query,
 					optimistic = true,
 					immediate = immediate,
-					callback = function(diff)
+					callback = function(_self, diff)
 						table.insert(diffs, diff)
 					end,
 				})
 			end
-			local unwatchers = { watch(), watch(), watch() }
+
+			local unwatchers = {
+				watch(),
+				watch(),
+				watch(),
+			}
+
 			local function names()
 				return Array.map(diffs, function(diff)
 					return diff.result.onCall.name
 				end)
 			end
+
 			jestExpect(#diffs).toBe(3)
-			jestExpect(names()).toEqual({ "Ben", "Ben", "Ben" })
+			jestExpect(names()).toEqual({
+				"Ben",
+				"Ben",
+				"Ben",
+			})
+
 			jestExpect(cache["watches"].size).toBe(3)
 			jestExpect(spy).never.toBeCalled();
+
 			(table.remove(unwatchers) :: any)()
 			jestExpect(cache["watches"].size).toBe(2)
 			jestExpect(spy).never.toBeCalled();
+
 			(table.remove(unwatchers, 1) :: any)()
 			jestExpect(cache["watches"].size).toBe(1)
 			jestExpect(spy).never.toBeCalled()
+
 			nameVar("Hugh")
-			jestExpect(names()).toEqual({ "Ben", "Ben", "Ben", "Hugh" });
+			jestExpect(names()).toEqual({
+				"Ben",
+				"Ben",
+				"Ben",
+				"Hugh",
+			});
+
 			(table.remove(unwatchers) :: any)()
 			jestExpect(cache["watches"].size).toBe(0)
 			jestExpect(spy).toBeCalledTimes(1)
 			jestExpect(spy).toBeCalledWith(cache)
+
+			-- This update is ignored because the cache no longer has any watchers.
 			nameVar("ignored")
-			jestExpect(names()).toEqual({ "Ben", "Ben", "Ben", "Hugh" })
+			jestExpect(names()).toEqual({
+				"Ben",
+				"Ben",
+				"Ben",
+				"Hugh",
+			})
+
+			-- Call watch(false) to avoid immediate delivery of the "ignored" name.
 			table.insert(unwatchers, watch(false))
 			jestExpect(cache["watches"].size).toBe(1)
-			jestExpect(names()).toEqual({ "Ben", "Ben", "Ben", "Hugh" })
+			jestExpect(names()).toEqual({
+				"Ben",
+				"Ben",
+				"Ben",
+				"Hugh",
+			})
+
+			-- This is the test that would fail if cache.watch did not call
+			-- recallCache(cache) upon re-adding the first watcher.
 			nameVar("Jenn")
-			jestExpect(names()).toEqual({ "Ben", "Ben", "Ben", "Hugh", "Jenn" })
+			jestExpect(names()).toEqual({
+				"Ben",
+				"Ben",
+				"Ben",
+				"Hugh",
+				"Jenn",
+			})
+
 			Array.forEach(unwatchers, function(cancel)
 				return cancel()
 			end)
 			jestExpect(spy).toBeCalledTimes(2)
 			jestExpect(spy).toBeCalledWith(cache)
+
+			-- Ignored again because all watchers have been cancelled.
 			nameVar("also ignored")
-			jestExpect(names()).toEqual({ "Ben", "Ben", "Ben", "Hugh", "Jenn" })
+			jestExpect(names()).toEqual({
+				"Ben",
+				"Ben",
+				"Ben",
+				"Hugh",
+				"Jenn",
+			})
+
+			-- ROBLOX deviation: restoring original forgetCache function
+			nameVar.forgetCache = originalForgetCache
 		end)
 
 		-- ROBLOX FIXME: doesn't call the watch callback for the second time
@@ -2643,8 +2735,7 @@ return function()
 			})
 		end)
 
-		-- ROBLOX FIXME: calling cancel causes nil exception
-		itFIXME("should broadcast to manually added caches", function()
+		it("should broadcast to manually added caches", function()
 			local rv = makeVar(0) :: ReactiveVar<number>
 			local cache = InMemoryCache.new()
 			local query = gql("query { value }")

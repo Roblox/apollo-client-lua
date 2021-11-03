@@ -87,7 +87,9 @@ local caches = Set.new()
 
 local function wrap(
 	originalFunction: (...any) -> ...TResult_,
-	options_: OptimisticWrapOptions<TArgs_, TKeyArgs_, any>?
+	options_: OptimisticWrapOptions<TArgs_, TKeyArgs_, any>?,
+	-- ROBLOX deviation: in case we're wrapping a method we need a thisArg to handle `self` properly
+	thisArg: any?
 ): OptimisticWrapperFunction<TArgs_, TResult_, TKeyArgs_, TCacheKey_>
 	local options: OptimisticWrapOptions<TArgs_, TKeyArgs_, any> = options_ :: any
 	if options == nil then
@@ -102,18 +104,33 @@ local function wrap(
 	local makeCacheKey = Boolean.toJSBoolean(options.makeCacheKey) and (options.makeCacheKey :: (...any) -> any)
 		or makeDefaultMakeCacheKeyFunction()
 
+	-- ROBLOX deviation: in case we're wrapping a method we need to bind thisArg to the originalFunction
+	if thisArg ~= nil then
+		local oldOriginalFunction = originalFunction
+		originalFunction = function(...)
+			return oldOriginalFunction(thisArg, ...)
+		end
+	end
+
 	-- ROBLOX deviation: function can't be have properties in Lua. Using __call metatable property instead
 	local optimistic = (
 			setmetatable({}, {
-				__call = function(_self, ...): TResult_
+				__call = function(_self, selfOrFirstArg, ...): TResult_
 					-- ROBLOX deviation: there is no implicit arguments param available in Lua
-					local arguments = { ... }
+					local arguments
+					if thisArg ~= nil then
+						-- ROBLOX deviation: in case we're wrapping a method the second argument is the real "self"
+						arguments = { ... }
+					else
+						-- ROBLOX deviation: in case we're NOT wrapping a method the second argument should be included in arguments
+						arguments = { selfOrFirstArg, ... }
+					end
 
 					local key = makeCacheKey(
 						nil,
 						table.unpack((function()
 							if Boolean.toJSBoolean(keyArgs) then
-								return (keyArgs :: any)(table.unpack(arguments :: any))
+								return (keyArgs :: any)(nil, table.unpack(arguments :: any))
 							else
 								return arguments :: any
 							end

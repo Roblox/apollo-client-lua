@@ -773,7 +773,7 @@ function EntityStore_Root.new(
 	return self
 end
 
-function EntityStore_Root:addLayer(layerId: string, replay: (layer: EntityStore) -> any): Layer
+function EntityStore_Root:addLayer(layerId: string, replay: (self: any, layer: EntityStore) -> any): Layer
 	-- Adding an optimistic Layer on top of the Root actually adds the Layer
 	-- on top of the Stump, so the Stump always comes between the Root and
 	-- any Layer objects that we've added.

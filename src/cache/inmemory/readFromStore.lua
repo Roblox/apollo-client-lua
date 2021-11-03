@@ -237,21 +237,21 @@ function StoreReader.new(config: StoreReaderConfig): StoreReader
 			end
 			return nil
 		end,
-	})
+	}, self)
 
 	self.executeSubSelectedArray = wrap(function(_self, options: ExecSubSelectedArrayOptions)
 		maybeDependOnExistenceOfEntity(options.context.store, options.enclosingRef.__ref)
 		return self:execSubSelectedArrayImpl(options)
 	end, {
 		max = self.config.resultCacheMaxSize,
-		makeCacheKey = function(_self, __self, ref): Object | nil
+		makeCacheKey = function(_self, ref): Object | nil
 			local field, array, context = ref.field, ref.array, ref.context
 			if supportsResultCaching(context.store) then
 				return ((context.store :: any) :: EntityStore):makeCacheKey(field, array, context.varString)
 			end
 			return nil
 		end,
-	})
+	}, self)
 
 	return (self :: any) :: StoreReader
 end
