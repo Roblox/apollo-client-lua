@@ -6,6 +6,8 @@ local Boolean = LuauPolyfill.Boolean
 
 local NULL = { __value = "null" }
 
+export type NULL = typeof(NULL)
+
 return {
 	NULL = NULL,
 	toJSBoolean = function(value)

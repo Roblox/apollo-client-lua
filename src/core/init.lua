@@ -65,11 +65,9 @@ export type MutationQueryReducersMap<T> = typesModule.MutationQueryReducersMap<T
 export type MutationUpdaterFunction<TData, TVariables, TContext, TCache> =
 	typesModule.MutationUpdaterFunction<TData, TVariables, TContext, TCache>
 export type Resolvers = typesModule.Resolvers
---[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
---[[ export {
-  Resolver,
-  FragmentMatcher,
-} from './LocalState'; ]]
+local localStateModule = require(script.LocalState)
+export type Resolver = localStateModule.Resolver
+export type FragmentMatcher = localStateModule.FragmentMatcher
 --[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
 --[[ export { isApolloError, ApolloError } from '../errors'; ]]
 --[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]

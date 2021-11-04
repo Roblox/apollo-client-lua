@@ -10,6 +10,19 @@ local Boolean, Object, setTimeout = LuauPolyfill.Boolean, LuauPolyfill.Object, L
 type Array<T> = LuauPolyfill.Array<T>
 type Object = LuauPolyfill.Object
 
+local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
+type Promise<T> = PromiseTypeModule.Promise<T>
+
+--[[
+  ROBLOX deviation: no generic params for functions are supported.
+  TCacheShape_, T_, TVariables_
+  are placeholders for generic
+  TCacheShape, T, TVariables param
+]]
+type TCacheShape_ = any
+type T_ = any
+type TVariables_ = OperationVariables
+
 local GraphQL = require(rootWorkspace.GraphQL)
 type ExecutionResult = GraphQL.ExecutionResult
 type DocumentNode = GraphQL.DocumentNode
@@ -57,6 +70,8 @@ type RefetchQueriesInclude = coreTypesModule.RefetchQueriesInclude
   SubscriptionOptions,
   WatchQueryFetchPolicy,
 } from './watchQueryOptions'; ]]
+-- ROBLOX TODO: replace when implemented
+type QueryOptions<TVariables, T> = Object
 
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import {
@@ -133,6 +148,7 @@ export type ApolloClient<TCacheShape> = {
 	queryDeduplication: boolean,
 	defaultOptions: DefaultOptions,
 	typeDefs: (string | Array<string> | DocumentNode | Array<DocumentNode>)?,
+	query: (self: ApolloClient<TCacheShape>, options: QueryOptions<TVariables_, T_>) -> Promise<ApolloQueryResult<T_>>,
 }
 
 local ApolloClient = {}
@@ -176,7 +192,7 @@ ApolloClient.__index = ApolloClient
    *                you are using.
    */
 ]]
-function ApolloClient.new(options: ApolloClientOptions<{ [string]: any }>): ApolloClient<{ [string]: any }>
+function ApolloClient.new(options: ApolloClientOptions<TCacheShape_>): ApolloClient<TCacheShape_>
 	local self = setmetatable({}, ApolloClient)
 
 	-- ROBLOX TODO: remove _ from these variables when we use them
