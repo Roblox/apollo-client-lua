@@ -13,7 +13,7 @@ local Boolean, clearTimeout, Map, Object, Set, setTimeout, WeakMap =
 	LuauPolyfill.setTimeout,
 	LuauPolyfill.WeakMap
 type Array<T> = LuauPolyfill.Array<T>
-type Function = (...any) -> ...any
+
 type Set<T> = LuauPolyfill.Set<T>
 type Error = LuauPolyfill.Error
 type MapLike<T, V> = {
@@ -26,6 +26,7 @@ type Record<T, U> = { [T]: U }
 local graphqlModule = require(rootWorkspace.GraphQL)
 type DocumentNode = graphqlModule.DocumentNode
 type GraphQLError = graphqlModule.GraphQLError
+
 local equal = require(srcWorkspace.jsutils.equal)
 
 local cacheModule = require(srcWorkspace.cache)
@@ -77,8 +78,6 @@ local CacheWriteBehavior = {
 exports.CacheWriteBehavior = CacheWriteBehavior
 
 export type CacheWriteBehavior = number
-
-exports.CacheWriteBehavior = CacheWriteBehavior
 
 local destructiveMethodCounts = (function()
 	if canUseWeakMap then
@@ -623,6 +622,7 @@ function QueryInfo:markError(error_)
 
 	return error_
 end
+exports.QueryInfo = QueryInfo
 
 function shouldWriteResult(result: FetchResult<any, any, any>, errorPolicy: ErrorPolicy): boolean
 	if errorPolicy == nil then

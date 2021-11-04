@@ -1,3 +1,5 @@
+-- ROBLOX deviation: no upstream
+
 return function()
 	local rootWorkspace = script.Parent.Parent.Parent.Parent
 	local PackagesWorkspace = rootWorkspace.Parent

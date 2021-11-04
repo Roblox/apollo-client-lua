@@ -437,7 +437,7 @@ return function()
 				local astOperation = Object.assign({}, uniqueOperation, { query = sampleQuery })
 				local stub = jest.fn()
 				local chain = ApolloLink.from({ ApolloLink.new(function(self, op)
-					stub(op)
+					return stub(op)
 				end) })
 				ApolloLink.execute(chain, astOperation)
 				jestExpect(stub).toBeCalledWith({
@@ -460,6 +460,7 @@ return function()
 							query = sampleQuery,
 							variables = {},
 						}).toEqual(op)
+						return nil
 					end),
 				})
 				waitForCompletion(ApolloLink.execute(chain, uniqueOperation))

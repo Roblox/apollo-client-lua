@@ -30,9 +30,12 @@ type DocumentNode = GraphQL.DocumentNode
 -- ROBLOX TODO: need to remove _ when we use invariant
 local _invariant = require(srcWorkspace.jsutils.invariant).invariant
 
---[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
---[[ import { ApolloLink, FetchResult, GraphQLRequest, execute } from '../link/core'; ]]
+local linkCoreModule = require(srcWorkspace.link.core)
+--[[ import { ApolloLink, execute } from '../link/core'; ]]
 type ApolloLink = { [string]: any }
+
+type FetchResult<TData, C, E> = linkCoreModule.FetchResult<TData, C, E>
+type GraphQLRequest = linkCoreModule.GraphQLRequest
 
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import { ApolloCache, DataProxy } from '../cache'; ]]
@@ -47,10 +50,11 @@ local version_ = require(srcWorkspace.version)
 --[[ import { HttpLink, UriFunction } from '../link/http'; ]]
 type UriFunction = ({ [string]: any }) -> string
 
---[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
---[[ import { QueryManager } from './QueryManager'; ]]
---[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
---[[ import { ObservableQuery } from './ObservableQuery'; ]]
+---[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
+---[[ import { QueryManager } from './QueryManager'; ]]
+
+local observableQueryModule = require(script.Parent.ObservableQuery_types)
+type ObservableQuery<TData, TVariables> = observableQueryModule.ObservableQuery<TData, TVariables>
 
 local coreTypesModule = require(srcWorkspace.core.types)
 type ApolloQueryResult<T> = coreTypesModule.ApolloQueryResult<T>
@@ -64,14 +68,14 @@ type RefetchQueriesInclude = coreTypesModule.RefetchQueriesInclude
 
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import {
-  QueryOptions,
-  WatchQueryOptions,
-  MutationOptions,
   SubscriptionOptions,
   WatchQueryFetchPolicy,
 } from './watchQueryOptions'; ]]
--- ROBLOX TODO: replace when implemented
-type QueryOptions<TVariables, T> = Object
+local watchQueryOptionsModule = require(script.Parent.watchQueryOptions_types)
+type QueryOptions<TVariables, TData> = watchQueryOptionsModule.QueryOptions<TVariables, TData>
+type WatchQueryOptions<TVariables, TData> = watchQueryOptionsModule.WatchQueryOptions<TVariables, TData>
+type MutationOptions<TData, TVariables, TContext, TCache> =
+	watchQueryOptionsModule.MutationOptions<TData, TVariables, TContext, TCache>
 
 --[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
 --[[ import {
@@ -148,6 +152,12 @@ export type ApolloClient<TCacheShape> = {
 	queryDeduplication: boolean,
 	defaultOptions: DefaultOptions,
 	typeDefs: (string | Array<string> | DocumentNode | Array<DocumentNode>)?,
+	mutate: (
+		self: ApolloClient<TCacheShape>,
+		options: MutationOptions<any, any, any, any>
+	) -> Promise<FetchResult<any, any, any>>,
+	watchQuery: (self: ApolloClient<TCacheShape>, options: WatchQueryOptions<any, any>) -> ObservableQuery<any, any>,
+	stop: (self: ApolloClient<TCacheShape>) -> (),
 	query: (self: ApolloClient<TCacheShape>, options: QueryOptions<TVariables_, T_>) -> Promise<ApolloQueryResult<T_>>,
 }
 
@@ -249,6 +259,7 @@ function ApolloClient.new(options: ApolloClientOptions<TCacheShape_>): ApolloCli
 	--[[
   this.watchQuery = this.watchQuery.bind(this);
   this.query = this.query.bind(this);
+  
   this.mutate = this.mutate.bind(this);
   this.resetStore = this.resetStore.bind(this);
   this.reFetchObservableQueries = this.reFetchObservableQueries.bind(this);
@@ -307,45 +318,53 @@ function ApolloClient.new(options: ApolloClientOptions<TCacheShape_>): ApolloCli
   });
   ]]
 
-	-- ROBLOX TODO: will convert this when we convert QueryManager
-	--[[
-  this.queryManager = new QueryManager({
-    cache: this.cache,
-    link: this.link,
-    queryDeduplication,
-    ssrMode,
-    clientAwareness: {
-      name: clientAwarenessName!,
-      version: clientAwarenessVersion!,
-    },
-    localState: this.localState,
-    assumeImmutableResults,
-    onBroadcast: connectToDevTools ? () => {
-      if (this.devToolsHookCb) {
-        this.devToolsHookCb({
-          action: {},
-          state: {
-            queries: this.queryManager.getQueryStore(),
-            mutations: this.queryManager.mutationStore || {},
-          },
-          dataWithOptimisticResults: this.cache.extract(true),
-        });
-      }
-    } : void 0,
-  });
-  ]]
+	-- ROBLOX TODO: enable when we convert QueryManager
+	-- self.queryManager = QueryManager.new({
+	-- 	cache = self.cache,
+	-- 	link = self.link,
+	-- 	queryDeduplication = queryDeduplication,
+	-- 	ssrMode = ssrMode,
+	-- 	clientAwareness = {
+	-- 		name = clientAwarenessName :: any,
+	-- 		version = clientAwarenessVersion :: any,
+	-- 	},
+	-- 	localState = self.localState,
+	-- 	assumeImmutableResults = assumeImmutableResults,
+	-- 	onBroadcast = (function()
+	-- 		if Boolean.toJSBoolean(connectToDevTools) then
+	-- 			return function()
+	-- 				if Boolean.toJSBoolean(self.devToolsHookCb) then
+	-- 					self:devToolsHookCb({
+	-- 						action = {},
+	-- 						state = {
+	-- 							queries = self.queryManager:getQueryStore(),
+	-- 							mutations = Boolean.toJSBoolean(self.queryManager.mutationStore)
+	-- 									and self.queryManager.mutationStore
+	-- 								or {},
+	-- 						},
+	-- 						dataWithOptimisticResults = self.cache:extract(true),
+	-- 					})
+	-- 				end
+	-- 			end
+	-- 		else
+	-- 			return nil
+	-- 		end
+	-- 	end)(),
+	-- })
 
 	return (self :: any) :: ApolloClient<{ [string]: any }>
 end
 
 --[[
-  /**
    * Call this method to terminate any active client processes, making it safe
    * to dispose of this `ApolloClient` instance.
-   */
-  public stop() {
-    this.queryManager.stop();
-  }
+  ]]
+function ApolloClient:stop()
+	error("queryManager not implemented")
+	-- self.queryManager:stop();
+end
+
+--[[
 
   /**
    * This watches the cache store of the query according to the options specified and
@@ -366,25 +385,29 @@ end
    * See [here](https://medium.com/apollo-stack/the-concepts-of-graphql-bc68bd819be3#.3mb0cbcmc) for
    * a description of store reactivity.
    */
-  public watchQuery<T = any, TVariables = OperationVariables>(
-    options: WatchQueryOptions<TVariables, T>,
-  ): ObservableQuery<T, TVariables> {
-    if (this.defaultOptions.watchQuery) {
-      options = mergeOptions(this.defaultOptions.watchQuery, options);
-    }
+]]
+function ApolloClient:watchQuery(options: WatchQueryOptions<any, any>): ObservableQuery<any, any>
+	error("queryManager not implemented")
+	-- if Boolean.toJSBoolean(self.defaultOptions.watchQuery) then
+	-- 	options = mergeOptions(self.defaultOptions.watchQuery, options)
+	-- end
+	-- if
+	-- 	Boolean.toJSBoolean((function()
+	-- 		if Boolean.toJSBoolean(self.disableNetworkFetches) then
+	-- 			return Boolean.toJSBoolean(options.fetchPolicy == "network-only")
+	-- 					and options.fetchPolicy == "network-only"
+	-- 				or options.fetchPolicy == "cache-and-network"
+	-- 		else
+	-- 			return self.disableNetworkFetches
+	-- 		end
+	-- 	end)())
+	-- then
+	-- 	options = Object.assign({}, options, { fetchPolicy = "cache-first" })
+	-- end
+	-- return self.queryManager:watchQuery(options)
+end
 
-    // XXX Overwriting options is probably not the best way to do this long term...
-    if (
-      this.disableNetworkFetches &&
-      (options.fetchPolicy === 'network-only' ||
-        options.fetchPolicy === 'cache-and-network')
-    ) {
-      options = { ...options, fetchPolicy: 'cache-first' };
-    }
-
-    return this.queryManager.watchQuery<T, TVariables>(options);
-  }
-
+--[[
   /**
    * This resolves a single query according to the options specified and
    * returns a {@link Promise} which is either resolved with the resulting data
@@ -415,28 +438,23 @@ end
 
     return this.queryManager.query<T, TVariables>(options);
   }
+  ]]
 
-  /**
-   * This resolves a single mutation according to the options specified and returns a
-   * {@link Promise} which is either resolved with the resulting data or rejected with an
-   * error.
-   *
-   * It takes options as an object with the following keys and values:
-   */
-  public mutate<
-    TData = any,
-    TVariables = OperationVariables,
-    TContext = DefaultContext,
-    TCache extends ApolloCache<any> = ApolloCache<any>
-  >(
-    options: MutationOptions<TData, TVariables, TContext>,
-  ): Promise<FetchResult<TData>> {
-    if (this.defaultOptions.mutate) {
-      options = mergeOptions(this.defaultOptions.mutate, options);
-    }
-    return this.queryManager.mutate<TData, TVariables, TContext, TCache>(options);
-  }
+--[[
+    This resolves a single mutation according to the options specified and returns a
+    {@link Promise} which is either resolved with the resulting data or rejected with an
+    error.
+  
+    It takes options as an object with the following keys and values:
+   ]]
+function ApolloClient:mutate(options: MutationOptions<any, any, any, any>): Promise<FetchResult<any, any, any>>
+	if Boolean.toJSBoolean(self.defaultOptions.mutate) then
+		options = mergeOptions(self.defaultOptions.mutate, options)
+	end
+	return self.queryManager:mutate(options)
+end
 
+--[[
   /**
    * This subscribes to a graphql subscription according to the options specified and returns an
    * {@link Observable} which either emits received data or an error.

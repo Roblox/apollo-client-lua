@@ -34,10 +34,10 @@ export type NextLink = ((
 	operation: Operation
 ) -> Observable<FetchResult<{ [string]: any }, Record<string, any>, Record<string, any>>>)
 
-export type RequestHandler = ((
+export type RequestHandler = (
 	self: any, -- ApolloLink
 	operation: Operation,
 	forward: NextLink
-) -> ...(Observable<FetchResult<{ [string]: any }, Record<string, any>, Record<string, any>>> | nil))
+) -> Observable<FetchResult<{ [string]: any }, Record<string, any>, Record<string, any>>> | nil
 
 return exports

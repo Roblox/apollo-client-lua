@@ -78,6 +78,8 @@ function QueryData.new(
 ): QueryData<any, any>
 	local options, context, onNewData = ref.options, ref.context, ref.onNewData
 	local self: any = OperationData.new(options, context)
+	self.runLazy = false
+	self.previous = {}
 	self.onNewData = onNewData
 
 	self.runLazyQuery = function(options: QueryLazyOptions<any>?)
@@ -206,7 +208,7 @@ end
 
 function QueryData:getOptions(): any
 	local super = getmetatable(getmetatable(self)).__index
-	local options = super.options(self)
+	local options = super.getOptions(self)
 
 	if Boolean.toJSBoolean(self.lazyOptions) then
 		Object.assign({}, options.variables, self.lazyOptions.variables)

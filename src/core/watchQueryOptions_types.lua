@@ -170,4 +170,30 @@ export type SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionD
 	context: DefaultContext?,
 }
 
+export type MutationOptions<TData, TVariables, TContext, TCache> = {
+	--[[
+    A GraphQL document, often created with `gql` from the `graphql-tag`
+    package, that contains a single mutation inside of it.
+  ]]
+	mutation: DocumentNode | TypedDocumentNode<TData, TVariables>,
+
+	--[[
+    Specifies the {@link FetchPolicy} to be used for this query. Mutations only
+    support a 'no-cache' fetchPolicy. If you don't want to disable the cache,
+    remove your fetchPolicy setting to proceed with the default mutation
+    behavior.
+  ]]
+	fetchPolicy: string?, --[[Extract<FetchPolicy, 'no-cache'>]]
+	--[[
+    To avoid retaining sensitive information from mutation root field
+    arguments, Apollo Client v3.4+ automatically clears any `ROOT_MUTATION`
+    fields from the cache after each mutation finishes. If you need this
+    information to remain in the cache, you can prevent the removal by passing
+    `keepRootFields: true` to the mutation. `ROOT_MUTATION` result data are
+    also passed to the mutation `update` function, so we recommend obtaining
+    the results that way, rather than using this option, if possible.
+  ]]
+	keepRootFields: boolean?,
+}
+
 return {}
