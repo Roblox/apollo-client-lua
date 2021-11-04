@@ -103,7 +103,7 @@ type ConcastPrivate<T> = Concast<T> & {
 	resolve: (self: Concast<T>, result: (T | PromiseLike<T>)?) -> (),
 	reject: (self: Concast<T>, reason: any) -> (),
 }
-type Concast<T> = Observable<T> & {
+export type Concast<T> = Observable<T> & {
 	addObserver: (self: Concast<T>, observer: Observer<T>) -> (),
 	removeObserver: (self: Concast<T>, observer: Observer<T>, quietly: boolean?) -> (),
 	promise: Promise<T>,

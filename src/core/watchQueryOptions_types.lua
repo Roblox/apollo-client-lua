@@ -162,6 +162,7 @@ export type UpdateQueryFn<TData, TSubscriptionVariables, TSubscriptionData> = (
 -- ROBLOX deviation: this is the imported type that causes the circular dep, inline trivial
 type DefaultContext = Record<string, any>
 export type SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData> = {
+	self: SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData>,
 	document: DocumentNode | TypedDocumentNode<TSubscriptionData, TSubscriptionVariables>,
 	variables: TSubscriptionVariables?,
 	updateQuery: UpdateQueryFn<TData, TSubscriptionVariables, TSubscriptionData>?,

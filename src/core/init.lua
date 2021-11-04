@@ -20,10 +20,11 @@ exports.mergeOptions = ApolloClientModule.mergeOptions
 
 local ObservableQueryModule = require(script.ObservableQuery)
 -- exports.ObservableQuery = ObservableQueryModule.ObservableQuery
-export type ObservableQuery<TData, TVariables> = ObservableQueryModule.ObservableQuery<TData, TVariables>
 -- exports.FetchMoreOptions = ObservableQueryModule.FetchMoreOptions
 -- exports.UpdateQueryOptions = ObservableQueryModule.UpdateQueryOptions
 exports.applyNextFetchPolicy = ObservableQueryModule.applyNextFetchPolicy
+local ObservableQueryTypesModule = require(script.ObservableQuery_types)
+export type ObservableQuery<TData, TVariables> = ObservableQueryTypesModule.ObservableQuery<TData, TVariables>
 
 local watchQueryOptionsModule = require(script.watchQueryOptions)
 export type QueryOptions<TVariables, TData> = watchQueryOptionsModule.QueryOptions<TVariables, TData>

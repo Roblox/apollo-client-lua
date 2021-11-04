@@ -57,8 +57,8 @@ type NetworkStatus = NetworkStatus.NetworkStatus
 -- local Resolver = require(script.Parent.LocalState).Resolver
 type Resolver = any
 
-local ObservableQuery = require(script.Parent.ObservableQuery)
-type ObservableQuery<TData, TVariables> = ObservableQuery.ObservableQuery<TData, TVariables>
+local ObservableQueryTypes = require(script.Parent.ObservableQuery_types)
+type ObservableQuery<TData, TVariables> = ObservableQueryTypes.ObservableQuery<TData, TVariables>
 
 -- ROBLOX comment: moved to different file to solve circular dependency issue
 local watchQueryOptionsModule = require(script.Parent.watchQueryOptions_types)

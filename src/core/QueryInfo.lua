@@ -38,8 +38,8 @@ local watchQueryOptionsTypesModule = require(script.Parent.watchQueryOptions_typ
 type WatchQueryOptions<TVariables, TData> = watchQueryOptionsTypesModule.WatchQueryOptions<TVariables, TData>
 type ErrorPolicy = watchQueryOptionsTypesModule.ErrorPolicy
 
-local observableQueryModule = require(script.Parent.ObservableQuery)
-type ObservableQuery<TData, TVariables> = observableQueryModule.ObservableQuery<TData, TVariables>
+local observableQueryTypesModule = require(script.Parent.ObservableQuery_types)
+type ObservableQuery<TData, TVariables> = observableQueryTypesModule.ObservableQuery<TData, TVariables>
 
 -- ROBLOX deviation: inline QueryInfo definition to avoid circular dep
 -- local typesModule = require(script.Parent.types)

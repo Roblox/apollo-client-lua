@@ -103,6 +103,7 @@ Object.assign(exports, require(script.observables.iteration))
 Object.assign(exports, require(script.observables.asyncMap))
 local concastModule = require(script.observables.Concast)
 Object.assign(exports, concastModule)
+export type Concast<T> = concastModule.Concast<T>
 export type ConcastSourcesIterable<T> = concastModule.ConcastSourcesIterable<T>
 Object.assign(exports, require(script.observables.subclassing))
 Object.assign(exports, require(script.common.arrays))
