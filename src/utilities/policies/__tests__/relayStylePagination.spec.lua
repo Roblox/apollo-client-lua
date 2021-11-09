@@ -159,7 +159,12 @@ return function()
 
 			it("should maintain endCursor and startCursor with empty edges", function()
 				local incoming --[[ Parameters<typeof merge>[1] ]] = {
-					pageInfo = { hasPreviousPage = false, hasNextPage = true, startCursor = "abc", endCursor = "xyz" },
+					pageInfo = {
+						hasPreviousPage = false,
+						hasNextPage = true,
+						startCursor = "abc",
+						endCursor = "xyz",
+					},
 				}
 				local result = merge(policy, nil, incoming, options)
 				jestExpect(result).toEqual({

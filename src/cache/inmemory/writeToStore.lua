@@ -606,8 +606,7 @@ function StoreWriter:applyMerges(
 			incoming,
 			mergeTree.info,
 			context,
-			Boolean.toJSBoolean(getStorageArgs)
-					and context.store:getStorage(table.unpack(getStorageArgs :: Array<any>))
+			Boolean.toJSBoolean(getStorageArgs) and context.store:getStorage(table.unpack(getStorageArgs :: Array<any>))
 				or nil
 		)
 	end

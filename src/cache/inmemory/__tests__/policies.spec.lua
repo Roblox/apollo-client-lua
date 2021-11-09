@@ -3285,7 +3285,10 @@ return function()
 				})
 
 				jestExpect(cache:extract()).toEqual({
-					ROOT_QUERY = { __typename = "Query", currentlyReading = { __ref = 'Book:{"isbn":"1250758009"}' } },
+					ROOT_QUERY = {
+						__typename = "Query",
+						currentlyReading = { __ref = 'Book:{"isbn":"1250758009"}' },
+					},
 					['Book:{"isbn":"1250758009"}'] = {
 						__typename = "Book",
 						author = { __typename = "Author", name = "Ben Lerner" },
@@ -3309,7 +3312,10 @@ return function()
 				})
 
 				jestExpect(cache:extract()).toEqual({
-					ROOT_QUERY = { __typename = "Query", currentlyReading = { __ref = 'Book:{"isbn":"1250758009"}' } },
+					ROOT_QUERY = {
+						__typename = "Query",
+						currentlyReading = { __ref = 'Book:{"isbn":"1250758009"}' },
+					},
 					['Book:{"isbn":"1250758009"}'] = {
 						__typename = "Book",
 						author = {
@@ -3331,7 +3337,11 @@ return function()
 							author = {
 								__typename = "Author",
 								books = {
-									{ __typename = "Book", isbn = "1566892740", title = "Leaving the Atocha Station" },
+									{
+										__typename = "Book",
+										isbn = "1566892740",
+										title = "Leaving the Atocha Station",
+									},
 								},
 							},
 						},
@@ -3339,7 +3349,10 @@ return function()
 				})
 
 				jestExpect(cache:extract()).toEqual({
-					ROOT_QUERY = { __typename = "Query", currentlyReading = { __ref = 'Book:{"isbn":"1250758009"}' } },
+					ROOT_QUERY = {
+						__typename = "Query",
+						currentlyReading = { __ref = 'Book:{"isbn":"1250758009"}' },
+					},
 					['Book:{"isbn":"1250758009"}'] = {
 						__typename = "Book",
 						author = {

@@ -127,8 +127,8 @@ export type ObservableQueryFields<TData, TVariables> = ObservableQueryPick<TData
 	fetchMore: ((
 		FetchMoreQueryOptions<TVariables, TData> & FetchMoreOptions<TData, TVariables>
 	) -> Promise<ApolloQueryResult<TData>>) & ((
-			-- ROBLOX deviation: dont have function generics
-{ query: (DocumentNode | TypedDocumentNode<TData, TVariables>)? } & FetchMoreQueryOptions<any, TData> & FetchMoreOptions<any, any>
+		-- ROBLOX deviation: dont have function generics
+		{ query: (DocumentNode | TypedDocumentNode<TData, TVariables>)? } & FetchMoreQueryOptions<any, TData> & FetchMoreOptions<any, any>
 	) -> Promise<ApolloQueryResult<any>>),
 }
 

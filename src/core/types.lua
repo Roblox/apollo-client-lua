@@ -220,8 +220,8 @@ export type ApolloQueryResult<T> = {
 -- This is part of the public API, people write these functions in `updateQueries`.
 export type MutationQueryReducer<T> = (
 	Record<string, any>,
-		-- ROBLOX deviation: inline default type arg params: interface FetchResult<TData = { [key: string]: any },C = Record<string, any>,E = Record<string, any>
-{
+	-- ROBLOX deviation: inline default type arg params: interface FetchResult<TData = { [key: string]: any },C = Record<string, any>,E = Record<string, any>
+	{
 		mutationResult: FetchResult<T, Record<string, any>, Record<string, any>>,
 		queryName: string | nil,
 		queryVariables: Record<string, any>,
