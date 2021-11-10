@@ -19,6 +19,7 @@ return function()
 	local Error = LuauPolyfill.Error
 	local Map = LuauPolyfill.Map
 	local Object_ = LuauPolyfill.Object
+	-- ROBLOX TODO: replace when available in LuauPolyfill
 	local Object: typeof(Object_) & { isFrozen: (any) -> boolean } = setmetatable({
 		-- ROBLOX deviation: no real way to check for this currently.
 		isFrozen = function(_obj: any)
@@ -50,7 +51,8 @@ return function()
 	local makeVar = reactiveVarsModule.makeVar
 	type ReactiveVar<T> = reactiveVarsModule.ReactiveVar<T>
 	type TypedDocumentNode<Result, Variables> = coreModule.TypedDocumentNode<Result, Variables>
-	local isReference = coreModule.isReference
+	-- ROBLOX TODO: remove underscore when used
+	local _isReference = coreModule.isReference
 	local graphQLModule = require(rootWorkspace.GraphQL)
 	type DocumentNode = graphQLModule.DocumentNode
 	local cacheModule = require(script.Parent.Parent.Parent.Parent.cache)
@@ -850,7 +852,6 @@ return function()
 			end)
 
 			itWithInitialData(
-				-- ROBLOX TODO: this test is not passing because we can't properly encode NULL constant ATM
 				it,
 				"will write some data to the store with variables where some are null",
 				{ {} },
@@ -1159,8 +1160,7 @@ return function()
 				})
 
 				local snapshot = cache:extract()
-				-- ROBLOX TODO: use matcher
-				-- jestExpect(snapshot).toMatchSnapshot()
+				jestExpect(snapshot).toMatchSnapshot()
 
 				cache:restore({})
 				jestExpect(cache:extract()).toEqual({})
@@ -1179,7 +1179,7 @@ return function()
 			end)
 		end)
 
-		xdescribe("cache.batch", function()
+		describe("cache.batch", function()
 			local function last(array: Array<E_>)
 				return array[#array]
 			end
@@ -1197,7 +1197,7 @@ return function()
 					query = query,
 					optimistic = true,
 					immediate = true,
-					callback = function(diff)
+					callback = function(_self, diff)
 						table.insert(diffs, diff)
 					end,
 				}
@@ -1206,6 +1206,7 @@ return function()
 				table.remove(diffs, 1) -- Discard the immediate diff
 				return { diffs = diffs, watch = options, cancel = cancel }
 			end
+
 			it("calls onWatchUpdated for each invalidated watch", function()
 				local cache = InMemoryCache.new()
 				local aQuery = gql("query { a }")
@@ -1220,7 +1221,7 @@ return function()
 						cache:writeQuery({ query = aQuery, data = { a = "ay" } })
 					end,
 					optimistic = true,
-					onWatchUpdated = function(self, w, diff)
+					onWatchUpdated = function(_self, w, diff)
 						dirtied:set(w, diff)
 					end,
 				})
@@ -1231,11 +1232,15 @@ return function()
 				jestExpect(#aInfo.diffs).toBe(1)
 				jestExpect(last(aInfo.diffs)).toEqual({ complete = true, result = { a = "ay" } })
 				jestExpect(#abInfo.diffs).toBe(1)
+
 				jestExpect(last(abInfo.diffs)).toEqual({
 					complete = false,
-					missing = jestExpect.any(Array),
+					--ROBLOX deviation: can't check instanceOf Array with table, adding extra test below to check if isArray
+					missing = jestExpect.anything(), -- jestExpect.any(Array)
 					result = { a = "ay" },
 				})
+				jestExpect(Array.isArray(last(abInfo.diffs).missing)).toBe(true)
+
 				jestExpect(#bInfo.diffs).toBe(0)
 				dirtied:clear()
 				cache:batch({
@@ -1243,7 +1248,7 @@ return function()
 						cache:writeQuery({ query = bQuery, data = { b = "bee" } })
 					end,
 					optimistic = true,
-					onWatchUpdated = function(self, w, diff)
+					onWatchUpdated = function(_self, w, diff)
 						dirtied:set(w, diff)
 					end,
 				})
@@ -1276,7 +1281,7 @@ return function()
 					update = function(_self, cache)
 						cache:modify({
 							fields = {
-								a = function(value, ref)
+								a = function(_self, value, ref)
 									local INVALIDATE = ref.INVALIDATE
 									jestExpect(value).toBe("ay")
 									return INVALIDATE
@@ -1285,7 +1290,7 @@ return function()
 						})
 					end,
 					optimistic = true,
-					onWatchUpdated = function(self, w, diff)
+					onWatchUpdated = function(_self, w, diff)
 						dirtied:set(w, diff)
 					end,
 				})
@@ -1423,6 +1428,7 @@ return function()
 		end)
 	end)
 
+	-- ROBLOX TODO: requires jest.mock
 	xdescribe("resultCacheMaxSize", function()
 		local wrapSpy: JestMock = wrap :: JestMock
 		beforeEach(function()
@@ -1737,10 +1743,7 @@ return function()
 
 			local initialResult = read()
 
-			-- ROBLOX TODO: use after Jest update
-			-- ROBLOX NOTE: we need to call cache:extract() to make the reset of the test pass. Remove when snapshot line is uncommented
-			cache:extract()
-			-- jestExpect(cache:extract()).toMatchSnapshot()
+			jestExpect(cache:extract()).toMatchSnapshot()
 
 			jestExpect(cache:modify({
 				id = cache:identify({
@@ -1781,8 +1784,7 @@ return function()
 			)
 		end)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		xit("should allow deletion using details.DELETE", function()
+		it("should allow deletion using details.DELETE", function()
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					Book = {
@@ -1860,12 +1862,13 @@ return function()
 				},
 			})
 
-			local yobResult = cache:readFragment({
-				id = authorId,
-				fragment = gql("fragment YOB on Author { yearOfBirth }"),
-			})
+			-- ROBLOX TODO: fragments are not supported yet
+			-- local yobResult = cache:readFragment({
+			-- 	id = authorId,
+			-- 	fragment = gql("fragment YOB on Author { yearOfBirth }"),
+			-- })
 
-			jestExpect(yobResult).toEqual({ __typename = "Author", yearOfBirth = 1984 })
+			-- jestExpect(yobResult).toEqual({ __typename = "Author", yearOfBirth = 1984 })
 
 			local bookId = cache:identify(currentlyReading) :: any
 
@@ -2153,7 +2156,7 @@ return function()
 			jestExpect(cache:extract(true)).toEqual({})
 		end)
 
-		xit("should broadcast watches for queries with changed fields", function()
+		it("should broadcast watches for queries with changed fields", function()
 			local cache = InMemoryCache.new()
 			local queryA = gql("{ a { value } }")
 			local queryB = gql("{ b { value } }")
@@ -2169,7 +2172,7 @@ return function()
 				query = queryA,
 				optimistic = true,
 				immediate = true,
-				callback = function(data)
+				callback = function(_self, data)
 					table.insert(aResults, data)
 				end,
 			})
@@ -2178,7 +2181,7 @@ return function()
 				query = queryB,
 				optimistic = true,
 				immediate = true,
-				callback = function(data)
+				callback = function(_self, data)
 					table.insert(bResults, data)
 				end,
 			})
@@ -2370,7 +2373,7 @@ return function()
 			jestExpect(cache:extract()).toEqual({ ROOT_QUERY = { __typename = "Query" } })
 		end)
 
-		xit("should modify ROOT_QUERY only when options.id absent", function()
+		it("should modify ROOT_QUERY only when options.id absent", function()
 			local cache = InMemoryCache.new()
 			cache:writeQuery({ query = gql("query { field }"), data = { field = "oyez" } })
 			local snapshot = { ROOT_QUERY = { __typename = "Query", field = "oyez" } }
@@ -2378,14 +2381,15 @@ return function()
 			local function check(id: any)
 				jestExpect(cache:modify({
 					id = id,
-					fields = function(value)
+					fields = function(_self, value)
 						error(Error.new(("unexpected value: %s"):format(value)))
 					end,
 				})).toBe(false)
 			end
-			check(nil)
+			-- ROBLOX deviation: hasOwnProperty cannot check for { [key] = nil }
+			-- check(nil)
 			check(false)
-			check(nil)
+			check(NULL)
 			check("")
 			check("bogus:id")
 			jestExpect(cache:extract()).toEqual(snapshot)
@@ -2777,8 +2781,7 @@ return function()
 		end)
 	end)
 
-	-- ROBLOX NOTE: fragments are not supported yet
-	xdescribe("TypedDocumentNode<Data, Variables>", function()
+	describe("TypedDocumentNode<Data, Variables>", function()
 		type Book = { isbn: string?, title: string, author: { name: string } }
 		local query: TypedDocumentNode<{ book: Book }, { isbn: string }> = gql([[query GetBook($isbn: String!) {
     book(isbn: $isbn) {
@@ -2788,16 +2791,17 @@ return function()
       }
     }
   }]])
-		local fragment: TypedDocumentNode<Book, { [string]: any }> = gql([[
+		-- ROBLOX TODO: fragments are not supported yet
+		-- 		local fragment: TypedDocumentNode<Book, { [string]: any }> = gql([[
 
-    fragment TitleAndAuthor on Book {
-      title
-      isbn
-      author {
-        name
-      }
-    }
-  ]])
+		--     fragment TitleAndAuthor on Book {
+		--       title
+		--       isbn
+		--       author {
+		--         name
+		--       }
+		--     }
+		--   ]])
 		it("should determine Data and Variables types of {write,read}{Query,Fragment}", function()
 			local cache = InMemoryCache.new({
 				typePolicies = {
@@ -2847,42 +2851,44 @@ return function()
 					author = { __typename = "Author", name = "John C. Mitchell" },
 				},
 			})
-			local sicpBook = {
-				__typename = "Book",
-				isbn = "0262510871",
-				title = "Structure and Interpretation of Computer Programs",
-				author = { __typename = "Author", name = "Harold Abelson" },
-			}
-			local sicpRef = cache:writeFragment({ fragment = fragment, data = sicpBook })
-			jestExpect(isReference(sicpRef)).toBe(true)
-			jestExpect(cache:extract()).toMatchSnapshot()
-			local ffplFragmentResult = cache:readFragment({
-				fragment = fragment,
-				id = cache:identify(ffplBook),
-			})
-			if ffplFragmentResult == nil then
-				error(Error.new("null result"))
-			end
-			jestExpect(ffplFragmentResult.title).toBe(ffplBook.title)
-			jestExpect(ffplFragmentResult.author.name).toBe(ffplBook.author.name)
-			jestExpect(ffplFragmentResult).toEqual(ffplBook)
-			local sicpReadResult = cache:readQuery({
-				query = query,
-				variables = { isbn = sicpBook.isbn },
-			})
-			if sicpReadResult == nil then
-				error(Error.new("null result"))
-			end
-			jestExpect(sicpReadResult.book.isbn).toBeUndefined()
-			jestExpect(sicpReadResult.book.title).toBe(sicpBook.title)
-			jestExpect(sicpReadResult.book.author.name).toBe(sicpBook.author.name)
-			jestExpect(sicpReadResult).toEqual({
-				book = {
-					__typename = "Book",
-					title = "Structure and Interpretation of Computer Programs",
-					author = { __typename = "Author", name = "Harold Abelson" },
-				},
-			})
+			-- ROBLOX TODO: fragments are not supported yet
+			-- local sicpBook = {
+			-- 	__typename = "Book",
+			-- 	isbn = "0262510871",
+			-- 	title = "Structure and Interpretation of Computer Programs",
+			-- 	author = { __typename = "Author", name = "Harold Abelson" },
+			-- }
+			-- local sicpRef = cache:writeFragment({ fragment = fragment, data = sicpBook })
+			-- jestExpect(isReference(sicpRef)).toBe(true)
+			-- jestExpect(cache:extract()).toMatchSnapshot()
+
+			-- local ffplFragmentResult = cache:readFragment({
+			-- 	fragment = fragment,
+			-- 	id = cache:identify(ffplBook),
+			-- })
+			-- if ffplFragmentResult == nil then
+			-- 	error(Error.new("null result"))
+			-- end
+			-- jestExpect(ffplFragmentResult.title).toBe(ffplBook.title)
+			-- jestExpect(ffplFragmentResult.author.name).toBe(ffplBook.author.name)
+			-- jestExpect(ffplFragmentResult).toEqual(ffplBook)
+			-- local sicpReadResult = cache:readQuery({
+			-- 	query = query,
+			-- 	variables = { isbn = sicpBook.isbn },
+			-- })
+			-- if sicpReadResult == nil then
+			-- 	error(Error.new("null result"))
+			-- end
+			-- jestExpect(sicpReadResult.book.isbn).toBeUndefined()
+			-- jestExpect(sicpReadResult.book.title).toBe(sicpBook.title)
+			-- jestExpect(sicpReadResult.book.author.name).toBe(sicpBook.author.name)
+			-- jestExpect(sicpReadResult).toEqual({
+			-- 	book = {
+			-- 		__typename = "Book",
+			-- 		title = "Structure and Interpretation of Computer Programs",
+			-- 		author = { __typename = "Author", name = "Harold Abelson" },
+			-- 	},
+			-- })
 		end)
 	end)
 end
