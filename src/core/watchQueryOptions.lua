@@ -54,4 +54,7 @@ export type SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionD
 	watchQueryOptionsTypesModule.SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData>
 export type SubscriptionOptions<TVariables, TData> = watchQueryOptionsTypesModule.SubscriptionOptions<TVariables, TData>
 
+-- ROBLOX comment: moved to different file to solve circular dependency issue
+export type MutationOptions<TData, TVariables, TContext, TCache> =
+	watchQueryOptionsTypesModule.MutationOptions<TData, TVariables, TContext, TCache>
 return exports

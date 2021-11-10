@@ -9,9 +9,8 @@ local jestExpect = JestGlobals.expect
 
 local bootstrap = require(srcWorkspace.utilities.common.bootstrap)
 
--- ROBLOX TODO: We haven't converted link or memcache. Memcache will be converted in Milestone 4.
--- local ApolloLink = require(script.Parent.Parent.Parent.Parent.link.core).ApolloLink
--- local InMemoryCache = require(script.Parent.Parent.Parent.Parent.cache).InMemoryCache
+local ApolloLink = require(script.Parent.Parent.Parent.Parent.link.core).ApolloLink
+local InMemoryCache = require(script.Parent.Parent.Parent.Parent.cache).InMemoryCache
 
 -- ROBLOX deviation:
 -- local InvariantError = require(Packages.ts - invariant).InvariantError
@@ -40,7 +39,7 @@ return function()
 		end)
 
 		it("should return a client instance from the context if available", function()
-			local client = ApolloClient.new({ cache = nil })
+			local client = ApolloClient.new({ cache = InMemoryCache.new(), link = ApolloLink.empty() })
 			local App = function()
 				jestExpect(useApolloClient()).toEqual(client)
 				return nil

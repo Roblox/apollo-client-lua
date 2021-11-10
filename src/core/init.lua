@@ -9,11 +9,9 @@ local Object = LuauPolyfill.Object
 
 -- local DEV = require(srcWorkspace.utilities).DEV
 
---[[ export {
-  ApolloClientOptions,
-} from './ApolloClient'; ]]
 local ApolloClientModule = require(script.ApolloClient)
 export type ApolloClient<TCacheShape> = ApolloClientModule.ApolloClient<TCacheShape>
+export type ApolloClientOptions<TCacheShape> = ApolloClientModule.ApolloClientOptions<TCacheShape>
 exports.ApolloClient = ApolloClientModule.ApolloClient
 export type DefaultOptions = ApolloClientModule.DefaultOptions
 exports.mergeOptions = ApolloClientModule.mergeOptions

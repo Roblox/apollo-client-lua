@@ -61,7 +61,10 @@ export type ObservableQuery<TData, TVariables> = Observable<ApolloQueryResult<TD
 	queryName: string?,
 	variables: TVariables | nil,
 	result: Promise<ApolloQueryResult<TData>>,
-	getCurrentResult: (self: ObservableQuery<TData, TVariables>, saveAsLastResult: boolean) -> ApolloQueryResult<TData>,
+	getCurrentResult: (
+		self: ObservableQuery<TData, TVariables>,
+		saveAsLastResult: boolean?
+	) -> ApolloQueryResult<TData>,
 	isDifferentFromLastResult: (
 		self: ObservableQuery<TData, TVariables>,
 		newResult: ApolloQueryResult<TData>
