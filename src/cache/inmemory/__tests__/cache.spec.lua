@@ -1216,7 +1216,7 @@ return function()
 				local bInfo = watch(cache, bQuery)
 				local dirtied = Map.new(nil)
 				cache:batch({
-					update = function(cache)
+					update = function(_self, cache)
 						cache:writeQuery({ query = aQuery, data = { a = "ay" } })
 					end,
 					optimistic = true,
@@ -1239,7 +1239,7 @@ return function()
 				jestExpect(#bInfo.diffs).toBe(0)
 				dirtied:clear()
 				cache:batch({
-					update = function(cache)
+					update = function(_self, cache)
 						cache:writeQuery({ query = bQuery, data = { b = "bee" } })
 					end,
 					optimistic = true,
@@ -1273,7 +1273,7 @@ return function()
 				local bInfo = watch(cache, bQuery)
 				local dirtied = Map.new(nil)
 				cache:batch({
-					update = function(cache)
+					update = function(_self, cache)
 						cache:modify({
 							fields = {
 								a = function(value, ref)
@@ -1316,7 +1316,7 @@ return function()
 				jestExpect(bInfo.diffs).toEqual({})
 				local dirtied = Map.new(nil)
 				cache:batch({
-					update = function(cache)
+					update = function(_self, cache)
 						cache:modify({
 							fields = {
 								a = function(self, value)

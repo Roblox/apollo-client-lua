@@ -18,6 +18,8 @@ export type Promise<T> = {
 	onCancel: (Promise<T>, () -> ()?) -> boolean,
 
 	expect: (Promise<T>) -> T,
+
+	timeout: (Promise<T>, seconds: number, rejectionValue: any?) -> Promise<T>,
 }
 
 return {}

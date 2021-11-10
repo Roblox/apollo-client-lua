@@ -51,7 +51,7 @@ local linkCoreModule = require(script.Parent.Parent.link.core)
 type FetchResult<TData, C, E> = linkCoreModule.FetchResult<TData, C, E>
 
 local utilitiesModule = require(script.Parent.Parent.utilities)
-type ObservableSubscription<T> = utilitiesModule.ObservableSubscription<T>
+type ObservableSubscription = utilitiesModule.ObservableSubscription
 local isNonEmptyArray = utilitiesModule.isNonEmptyArray
 local graphQLResultHasError = utilitiesModule.graphQLResultHasError
 local canUseWeakMap = utilitiesModule.canUseWeakMap
@@ -134,7 +134,7 @@ export type QueryInfo = {
 	listeners: Set<QueryListener>,
 	document: DocumentNode | nil,
 	lastRequestId: number,
-	subscriptions: Set<ObservableSubscription<any>>,
+	subscriptions: Set<ObservableSubscription>,
 	variables: Record<string, any>?,
 	networkStatus: NetworkStatus?,
 	networkError: (Error | nil)?,
@@ -447,13 +447,16 @@ function QueryInfo:updateWatch(variables)
 		self:getDiffOptions(variables),
 		{
 			watcher = self,
-			callback = function(diff)
+			callback = function(_self, diff)
 				return self:setDiff(diff)
 			end,
 		}
 	)
 
-	if not Boolean.toJSBoolean(self.lastWatch) or not equal(watchOptions, self.lastWatch) then
+	-- ROBLOX deviation: we need to compare using `equal` without the `callback` function as it makes this comparison always fail
+	local watchOptions_ = Object.assign({}, watchOptions, { callback = Object.None })
+	local lastWatch_ = Object.assign({}, self.lastWatch, { callback = Object.None })
+	if not Boolean.toJSBoolean(self.lastWatch) or not equal(watchOptions_, lastWatch_) then
 		self:cancel()
 		self.lastWatch = watchOptions
 		self.cancel = self.cache:watch(self.lastWatch)
@@ -624,7 +627,7 @@ function QueryInfo:markError(error_)
 end
 exports.QueryInfo = QueryInfo
 
-function shouldWriteResult(result: FetchResult<any, any, any>, errorPolicy: ErrorPolicy): boolean
+function shouldWriteResult(result: FetchResult<any, any, any>, errorPolicy: ErrorPolicy?): boolean
 	if errorPolicy == nil then
 		errorPolicy = "none"
 	end

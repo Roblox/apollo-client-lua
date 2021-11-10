@@ -81,6 +81,7 @@ export type DefaultContext = Record<string, any>
 export type QueryListener = (QueryInfo) -> nil
 
 export type OnQueryUpdated<TResult> = (
+	self: any,
 	observableQuery: ObservableQuery<any, OperationVariables>, -- ROBLOX deviation: inline default type args
 	diff: Cache_DiffResult<any>,
 	lastDiff: Cache_DiffResult<any> | nil
@@ -233,6 +234,7 @@ export type MutationQueryReducersMap<T> = { [string]: MutationQueryReducer<T> }
 -- ROBLOX deviation: Luau doesn't have Omit type util so we need to be more verbose
 -- Omit<FetchResult<TData>, 'context'>
 export type MutationUpdaterFunction<TData, TVariables, TContext, TCache> = (
+	self: any,
 	TCache,
 	FetchResultWithoutContext<TData>,
 	{ context: TContext?, variables: TVariables? }

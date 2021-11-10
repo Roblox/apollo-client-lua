@@ -9,7 +9,7 @@ React = { git = "https://github.com/roblox/roact-alignment.git", package = "Reac
 Shared = { git = "https://github.com/roblox/roact-alignment.git", package = "Shared" }
 ReactRoblox = { git = "https://github.com/roblox/roact-alignment.git", package = "ReactRoblox" }
 GraphQL = { git = "https://github.com/Roblox/graphql-lua.git", rev = "c511c9a3" }
-LuauPolyfill = "github.com/roblox/luau-polyfill@0.2.5"
+LuauPolyfill = "github.com/roblox/luau-polyfill@0.2.6"
 ZenObservable = "github.com/roblox/zen-observable-lua@0.8.15"
 Promise = "github.com/evaera/roblox-lua-promise@3.1.0"
 LuauRegExp = "github.com/Roblox/luau-regexp@0.1.3"

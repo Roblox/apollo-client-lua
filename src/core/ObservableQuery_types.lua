@@ -17,6 +17,9 @@ type GraphQLError = GraphQL.GraphQLError
 local networkStatusModule = require(script.Parent.networkStatus)
 type NetworkStatus = networkStatusModule.NetworkStatus
 
+local utilitiesModule = require(script.Parent.Parent.utilities)
+type Observable<T> = utilitiesModule.Observable<T>
+
 local errorsModule = require(script.Parent.Parent.errors)
 type ApolloError = errorsModule.ApolloError
 
@@ -52,7 +55,7 @@ export type FetchMoreOptions<TData, TVariables> = {
 	) -> TData)?,
 }
 
-export type ObservableQuery<TData, TVariables> = {
+export type ObservableQuery<TData, TVariables> = Observable<ApolloQueryResult<TData>> & {
 	options: WatchQueryOptions<TVariables, TData>,
 	queryId: string,
 	queryName: string?,

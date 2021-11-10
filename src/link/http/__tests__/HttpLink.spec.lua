@@ -685,7 +685,7 @@ mutation SampleMutation {
 							jestExpect(e).toBeUndefined()
 						end)
 						return result
-					end)
+					end) :: any
 				end)
 				local link = middleware:concat(createHttpLink({ uri = "data" }))
 

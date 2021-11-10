@@ -259,7 +259,7 @@ function ApolloClient.new(options: ApolloClientOptions<TCacheShape_>): ApolloCli
 	--[[
   this.watchQuery = this.watchQuery.bind(this);
   this.query = this.query.bind(this);
-  
+
   this.mutate = this.mutate.bind(this);
   this.resetStore = this.resetStore.bind(this);
   this.reFetchObservableQueries = this.reFetchObservableQueries.bind(this);
@@ -444,7 +444,7 @@ end
     This resolves a single mutation according to the options specified and returns a
     {@link Promise} which is either resolved with the resulting data or rejected with an
     error.
-  
+
     It takes options as an object with the following keys and values:
    ]]
 function ApolloClient:mutate(options: MutationOptions<any, any, any, any>): Promise<FetchResult<any, any, any>>

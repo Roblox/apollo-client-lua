@@ -19,8 +19,16 @@ local Observable = zenObservableModule.Observable
 -- -- end
 
 exports.Observable = Observable
-export type Observable<T> = zenObservableModule.Observable<T>
+export type Observable<T> = zenObservableModule.Observable<T> & {
+	-- ROBLOX deviation: fix function signature type until fixed in zen-observable
+	subscribe: (
+		self: Observable<T>,
+		observer: Observer<T> | (T) -> (),
+		onError: ((any) -> ())?,
+		onComplete: (() -> ())?
+	) -> ObservableSubscription,
+}
 export type Observer<T> = zenObservableModule.Observer<T>
-export type ObservableSubscription<T> = zenObservableModule.Subscription<T>
+export type ObservableSubscription = zenObservableModule.Subscription<any>
 export type Subscriber<T> = zenObservableModule.Subscriber<T>
 return exports

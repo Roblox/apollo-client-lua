@@ -94,7 +94,7 @@ local ObservableModule = require(script.observables.Observable)
 exports.Observable = ObservableModule.Observable
 export type Observable<T> = ObservableModule.Observable<T>
 export type Observer<T> = ObservableModule.Observer<T>
-export type ObservableSubscription<T> = ObservableModule.ObservableSubscription<T>
+export type ObservableSubscription = ObservableModule.ObservableSubscription
 
 Object.assign(exports, require(script.common.mergeDeep))
 Object.assign(exports, require(script.common.cloneDeep))

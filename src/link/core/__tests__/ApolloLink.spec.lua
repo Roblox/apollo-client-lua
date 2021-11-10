@@ -731,7 +731,7 @@ return function()
 								count = data.data.count :: number + 1,
 							},
 						}
-					end)
+					end) :: any
 				end):concat(function(_self)
 					return Observable.of({ data = { count = 1 } })
 				end)

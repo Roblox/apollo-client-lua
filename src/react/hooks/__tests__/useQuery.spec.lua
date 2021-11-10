@@ -2601,7 +2601,7 @@ return function()
 					do
 						local ref = useMutation(mutation, {
 							optimisticResponse = { addCar = carData },
-							update = function(cache, ref)
+							update = function(_self, cache, ref)
 								local data = ref.data
 								cache:modify({
 									fields = {

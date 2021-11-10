@@ -33,7 +33,7 @@ local ObservableModule = require(script.Parent.Observable)
 local Observable = ObservableModule.Observable
 type Observable<T> = ObservableModule.Observable<T>
 type Observer<T> = ObservableModule.Observer<T>
-type ObservableSubscription<T> = ObservableModule.ObservableSubscription<T>
+type ObservableSubscription = ObservableModule.ObservableSubscription
 type Subscriber<T> = ObservableModule.Subscriber<T>
 
 local iterateObserversSafely = require(script.Parent.iteration).iterateObserversSafely
@@ -85,7 +85,7 @@ export type ConcastSourcesIterable<T> = Iterable<Source<T>>
 
 type ConcastPrivate<T> = Concast<T> & {
 	observers: Set<Observer<T>>,
-	sub: ObservableSubscription<any>?,
+	sub: ObservableSubscription?,
 	sources: Array<Source<T>>,
 	addCount: number,
 	-- ROBLOX deviation: latest is a tuple. the first element is of type string, the second of type any
@@ -107,7 +107,7 @@ export type Concast<T> = Observable<T> & {
 	addObserver: (self: Concast<T>, observer: Observer<T>) -> (),
 	removeObserver: (self: Concast<T>, observer: Observer<T>, quietly: boolean?) -> (),
 	promise: Promise<T>,
-	cleanup: (self: Concast<T>, callback: () -> any) -> (),
+	cleanup: (self: Concast<T>, callback: () -> ...any) -> (),
 	cancel: (self: Concast<T>, reason: any) -> (),
 }
 
@@ -138,7 +138,7 @@ function Concast.new(sources: MaybeAsync<ConcastSourcesIterable<T_>> | Subscribe
 	-- subscription has not yet begun, then points to each source
 	-- subscription in turn, and finally becomes null after the sources have
 	-- been exhausted. After that, it stays null.
-	self.sub = (undefined :: any) :: ObservableSubscription<any>?
+	self.sub = (undefined :: any) :: ObservableSubscription?
 
 	-- A consumable array of source observables, incrementally consumed
 	-- each time this.handlers.complete is called.
@@ -310,7 +310,7 @@ function Concast:removeObserver(observer: Observer<T_>, quietly: boolean?)
 	end
 end
 
-function Concast:cleanup(callback: () -> any)
+function Concast:cleanup(callback: () -> ...any)
 	local called = false
 	local observer
 	local function once()

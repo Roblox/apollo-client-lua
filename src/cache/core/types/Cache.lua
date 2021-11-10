@@ -88,7 +88,7 @@ export type Cache_ModifyOptions = {
 export type Cache_BatchOptions<C> = {
 	-- Same as the first parameter of performTransaction, except the cache
 	-- argument will have the subclass type rather than ApolloCache.
-	update: (cache: C) -> (),
+	update: (_self: any, cache: C) -> (),
 
 	-- Passing a string for this option creates a new optimistic layer, with the
 	-- given string as its layer.id, just like passing a string for the

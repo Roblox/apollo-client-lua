@@ -320,7 +320,7 @@ function LocalState:addExportedVariables(
 			end)
 	end
 
-	return Object.assign({}, variables)
+	return Promise.resolve(Object.assign({}, variables))
 end
 
 function LocalState:shouldForceResolvers(document: ASTNode): boolean

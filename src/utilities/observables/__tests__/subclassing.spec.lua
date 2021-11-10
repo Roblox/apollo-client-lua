@@ -47,7 +47,7 @@ return function()
 
 			local mapped = concast:map(function(n)
 				return n * 2
-			end)
+			end) :: any
 			jestExpect(mapped).toBeInstanceOf(Observable)
 			jestExpect(mapped).never.toBeInstanceOf(Concast)
 

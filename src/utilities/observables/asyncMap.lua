@@ -65,6 +65,12 @@ local function asyncMap(
 						return (examiner :: Function)(arg)
 					end
 					promiseQueue = promiseQueue
+						:andThen(
+							-- ROBLOX deviation: delaying promise resolution to mimic JS behavior
+							function()
+								return Promise.delay(0)
+							end
+						)
 						:andThen(both, both)
 						:andThen(function(result)
 							activeCallbackCount -= 1

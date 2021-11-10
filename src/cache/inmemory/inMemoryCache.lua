@@ -554,11 +554,8 @@ end
 
 function InMemoryCache:batch(options: Cache_BatchOptions<InMemoryCache>)
 	self = self :: InMemoryCachePrivate
-	local update, optimistic, removeOptimistic, onWatchUpdated =
-		options.update,
-		options.optimistic == nil and true or options.optimistic,
-		options.removeOptimistic,
-		options.onWatchUpdated
+	local optimistic, removeOptimistic, onWatchUpdated =
+		options.optimistic == nil and true or options.optimistic, options.removeOptimistic, options.onWatchUpdated
 
 	local function perform(layer: EntityStore?)
 		local data, optimisticData = self.data, self.optimisticData
@@ -569,7 +566,7 @@ function InMemoryCache:batch(options: Cache_BatchOptions<InMemoryCache>)
 		end
 
 		local ok, result = pcall(function()
-			update(self)
+			options:update(self)
 		end)
 		do
 			self.txCount -= 1
@@ -579,11 +576,6 @@ function InMemoryCache:batch(options: Cache_BatchOptions<InMemoryCache>)
 		if not ok then
 			error(result)
 		end
-	end
-
-	-- ROBLOX deviation: perform passed to addLayer as a callback need a self param
-	local function perform_(_self, ...)
-		return perform(...)
 	end
 
 	local alreadyDirty = Set.new()
@@ -610,7 +602,7 @@ function InMemoryCache:batch(options: Cache_BatchOptions<InMemoryCache>)
 		-- Note that there can be multiple layers with the same optimistic ID.
 		-- When removeOptimistic(id) is called for that id, all matching layers
 		-- will be removed, and the remaining layers will be reapplied.
-		self.optimisticData = self.optimisticData:addLayer(optimistic, perform_)
+		self.optimisticData = self.optimisticData:addLayer(optimistic, perform)
 	elseif optimistic == false then
 		-- Ensure both this.data and this.optimisticData refer to the root
 		-- (non-optimistic) layer of the cache during the update. Note that
@@ -661,7 +653,9 @@ end
 
 function InMemoryCache:performTransaction(update: (cache: InMemoryCache) -> any, optimisticId: (string | nil)?): ()
 	return self:batch({
-		update = update,
+		update = function(_self, ...)
+			return update(...)
+		end,
 		optimistic = Boolean.toJSBoolean(optimisticId) and optimisticId or optimisticId ~= nil,
 	})
 end

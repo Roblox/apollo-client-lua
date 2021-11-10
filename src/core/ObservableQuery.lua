@@ -42,7 +42,7 @@ local cloneDeep = utilitiesModule.cloneDeep
 local getOperationDefinition = utilitiesModule.getOperationDefinition
 local Observable = utilitiesModule.Observable
 type Observer<T> = utilitiesModule.Observer<T>
-type ObservableSubscription<T> = utilitiesModule.ObservableSubscription<T>
+type ObservableSubscription = utilitiesModule.ObservableSubscription
 
 local iterateObserversSafely = utilitiesModule.iterateObserversSafely
 local isNonEmptyArray = utilitiesModule.isNonEmptyArray
@@ -88,7 +88,7 @@ ObservableQuery.__index = function(t, k)
 	if rawget(ObservableQuery :: any, k) then
 		return rawget(ObservableQuery :: any, k)
 	end
-	return nil
+	return getmetatable(ObservableQuery).__index[k]
 end
 ObservableQuery.__newindex = function(t, k, v)
 	if k == "variables" then
@@ -127,7 +127,7 @@ function ObservableQuery.new(
 				end
 			elseif Boolean.toJSBoolean(self.lastResult) then
 				if Boolean.toJSBoolean(observer.next) then
-					return (observer :: any):next(self.lastResult)
+					(observer :: any):next(self.lastResult)
 				end
 			end
 
