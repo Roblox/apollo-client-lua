@@ -55,6 +55,9 @@ export type FetchMoreOptions<TData, TVariables> = {
 	) -> TData)?,
 }
 
+export type ObservableQuery_<TData> = ObservableQuery<TData, OperationVariables>
+export type ObservableQuery__ = ObservableQuery<any, OperationVariables>
+
 export type ObservableQuery<TData, TVariables> = Observable<ApolloQueryResult<TData>> & {
 	options: WatchQueryOptions<TVariables, TData>,
 	queryId: string,
