@@ -1,5 +1,4 @@
 -- ROBLOX upstream: https://github.com/benjamn/optimism/blob/v0.16.1/src/tests/deps.ts
---!nocheck
 
 return function()
 	local rootWorkspace = script.Parent.Parent.Parent.Parent

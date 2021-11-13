@@ -1,5 +1,4 @@
 -- ROBLOX upstream: https://github.com/benjamn/optimism/blob/v0.16.1/src/tests/performance.ts
---!nocheck
 return function()
 	local rootWorkspace = script.Parent.Parent.Parent.Parent
 
@@ -54,7 +53,7 @@ return function()
 			end
 		end)
 
-		local keys: Array<Object> = {}
+		local keys = {}
 		for i = 1, 100000 do
 			table.insert(keys, i)
 		end

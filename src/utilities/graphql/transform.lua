@@ -12,8 +12,7 @@ type Array<T> = LuauPolyfill.Array<T>
 type Object = LuauPolyfill.Object
 type Record<T, U> = { [T]: U }
 type Function = (...any) -> any
-
-type TooComplex = any
+type Map<K, V> = { [K]: V }
 
 local exports = {}
 
@@ -47,15 +46,17 @@ local isField = storeUtilsModule.isField
 local isInlineFragment = storeUtilsModule.isInlineFragment
 -- local fragmentsModule = require(script.Parent.fragments)
 -- local createFragmentMap = fragmentsModule.createFragmentMap
-local function createFragmentMap(fragments: Array<any>)
-	local symTable = {}
+-- type FragmentMap = fragmentsModule.FragmentMap
+type FragmentMap = {
+	[string]: FragmentDefinitionNode,
+}
+local function createFragmentMap(fragments: Array<FragmentDefinitionNode>): FragmentMap
+	local symTable: FragmentMap = {}
 	Array.forEach(fragments, function(fragment)
 		symTable[fragment.name.value] = fragment
 	end)
 	return symTable
 end
--- type FragmentMap = fragmentsModule.FragmentMap
-type FragmentMap = Object
 
 -- ROBLOX deviation: predefine functions
 local hasDirectivesInSelection
@@ -91,11 +92,8 @@ end
 local function nullIfDocIsEmpty(doc: DocumentNode): DocumentNode | nil
 	if
 		isEmpty(
-			(
-					Boolean.toJSBoolean(getOperationDefinition(doc :: TooComplex))
-					and getOperationDefinition(doc :: TooComplex) :: TooComplex
-				) or getFragmentDefinition(doc :: TooComplex),
-			createFragmentMap(getFragmentDefinitions(doc :: TooComplex)) :: TooComplex
+			getOperationDefinition(doc) or getFragmentDefinition(doc),
+			createFragmentMap(getFragmentDefinitions(doc))
 		)
 	then
 		return nil
@@ -125,7 +123,7 @@ local function removeDirectivesFromDocument(
 
 	local modifiedDoc = nullIfDocIsEmpty(visit(doc, {
 		Variable = {
-			enter = function(_self: any, node: VariableNode, _key: any, parent: any)
+			enter = function(_self: Object, node: VariableNode, _key, parent)
 				-- Store each variable that's referenced as part of an argument
 				-- (excluding operation definition variables), so we know which
 				-- variables are being used. If we later want to remove a variable
@@ -138,7 +136,7 @@ local function removeDirectivesFromDocument(
 			end,
 		},
 		Field = {
-			enter = function(_self: any, node: FieldNode)
+			enter = function(_self: Object, node: FieldNode)
 				if Boolean.toJSBoolean(directives) and Boolean.toJSBoolean(node.directives) then
 					-- If `remove` is set to true for a directive, and a directive match
 					-- is found for a field, remove the field as well.
@@ -183,14 +181,14 @@ local function removeDirectivesFromDocument(
 			end,
 		},
 		FragmentSpread = {
-			enter = function(_self: any, node: FragmentSpreadNode)
+			enter = function(_self: Object, node: FragmentSpreadNode)
 				-- Keep track of referenced fragment spreads. This is used to
 				-- determine if top level fragment definitions should be removed.
 				fragmentSpreadsInUse[node.name.value] = true
 			end,
 		},
 		Directive = {
-			enter = function(_self: any, node: DirectiveNode)
+			enter = function(_self: Object, node: DirectiveNode)
 				-- If a matching directive is found, remove it.
 				if Boolean.toJSBoolean(getDirectiveMatcher(directives)(node)) then
 					-- ROBLOX deviation: return REMOVE token cause there is no way to express `null` in Lua
@@ -232,7 +230,7 @@ exports.removeDirectivesFromDocument = removeDirectivesFromDocument
 local addTypenameToDocument = Object.assign(
 	setmetatable({}, {
 		__call = function(_self, doc: DocumentNode): DocumentNode
-			return visit(checkDocument(doc :: TooComplex), {
+			return visit(checkDocument(doc), {
 				SelectionSet = {
 					enter = function(_self, node, _key, parent)
 						-- Don't add __typename to OperationDefinitions.
@@ -254,13 +252,8 @@ local addTypenameToDocument = Object.assign(
 						local skip = Array.some(selections, function(selection)
 							return isField(selection)
 								and (
-									((selection :: TooComplex) :: FieldNode).name.value == "__typename"
-									or String.lastIndexOf(
-											((selection :: TooComplex) :: FieldNode).name.value,
-											"__",
-											1
-										)
-										== 1
+									(selection :: FieldNode).name.value == "__typename"
+									or String.lastIndexOf((selection :: FieldNode).name.value, "__", 1) == 1
 								)
 						end)
 						if skip then
@@ -271,7 +264,7 @@ local addTypenameToDocument = Object.assign(
 						-- not have a __typename field (see issue #4691).
 						local field = parent :: FieldNode
 						if
-							isField(field :: TooComplex)
+							isField(field)
 							and Boolean.toJSBoolean(field.directives)
 							and Boolean.toJSBoolean(Array.some((field.directives :: Array<DirectiveNode>), function(d)
 								return d.name.value == "export"
@@ -321,7 +314,7 @@ local connectionRemoveConfig: RemoveDirectiveConfig = {
 }
 
 local function removeConnectionDirectiveFromDocument(doc: DocumentNode)
-	return removeDirectivesFromDocument({ connectionRemoveConfig }, checkDocument(doc :: TooComplex) :: TooComplex)
+	return removeDirectivesFromDocument({ connectionRemoveConfig }, checkDocument(doc))
 end
 exports.removeConnectionDirectiveFromDocument = removeConnectionDirectiveFromDocument
 
@@ -334,9 +327,9 @@ local function hasDirectivesInSelectionSet(
 		nestedCheck = true
 	end
 
-	return not not Boolean.toJSBoolean(selectionSet)
-		and Boolean.toJSBoolean((selectionSet :: SelectionSetNode).selections)
-		and Array.some((selectionSet :: SelectionSetNode).selections, function(selection)
+	return selectionSet
+		and selectionSet.selections
+		and Array.some((selectionSet).selections, function(selection)
 			return hasDirectivesInSelection(directives, selection, nestedCheck)
 		end)
 end
@@ -350,27 +343,35 @@ function hasDirectivesInSelection(
 		nestedCheck = true
 	end
 
-	if not isField(selection :: TooComplex) then
+	-- ROBLOX TODO: If Luau supported type literals, it would know this function narrows selection down to FieldNode
+	if not isField(selection) then
 		return true
 	end
 
-	if not Boolean.toJSBoolean(selection.directives) then
+	if not selection.directives then
 		return false
 	end
 
-	return Array.some(selection.directives :: Array<any>, getDirectiveMatcher(directives))
-		or (nestedCheck and hasDirectivesInSelectionSet(directives, (selection :: any).selectionSet, nestedCheck))
+	-- ROBLOX TODO: Luau type narrowing workaround
+	return Array.some(selection.directives :: Array<DirectiveNode>, getDirectiveMatcher(directives))
+		or (nestedCheck and hasDirectivesInSelectionSet(directives, (selection :: FieldNode).selectionSet, nestedCheck))
 end
 
 local function getArgumentMatcher(config: Array<RemoveArgumentsConfig>)
 	return function(argument: ArgumentNode)
 		return Array.some(config, function(aConfig: RemoveArgumentsConfig)
-			return Boolean.toJSBoolean(argument.value)
+			return argument.value
+				-- ROBLOX TODO: If Luau supported type literals, it would know the next line narrows argument.value to VariableNode
 				and argument.value.kind == "Variable"
-				and Boolean.toJSBoolean((argument.value :: VariableNode).name)
+				and (argument.value :: VariableNode).name
 				and (
 					aConfig.name == (argument.value :: VariableNode).name.value
-					or (Boolean.toJSBoolean(aConfig.test) and (aConfig :: any):test(argument))
+					-- ROBLOX FIXME: Luau narrowing workaround
+					or aConfig.test
+						and (aConfig.test :: (RemoveNodeConfig<ArgumentNode>, ArgumentNode) -> boolean)(
+							aConfig,
+							argument
+						)
 				)
 		end)
 	end
@@ -456,12 +457,20 @@ function getAllFragmentSpreadsFromSelectionSet(selectionSet: SelectionSetNode): 
 	local allFragments: Array<FragmentSpreadNode> = {}
 	Array.forEach(selectionSet.selections, function(selection)
 		if
+			-- ROBLOX TODO: If Luau supported type literals, it would know these functions narrow selection to FieldNode | InlineFragmentNode
 			(isField(selection) or isInlineFragment(selection))
-			and Boolean.toJSBoolean(((selection :: TooComplex) :: FieldNode | InlineFragmentNode).selectionSet)
+			and (selection :: FieldNode | InlineFragmentNode).selectionSet
 		then
-			Array.forEach(getAllFragmentSpreadsFromSelectionSet((selection :: any).selectionSet), function(frag)
-				table.insert(allFragments, frag)
-			end)
+			-- ROBLOX FIXME: Luau type narrowing workaround
+			Array.forEach(
+				getAllFragmentSpreadsFromSelectionSet(
+					(selection :: FieldNode | InlineFragmentNode).selectionSet :: SelectionSetNode
+				),
+				function(frag)
+					table.insert(allFragments, frag)
+				end
+			)
+			-- ROBLOX TODO: If Luau supported type literals, it would know these functions narrow selection to FragmentSpreadNode
 		elseif selection.kind == "FragmentSpread" then
 			table.insert(allFragments, selection :: FragmentSpreadNode)
 		end
@@ -473,8 +482,8 @@ end
 -- new document containing a query operation based on the selection set
 -- of the previous main operation.
 local function buildQueryFromSelectionSet(document: DocumentNode): DocumentNode
-	local definition = getMainDefinition(document :: TooComplex)
-	local definitionOperation = ((definition :: TooComplex) :: OperationDefinitionNode).operation
+	local definition = getMainDefinition(document)
+	local definitionOperation = (definition :: OperationDefinitionNode).operation
 
 	if definitionOperation == "query" then
 		-- Already a query, so return the existing document.
@@ -495,7 +504,7 @@ exports.buildQueryFromSelectionSet = buildQueryFromSelectionSet
 
 -- Remove fields / selection sets that include an @client directive.
 local function removeClientSetsFromDocument(document: DocumentNode): DocumentNode | typeof(REMOVE)
-	checkDocument(document :: TooComplex)
+	checkDocument(document)
 
 	local modifiedDoc = removeDirectivesFromDocument({
 		{
@@ -513,11 +522,10 @@ local function removeClientSetsFromDocument(document: DocumentNode): DocumentNod
 	if Boolean.toJSBoolean(modifiedDoc) then
 		modifiedDoc = visit(modifiedDoc, {
 			FragmentDefinition = {
-				enter = function(_self: any, node: FragmentDefinitionNode)
+				enter = function(_self: Object, node: FragmentDefinitionNode)
 					if Boolean.toJSBoolean(node.selectionSet) then
 						local isTypenameOnly = Array.every(node.selectionSet.selections, function(selection)
-							return isField(selection)
-								and ((selection :: TooComplex) :: FieldNode).name.value == "__typename"
+							return isField(selection) and (selection :: FieldNode).name.value == "__typename"
 						end, nil)
 						if Boolean.toJSBoolean(isTypenameOnly) then
 							return REMOVE
