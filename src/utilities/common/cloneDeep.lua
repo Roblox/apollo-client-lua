@@ -8,7 +8,8 @@ local rootWorkspace = srcWorkspace.Parent
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Array = LuauPolyfill.Array
 local Map = LuauPolyfill.Map
-local Object = LuauPolyfill.Object
+local Object = require(srcWorkspace.luaUtils.Object)
+local instanceof = LuauPolyfill.instanceof
 type Array<T> = LuauPolyfill.Array<T>
 type Map<T, V> = LuauPolyfill.Map<T, V>
 
@@ -31,6 +32,13 @@ local function cloneDeep(value: T_): T_
 end
 exports.cloneDeep = cloneDeep
 
+local basicTypes = {
+	LuauPolyfill.Error :: any,
+	LuauPolyfill.Map,
+	LuauPolyfill.WeakMap,
+	LuauPolyfill.Set,
+}
+
 function cloneDeepHelper(val: T_, seen: Map<any, any>?): T_
 	if Array.isArray(val) then
 		seen = seen or Map.new(nil)
@@ -43,14 +51,21 @@ function cloneDeepHelper(val: T_, seen: Map<any, any>?): T_
 			copy[i] = cloneDeepHelper(child, seen)
 		end)
 		return copy
-	elseif typeof(val) == "table" and val ~= NULL then
+	elseif
+		typeof(val) == "table"
+		and val ~= NULL
+		and Array.every(basicTypes, function(class)
+			return not instanceof(val, class)
+		end)
+	then
 		seen = seen or Map.new(nil)
 		if (seen :: Map<any, any>):has(val) then
 			return (seen :: Map<any, any>):get(val)
 		end
 		-- High fidelity polyfills of Object.create and Object.getPrototypeOf are
 		-- possible in all JS environments, so we will assume they exist/work.
-		local copy = Object.assign({}, val);
+		-- ROBLOX FIXME: add Object.create and Object.getPrototypeOf to LuauPolyfill
+		local copy = Object.create(Object.getPrototypeOf(val));
 		(seen :: Map<any, any>):set(val, copy)
 		Array.forEach(Object.keys(val), function(key)
 			copy[key] = cloneDeepHelper(val[key], seen)

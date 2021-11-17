@@ -41,6 +41,7 @@ local function invariant(condition: any, message: string?)
 end
 
 local verbosityLevels = { "debug", "log", "warn", "error", "silent" }
+export type VerbosityLevel = string
 local verbosityLevel = Array.indexOf(verbosityLevels, "log")
 
 local function wrapConsoleMethod(name: string)
@@ -67,4 +68,9 @@ return {
 		end,
 	}),
 	InvariantError = InvariantError,
+	setVerbosity = function(level: VerbosityLevel): VerbosityLevel
+		local old = verbosityLevels[verbosityLevel]
+		verbosityLevel = math.max(1, Array.indexOf(verbosityLevels, level))
+		return old
+	end,
 }

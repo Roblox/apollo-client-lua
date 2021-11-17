@@ -98,9 +98,7 @@ function MockSubscriptionLink:simulateResult(result: MockedSubscriptionResult, c
 				observer:complete()
 			end
 		end)
-	end, Boolean.toJSBoolean(
-		result.delay
-	) and result.delay or 0)
+	end, Boolean.toJSBoolean(result.delay) and result.delay or 0)
 end
 
 function MockSubscriptionLink:simulateComplete(): ()

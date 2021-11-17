@@ -389,7 +389,7 @@ function QueryInfo:notify()
 end
 
 function QueryInfo:shouldNotify()
-	if not self.dirty and not Boolean.toJSBoolean(self.listeners.size) then
+	if not self.dirty or not Boolean.toJSBoolean(self.listeners.size) then
 		return false
 	end
 

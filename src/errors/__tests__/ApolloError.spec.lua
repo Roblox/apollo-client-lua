@@ -49,8 +49,12 @@ return function()
 			local apolloError = ApolloError.new({ graphQLErrors = graphQLErrors })
 			local messages = String.split(apolloError.message, "\n")
 			jestExpect(#messages).toBe(2)
-			jestExpect(messages[1 --[[ ROBLOX adaptation: added 1 to array index ]]]).toMatch("this is new")
-			jestExpect(messages[2 --[[ ROBLOX adaptation: added 1 to array index ]]]).toMatch("this is old")
+			jestExpect(messages[
+				1 --[[ ROBLOX adaptation: added 1 to array index ]]
+			]).toMatch("this is new")
+			jestExpect(messages[
+				2 --[[ ROBLOX adaptation: added 1 to array index ]]
+			]).toMatch("this is old")
 		end)
 		it("should add both network and graphql errors to the message", function()
 			local graphQLErrors = { GraphQLError.new("graphql error message") }
@@ -61,8 +65,12 @@ return function()
 			})
 			local messages = String.split(apolloError.message, "\n")
 			jestExpect(#messages).toBe(2)
-			jestExpect(messages[1 --[[ ROBLOX adaptation: added 1 to array index ]]]).toMatch("graphql error message")
-			jestExpect(messages[2 --[[ ROBLOX adaptation: added 1 to array index ]]]).toMatch("network error message")
+			jestExpect(messages[
+				1 --[[ ROBLOX adaptation: added 1 to array index ]]
+			]).toMatch("graphql error message")
+			jestExpect(messages[
+				2 --[[ ROBLOX adaptation: added 1 to array index ]]
+			]).toMatch("network error message")
 		end)
 		it("should contain a stack trace", function()
 			local graphQLErrors = { GraphQLError.new("graphql error message") }

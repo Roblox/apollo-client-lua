@@ -24,6 +24,9 @@ Object.assign(exports, typesModule)
 export type DocumentNode = typesModule.DocumentNode
 export type GraphQLRequest = typesModule.GraphQLRequest
 export type Operation = typesModule.Operation
+export type FetchResult_<TData, C> = typesModule.FetchResult_<TData, C>
+export type FetchResult__<TData> = typesModule.FetchResult__<TData>
+export type FetchResult___ = typesModule.FetchResult___
 export type FetchResult<TData, C, E> = typesModule.FetchResult<TData, C, E>
 export type NextLink = typesModule.NextLink
 export type RequestHandler = typesModule.RequestHandler

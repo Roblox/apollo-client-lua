@@ -6,6 +6,8 @@ export type PromiseLike<T> = {
 	) -> PromiseLike<T>,
 }
 
+type Status = string
+
 export type Promise<T> = {
 	andThen: (
 		Promise<T>, -- self
@@ -18,8 +20,12 @@ export type Promise<T> = {
 	onCancel: (Promise<T>, () -> ()?) -> boolean,
 
 	expect: (Promise<T>) -> T,
+	await: (Promise<T>) -> (boolean, ...any),
+	awaitStatus: (Promise<T>) -> (Status, ...any),
 
 	timeout: (Promise<T>, seconds: number, rejectionValue: any?) -> Promise<T>,
+
+	finally: (Promise<T>, (Status) -> ...any) -> Promise<T>,
 }
 
 return {}

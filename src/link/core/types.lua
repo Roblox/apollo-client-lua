@@ -28,6 +28,10 @@ export type Operation = {
 	) -> Record<string, any>),
 	getContext: ((self: Operation) -> Record<string, any>),
 }
+-- ROBLOX TODO: a workaround to mimic the default generic type params. Remove when default generic types are supported
+export type FetchResult_<TData, C> = FetchResult<TData, C, Record<string, any>>
+export type FetchResult__<TData> = FetchResult<TData, Record<string, any>, Record<string, any>>
+export type FetchResult___ = FetchResult<{ [string]: any }, Record<string, any>, Record<string, any>>
 export type FetchResult<TData, C, E> = ExecutionResult & { data: (TData | nil)?, extensions: E?, context: C? }
 
 export type NextLink = ((

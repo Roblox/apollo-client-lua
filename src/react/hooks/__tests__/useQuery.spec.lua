@@ -128,10 +128,7 @@ return function()
 				end
 				render(React.createElement(MockedProvider, {
 					mocks = CAR_MOCKS,
-				}, React.createElement(
-					Component,
-					nil
-				)))
+				}, React.createElement(Component, nil)))
 				return wait():andThen(resolve, reject)
 			end)
 
@@ -221,10 +218,7 @@ return function()
 
 				render(React.createElement(MockedProvider, {
 					mocks = CAR_MOCKS,
-				}, React.createElement(
-					Component,
-					nil
-				)))
+				}, React.createElement(Component, nil)))
 				return wait():andThen(resolve, reject)
 			end)
 
@@ -554,10 +548,7 @@ return function()
 
 					render(React.createElement(MockedProvider, {
 						mocks = mocks,
-					}, React.createElement(
-						Component,
-						nil
-					)))
+					}, React.createElement(Component, nil)))
 
 					return wait(function()
 						jestExpect(renderCount).toBe(8)
@@ -597,10 +588,7 @@ return function()
 
 				render(React.createElement(MockedProvider, {
 					mocks = CAR_MOCKS,
-				}, React.createElement(
-					Component,
-					nil
-				)))
+				}, React.createElement(Component, nil)))
 
 				return wait(function()
 					jestExpect(renderCount).toBe(2)
@@ -643,10 +631,7 @@ return function()
 
 				render(React.createElement(MockedProvider, {
 					link = MockLink.new(CAR_MOCKS):setOnError(reject),
-				}, React.createElement(
-					Component,
-					nil
-				)))
+				}, React.createElement(Component, nil)))
 
 				return wait(function()
 					jestExpect(renderCount).toBe(3)
@@ -710,10 +695,7 @@ return function()
 
 				render(React.createElement(MockedProvider, {
 					link = MockLink.new(mocks):setOnError(reject),
-				}, React.createElement(
-					Component,
-					nil
-				)))
+				}, React.createElement(Component, nil)))
 
 				return wait(function()
 					jestExpect(renderCount).toBe(5)
@@ -799,10 +781,7 @@ return function()
 				render(React.createElement(MockedProvider, {
 					mocks = CAR_MOCKS,
 					link = mockLink,
-				}, React.createElement(
-					Component,
-					nil
-				)))
+				}, React.createElement(Component, nil)))
 
 				return wait(function()
 					jestExpect(linkRequestSpy).toHaveBeenCalledTimes(1)
@@ -892,10 +871,7 @@ return function()
 						React.createElement(MockedProvider, {
 							mocks = CAR_MOCKS,
 							link = mockLink,
-						}, React.createElement(
-							Component,
-							nil
-						))
+						}, React.createElement(Component, nil))
 					))
 
 					return wait(function()
@@ -939,10 +915,7 @@ return function()
 
 					unmount = render(React.createElement(MockedProvider, {
 						link = MockLink.new(mocks):setOnError(reject),
-					}, React.createElement(
-						Component,
-						nil
-					))).unmount
+					}, React.createElement(Component, nil))).unmount
 
 					return wait(function()
 						jestExpect(renderCount).toBe(2)
@@ -1014,10 +987,7 @@ return function()
 					nil,
 					React.createElement(MockedProvider, {
 						link = MockLink.new(mocks):setOnError(reject),
-					}, React.createElement(
-						Component,
-						nil
-					))
+					}, React.createElement(Component, nil))
 				))
 
 				return wait(function()
@@ -1040,10 +1010,7 @@ return function()
 
 				render(React.createElement(MockedProvider, {
 					mocks = CAR_MOCKS,
-				}, React.createElement(
-					Component,
-					nil
-				)))
+				}, React.createElement(Component, nil)))
 			end)
 		end)
 
@@ -1075,10 +1042,7 @@ return function()
 
 				render(React.createElement(MockedProvider, {
 					mocks = mocks,
-				}, React.createElement(
-					Component,
-					nil
-				)))
+				}, React.createElement(Component, nil)))
 				return wait():andThen(resolve, reject)
 			end)
 
@@ -1153,10 +1117,7 @@ return function()
 				end
 				render(React.createElement(ApolloProvider, {
 					client = client,
-				}, React.createElement(
-					Component,
-					nil
-				)))
+				}, React.createElement(Component, nil)))
 				return wait(function()
 					jestExpect(renderCount).toBe(4)
 				end):andThen(resolve, reject)
@@ -1298,10 +1259,7 @@ return function()
 
 					render(React.createElement(MockedProvider, {
 						link = link,
-					}, React.createElement(
-						App,
-						nil
-					)))
+					}, React.createElement(App, nil)))
 					return wait(function()
 						jestExpect(renderCount).toBe(3)
 					end):andThen(resolve, reject)
@@ -1374,10 +1332,7 @@ return function()
 
 					render(React.createElement(MockedProvider, {
 						mocks = mocks,
-					}, React.createElement(
-						App,
-						nil
-					)))
+					}, React.createElement(App, nil)))
 					return wait(function()
 						jestExpect(renderCount).toBe(4)
 					end):andThen(resolve, reject)
@@ -1525,10 +1480,7 @@ return function()
 					end
 					render(React.createElement(MockedProvider, {
 						mocks = mocks,
-					}, React.createElement(
-						App,
-						nil
-					)))
+					}, React.createElement(App, nil)))
 					return wait(function()
 						jestExpect(renderCount).toBe(6)
 					end):andThen(resolve, reject)
@@ -1652,8 +1604,12 @@ return function()
 								jestExpect(networkStatus).toBe(NetworkStatus.ready)
 								jestExpect(data).toEqual({
 									cars = {
-										carResults.cars[1 --[[ ROBLOX adaptation: added 1 to array index ]]],
-										moreCarResults.cars[1 --[[ ROBLOX adaptation: added 1 to array index ]]],
+										carResults.cars[
+											1 --[[ ROBLOX adaptation: added 1 to array index ]]
+										],
+										moreCarResults.cars[
+											1 --[[ ROBLOX adaptation: added 1 to array index ]]
+										],
 									},
 								})
 							else
@@ -1859,8 +1815,12 @@ return function()
 								jestExpect(loading).toBeFalsy()
 								jestExpect(data).toEqual({
 									cars = {
-										carResults.cars[1 --[[ ROBLOX adaptation: added 1 to array index ]]],
-										moreCarResults.cars[1 --[[ ROBLOX adaptation: added 1 to array index ]]],
+										carResults.cars[
+											1 --[[ ROBLOX adaptation: added 1 to array index ]]
+										],
+										moreCarResults.cars[
+											1 --[[ ROBLOX adaptation: added 1 to array index ]]
+										],
 									},
 								})
 							end
@@ -2587,7 +2547,9 @@ return function()
 				local carData = { id = 2, make = "Ford", model = "Pinto", __typename = "Car" }
 				local allCarsData = {
 					cars = {
-						carsData.cars[1 --[[ ROBLOX adaptation: added 1 to array index ]]],
+						carsData.cars[
+							1 --[[ ROBLOX adaptation: added 1 to array index ]]
+						],
 						carData,
 					},
 				}

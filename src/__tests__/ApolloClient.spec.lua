@@ -1207,8 +1207,14 @@ return function()
 										local readData = stripSymbols(client:readQuery({ query = query }))
 										jestExpect(stripSymbols(readData)).toEqual(data)
 										local friends = (readData :: any).people.friends
-										friends[1 --[[ ROBLOX adaptation: added 1 to array index ]]].type = "okayest"
-										friends[2 --[[ ROBLOX adaptation: added 1 to array index ]]].type = "okayest"
+										friends[
+											1 --[[ ROBLOX adaptation: added 1 to array index ]]
+										].type =
+											"okayest"
+										friends[
+											2 --[[ ROBLOX adaptation: added 1 to array index ]]
+										].type =
+											"okayest"
 										client:writeQuery({
 											query = query,
 											data = {

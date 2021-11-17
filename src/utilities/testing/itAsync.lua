@@ -16,9 +16,14 @@ return function(it: any)
 				fn = it
 			end
 			return fn(message, function()
-				return Promise.new(function(resolve, reject)
-					return callback(resolve, reject)
-				end):expect()
+				local promise = Promise.new(function(resolve, reject)
+					callback(resolve, reject)
+				end)
+				if timeout ~= nil then
+					return promise:timeout(timeout / 1000):expect()
+				else
+					return promise:timeout(3):expect()
+				end
 			end, timeout)
 		end
 	end

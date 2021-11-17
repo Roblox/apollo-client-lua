@@ -55,6 +55,7 @@ export type FetchMoreOptions<TData, TVariables> = {
 	) -> TData)?,
 }
 
+-- ROBLOX TODO: a workaround to mimic the default generic type params. Remove when default generic types are supported
 export type ObservableQuery_<TData> = ObservableQuery<TData, OperationVariables>
 export type ObservableQuery__ = ObservableQuery<any, OperationVariables>
 
@@ -63,7 +64,7 @@ export type ObservableQuery<TData, TVariables> = Observable<ApolloQueryResult<TD
 	queryId: string,
 	queryName: string?,
 	variables: TVariables | nil,
-	result: Promise<ApolloQueryResult<TData>>,
+	result: (self: ObservableQuery<TData, TVariables>) -> Promise<ApolloQueryResult<TData>>,
 	getCurrentResult: (
 		self: ObservableQuery<TData, TVariables>,
 		saveAsLastResult: boolean?

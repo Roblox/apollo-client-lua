@@ -20,7 +20,7 @@ return function()
 
 	type ReturnType<T> = any
 
-	--ROBLOX TODO: replace when fn generic types are avaliable
+	-- ROBLOX TODO: replace when fn generic types are avaliable
 	type TData_ = any
 	type TVars_ = any
 
@@ -1832,21 +1832,29 @@ return function()
 					},
 				})
 
-				jestExpect((secondResult :: any).agenda.tasks[1 --[[ ROBLOX adaptation: added 1 to array index ]]]).never.toBe(
-					(firstResult :: any).agenda.tasks[1 --[[ ROBLOX adaptation: added 1 to array index ]]]
-				)
+				jestExpect((secondResult :: any).agenda.tasks[
+					1 --[[ ROBLOX adaptation: added 1 to array index ]]
+				]).never.toBe((firstResult :: any).agenda.tasks[
+					1 --[[ ROBLOX adaptation: added 1 to array index ]]
+				])
 
-				jestExpect((secondResult :: any).agenda.tasks[2 --[[ ROBLOX adaptation: added 1 to array index ]]]).toBe(
-					(firstResult :: any).agenda.tasks[2 --[[ ROBLOX adaptation: added 1 to array index ]]]
-				)
+				jestExpect((secondResult :: any).agenda.tasks[
+					2 --[[ ROBLOX adaptation: added 1 to array index ]]
+				]).toBe((firstResult :: any).agenda.tasks[
+					2 --[[ ROBLOX adaptation: added 1 to array index ]]
+				])
 
-				jestExpect((secondResult :: any).agenda.tasks[3 --[[ ROBLOX adaptation: added 1 to array index ]]]).never.toBe(
-					(firstResult :: any).agenda.tasks[3 --[[ ROBLOX adaptation: added 1 to array index ]]]
-				)
+				jestExpect((secondResult :: any).agenda.tasks[
+					3 --[[ ROBLOX adaptation: added 1 to array index ]]
+				]).never.toBe((firstResult :: any).agenda.tasks[
+					3 --[[ ROBLOX adaptation: added 1 to array index ]]
+				])
 
-				jestExpect((secondResult :: any).agenda.tasks[4 --[[ ROBLOX adaptation: added 1 to array index ]]]).toBe(
-					(firstResult :: any).agenda.tasks[4 --[[ ROBLOX adaptation: added 1 to array index ]]]
-				);
+				jestExpect((secondResult :: any).agenda.tasks[
+					4 --[[ ROBLOX adaptation: added 1 to array index ]]
+				]).toBe((firstResult :: any).agenda.tasks[
+					4 --[[ ROBLOX adaptation: added 1 to array index ]]
+				]);
 
 				(ownTimes["grandchild task"] :: any)(ownTimes["grandchild task"], 7)
 
@@ -1975,10 +1983,18 @@ return function()
 						__typename = "Agenda",
 						taskCount = 5,
 						tasks = {
-							(fourthResult :: any).agenda.tasks[1 --[[ ROBLOX adaptation: added 1 to array index ]]],
-							(fourthResult :: any).agenda.tasks[2 --[[ ROBLOX adaptation: added 1 to array index ]]],
-							(fourthResult :: any).agenda.tasks[3 --[[ ROBLOX adaptation: added 1 to array index ]]],
-							(fourthResult :: any).agenda.tasks[4 --[[ ROBLOX adaptation: added 1 to array index ]]],
+							(fourthResult :: any).agenda.tasks[
+								1 --[[ ROBLOX adaptation: added 1 to array index ]]
+							],
+							(fourthResult :: any).agenda.tasks[
+								2 --[[ ROBLOX adaptation: added 1 to array index ]]
+							],
+							(fourthResult :: any).agenda.tasks[
+								3 --[[ ROBLOX adaptation: added 1 to array index ]]
+							],
+							(fourthResult :: any).agenda.tasks[
+								4 --[[ ROBLOX adaptation: added 1 to array index ]]
+							],
 							{ __typename = "Task", description = "independent task", ownTime = 12, totalTime = 12 },
 						},
 					},

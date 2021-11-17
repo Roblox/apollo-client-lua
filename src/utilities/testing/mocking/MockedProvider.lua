@@ -65,10 +65,7 @@ function MockedProvider:render()
 	if React.isValidElement(children) then
 		return React.createElement(ApolloProvider, {
 			client = self.state.client,
-		}, React.cloneElement(
-			React.Children.only(children),
-			Object.assign({}, childProps)
-		))
+		}, React.cloneElement(React.Children.only(children), Object.assign({}, childProps)))
 	else
 		return nil
 	end

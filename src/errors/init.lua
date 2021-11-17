@@ -12,6 +12,7 @@ type Error = LuauPolyfill.Error
 
 -- ROBLOX deviation: add polyfills for JS Primitives
 local Boolean, Array, Error = LuauPolyfill.Boolean, LuauPolyfill.Array, LuauPolyfill.Error
+local toJSBoolean = require(script.Parent.utilities.globals.null).toJSBoolean
 
 local invariant = require(srcWorkspace.jsutils.invariant).invariant
 local DEV = require(srcWorkspace.utilities).DEV
@@ -50,7 +51,7 @@ local function generateErrorMessage(err: ApolloError)
 		)
 		for _, error_ in pairs(errors) do
 			local errorMessage = (function()
-				if Boolean.toJSBoolean(error_) then
+				if toJSBoolean(error_) then
 					return error_.message
 				else
 					return "Error message not found."

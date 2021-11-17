@@ -23,7 +23,6 @@ type MutationUpdaterFunction<TData, TVariables, TContext, TCache> =
 	typesModule.MutationUpdaterFunction<TData, TVariables, TContext, TCache>
 type OnQueryUpdated<TResult> = typesModule.OnQueryUpdated<TResult>
 type InternalRefetchQueriesInclude = typesModule.InternalRefetchQueriesInclude
--- local ApolloCache = require(script.Parent.Parent.cache).ApolloCache
 -- ROBLOX comment: moved to different file to solve circular dependency issue
 export type FetchPolicy = watchQueryOptionsTypesModule.FetchPolicy
 -- ROBLOX comment: moved to different file to solve circular dependency issue

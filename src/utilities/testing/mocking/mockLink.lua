@@ -40,7 +40,7 @@ local cloneDeep = utilitiesModule.cloneDeep
 local makeUniqueId = utilitiesModule.makeUniqueId
 export type ResultFunction<T> = () -> T
 
--- ROBLOX deviation: HttpService.JSONEncode does not have a replacer function
+-- ROBLOX deviation: HttpService:JSONEncode does not have a replacer function
 function replaceUndefined(source, replacement)
 	if not Array.isArray(source) then
 		return source
@@ -64,6 +64,8 @@ local function stringifyForDisplay(value: any): string
 		"<undefined>"
 	)
 end
+
+export type MockedResponse_ = MockedResponse<Record<string, any>>
 
 export type MockedResponse<TData> = {
 	request: GraphQLRequest,
@@ -230,9 +232,7 @@ Failed to match %s mock%s for this query, which had the following variables:
 					observer:complete()
 				end
 			end
-		end, Boolean.toJSBoolean(
-			response
-		) and Boolean.toJSBoolean(response.delay) and response.delay or 0)
+		end, Boolean.toJSBoolean(response) and Boolean.toJSBoolean(response.delay) and response.delay or 0)
 		return function()
 			clearTimeout(timer)
 		end

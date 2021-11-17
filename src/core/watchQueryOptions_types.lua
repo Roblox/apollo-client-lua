@@ -8,6 +8,10 @@ type Record<T, U> = { [T]: U }
 
 local graphQLModule = require(rootWorkspace.GraphQL)
 type DocumentNode = graphQLModule.DocumentNode
+-- ROBLOX deviation: inline type to avoid circular dependency
+type OperationVariables = Record<string, any>
+local cacheModule = require(script.Parent.Parent.cache)
+type ApolloCache<TSerialized> = cacheModule.ApolloCache<TSerialized>
 local linkCoreModule = require(script.Parent.Parent.link.core)
 type FetchResult<TData, C, E> = linkCoreModule.FetchResult<TData, C, E>
 
@@ -112,6 +116,9 @@ export type QueryOptions_omit_fetchPolicy<TVariables, TData> = {
 	canonizeResults: typeof((({} :: any) :: QueryOptions<TVariables, TData>).canonizeResults),
 }
 
+-- ROBLOX TODO: a workaround to mimic the default generic type params. Remove when default generic types are supported
+export type WatchQueryOptions_<TVariables> = WatchQueryOptions<TVariables, any>
+export type WatchQueryOptions__ = WatchQueryOptions<OperationVariables, any>
 export type WatchQueryOptions<TVariables, TData> = QueryOptions_omit_fetchPolicy<TVariables, TData> & {
 	--[[*
    * Specifies the {@link FetchPolicy} to be used for this query.
@@ -185,7 +192,11 @@ export type SubscriptionOptions<TVariables, TData> = {
   ]]
 	context: DefaultContext?,
 }
-type MutationBaseOptions<TData, TVariables, TContext, TCache> = {
+
+-- ROBLOX TODO: a workaround to mimic the default generic type params. Remove when default generic types are supported
+export type MutationBaseOptions_<TData, TVariables, TContext> =
+	MutationBaseOptions<TData, TVariables, TContext, ApolloCache<any>>
+export type MutationBaseOptions<TData, TVariables, TContext, TCache> = {
 	--[[*
    * An object that represents the result of this mutation that will be
    * optimistically stored before the server has actually returned a result.
@@ -275,6 +286,8 @@ type MutationBaseOptions<TData, TVariables, TContext, TCache> = {
 	context: TContext?,
 }
 
+-- ROBLOX TODO: a workaround to mimic the default generic type params. Remove when default generic types are supported
+export type MutationOptions_<TData, TVariables, TContext> = MutationOptions<TData, TVariables, TContext, ApolloCache<any>>
 export type MutationOptions<TData, TVariables, TContext, TCache> = MutationBaseOptions<TData, TVariables, TContext, TCache> & {
 	--[[
     A GraphQL document, often created with `gql` from the `graphql-tag`

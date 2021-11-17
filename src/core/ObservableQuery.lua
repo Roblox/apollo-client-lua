@@ -672,7 +672,10 @@ function ObservableQuery:updatePolling()
 	function poll()
 		local info = self.pollingInfo
 		if Boolean.toJSBoolean(info) then
-			clearTimeout(info.timeout)
+			-- FIXME: make clearTimeout work when called with nil
+			if info.timeout then
+				clearTimeout(info.timeout)
+			end
 			info.timeout = setTimeout(maybeFetch, info.interval)
 		end
 	end

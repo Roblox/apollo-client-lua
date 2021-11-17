@@ -56,6 +56,7 @@ type ApolloLink = linkCoreModule.ApolloLink
 local execute = linkCoreModule.execute
 type FetchResult<TData, C, E> = linkCoreModule.FetchResult<TData, C, E>
 local cacheModule = require(script.Parent.Parent.cache)
+type Cache_DiffResult<TData> = cacheModule.Cache_DiffResult<TData>
 type Cache_WriteOptions<TResult, TVariables> = cacheModule.Cache_WriteOptions<TResult, TVariables>
 type ApolloCache<T> = cacheModule.ApolloCache<T>
 local canonicalStringify = cacheModule.canonicalStringify
@@ -147,7 +148,7 @@ type TransformCacheEntry = {
 local QueryManager = {}
 QueryManager.__index = QueryManager
 
-type QueryManager<TStore> = {
+export type QueryManager<TStore> = {
 	cache: ApolloCache<TStore>,
 	link: ApolloLink,
 	assumeImmutableResults: boolean,
@@ -197,7 +198,7 @@ type QueryManager<TStore> = {
 		self: QueryManager<TStore>,
 		queryId: string,
 		options: WatchQueryOptions<any, any>,
-		networkStatus: NetworkStatus
+		networkStatus: NetworkStatus?
 	) -> Promise<ApolloQueryResult<any>>,
 	getQueryStore: (self: QueryManager<TStore>) -> Record<string, QueryStoreValue>,
 	resetErrors: (self: QueryManager<TStore>, queryId: string) -> (),
@@ -360,6 +361,7 @@ end
  * to dispose of this QueryManager instance.
 ]]
 function QueryManager:stop(): ()
+	-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
 	mapForEach(self.queries, function(_info, queryId)
 		self:stopQueryNoBroadcast(queryId)
 	end)
@@ -368,6 +370,7 @@ function QueryManager:stop(): ()
 end
 
 function QueryManager:cancelPendingFetches(error_: Error): ()
+	-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
 	mapForEach(self.fetchCancelFns, function(cancel, _)
 		return cancel(error_)
 	end)
@@ -377,154 +380,159 @@ end
 function QueryManager:mutate(
 	ref: MutationOptions<TData_, TVariables_, TContext_, TCache_>
 ): Promise<FetchResult<any, any, any>>
-	local mutation, variables, optimisticResponse, updateQueries, refetchQueries, awaitRefetchQueries, updateWithProxyFn, onQueryUpdated, errorPolicy, fetchPolicy, keepRootFields, context =
-		ref.mutation,
-		ref.variables,
-		ref.optimisticResponse,
-		ref.updateQueries,
-		ref.refetchQueries,
-		ref.awaitRefetchQueries,
-		ref.update,
-		ref.onQueryUpdated,
-		ref.errorPolicy,
-		ref.fetchPolicy,
-		ref.keepRootFields,
-		ref.context
+	return Promise.resolve():andThen(function()
+		local mutation, variables, optimisticResponse, updateQueries, refetchQueries, awaitRefetchQueries, updateWithProxyFn, onQueryUpdated, errorPolicy, fetchPolicy, keepRootFields, context =
+			ref.mutation,
+			ref.variables,
+			ref.optimisticResponse,
+			ref.updateQueries,
+			ref.refetchQueries,
+			ref.awaitRefetchQueries,
+			ref.update,
+			ref.onQueryUpdated,
+			ref.errorPolicy,
+			ref.fetchPolicy,
+			ref.keepRootFields,
+			ref.context
 
-	if refetchQueries == nil then
-		refetchQueries = {}
-	end
-	if awaitRefetchQueries == nil then
-		awaitRefetchQueries = false :: any
-	end
+		if refetchQueries == nil then
+			refetchQueries = {}
+		end
+		if awaitRefetchQueries == nil then
+			awaitRefetchQueries = false :: any
+		end
 
-	if errorPolicy == nil then
-		errorPolicy = "none" :: any
-	end
+		if errorPolicy == nil then
+			errorPolicy = "none" :: any
+		end
 
-	invariant(mutation, "mutation option is required. You must specify your GraphQL document in the mutation option.")
-	invariant(
-		not Boolean.toJSBoolean(fetchPolicy) or fetchPolicy == "no-cache",
-		"Mutations only support a 'no-cache' fetchPolicy. If you don't want to disable the cache, remove your fetchPolicy setting to proceed with the default mutation behavior."
-	)
+		invariant(
+			mutation,
+			"mutation option is required. You must specify your GraphQL document in the mutation option."
+		)
+		invariant(
+			not Boolean.toJSBoolean(fetchPolicy) or fetchPolicy == "no-cache",
+			"Mutations only support a 'no-cache' fetchPolicy. If you don't want to disable the cache, remove your fetchPolicy setting to proceed with the default mutation behavior."
+		)
 
-	local mutationId = self:generateMutationId()
-	mutation = self:transform(mutation).document
+		local mutationId = self:generateMutationId()
+		mutation = self:transform(mutation).document
 
-	variables = self:getVariables(mutation, variables)
+		variables = self:getVariables(mutation, variables)
 
-	if self:transform(mutation).hasClientExports then
-		-- ROBLOX TODO: as mutate is an async function we shoudn't do a blocking behavior like this but this code is never reached so hard to test ATM
-		variables = self.localState:addExportedVariables(mutation, variables, context):expect() :: TVariables_
-	end
+		if self:transform(mutation).hasClientExports then
+			-- ROBLOX TODO: as mutate is an async function we shoudn't do a blocking behavior like this but this code is never reached so hard to test ATM
+			variables = self.localState:addExportedVariables(mutation, variables, context):expect() :: TVariables_
+		end
 
-	local mutationStoreValue
+		local mutationStoreValue
 
-	if Boolean.toJSBoolean(self.mutationStore) then
-		self.mutationStore[mutationId] = (
-				{
-					mutation = mutation,
-					variables = variables,
-					loading = true,
-					error = nil,
-				} :: any
-			) :: MutationStoreValue
-		mutationStoreValue = self.mutationStore[mutationId]
-	else
-		mutationStoreValue = self.mutationStore
-	end
+		if Boolean.toJSBoolean(self.mutationStore) then
+			self.mutationStore[mutationId] = (
+					{
+						mutation = mutation,
+						variables = variables,
+						loading = true,
+						error = nil,
+					} :: any
+				) :: MutationStoreValue
+			mutationStoreValue = self.mutationStore[mutationId]
+		else
+			mutationStoreValue = self.mutationStore
+		end
 
-	if Boolean.toJSBoolean(optimisticResponse) then
-		self:markMutationOptimistic(optimisticResponse, {
-			mutationId = mutationId,
-			document = mutation,
-			variables = variables,
-			fetchPolicy = fetchPolicy,
-			errorPolicy = errorPolicy,
-			context = context,
-			updateQueries = updateQueries,
-			update = updateWithProxyFn,
-			keepRootFields = keepRootFields,
-		})
-	end
+		if Boolean.toJSBoolean(optimisticResponse) then
+			self:markMutationOptimistic(optimisticResponse, {
+				mutationId = mutationId,
+				document = mutation,
+				variables = variables,
+				fetchPolicy = fetchPolicy,
+				errorPolicy = errorPolicy,
+				context = context,
+				updateQueries = updateQueries,
+				update = updateWithProxyFn,
+				keepRootFields = keepRootFields,
+			})
+		end
 
-	self:broadcastQueries()
+		self:broadcastQueries()
 
-	local self_ = self
+		local self_ = self
 
-	return Promise.new(function(resolve, reject)
-		return asyncMap(
-			self:getObservableFromLink(
-				mutation,
-				Object.assign({}, context, { optimisticResponse = optimisticResponse }),
-				variables,
-				false
-			),
-			function(result: FetchResult<any, any, any>)
-				if graphQLResultHasError(result) and errorPolicy == "none" then
-					error(ApolloError.new({
-						graphQLErrors = result.errors,
-					}))
+		return Promise.new(function(resolve, reject)
+			return asyncMap(
+				self:getObservableFromLink(
+					mutation,
+					Object.assign({}, context, { optimisticResponse = optimisticResponse }),
+					variables,
+					false
+				),
+				function(result: FetchResult<any, any, any>)
+					if graphQLResultHasError(result) and errorPolicy == "none" then
+						error(ApolloError.new({
+							graphQLErrors = result.errors,
+						}))
+					end
+
+					if Boolean.toJSBoolean(mutationStoreValue) then
+						mutationStoreValue.loading = false
+						mutationStoreValue.error = nil
+					end
+
+					local storeResult: typeof(result) = Object.assign({}, result)
+
+					if isCallable(refetchQueries) then
+						refetchQueries = refetchQueries(storeResult)
+					end
+
+					if errorPolicy == "ignore" and graphQLResultHasError(storeResult) then
+						storeResult.errors = nil :: any
+					end
+
+					return self:markMutationResult({
+						mutationId = mutationId,
+						result = storeResult,
+						document = mutation,
+						variables = variables,
+						fetchPolicy = fetchPolicy,
+						errorPolicy = errorPolicy,
+						context = context,
+						update = updateWithProxyFn,
+						updateQueries = updateQueries,
+						awaitRefetchQueries = awaitRefetchQueries,
+						refetchQueries = refetchQueries,
+						removeOptimistic = Boolean.toJSBoolean(optimisticResponse) and mutationId or nil,
+						onQueryUpdated = onQueryUpdated,
+						keepRootFields = keepRootFields,
+					})
 				end
+			):subscribe({
+				next = function(_self, storeResult)
+					self_:broadcastQueries()
+					-- At the moment, a mutation can have only one result, so we can
+					-- immediately resolve upon receiving the first result. In the future,
+					-- mutations containing @defer or @stream directives might receive
+					-- multiple FetchResult payloads from the ApolloLink chain, so we will
+					-- probably need to collect those results in this next method and call
+					-- resolve only later, in an observer.complete function.
+					resolve(storeResult)
+				end,
+				error = function(_self, err: Error)
+					if Boolean.toJSBoolean(mutationStoreValue) then
+						mutationStoreValue.loading = false
+						mutationStoreValue.error = err
+					end
 
-				if Boolean.toJSBoolean(mutationStoreValue) then
-					mutationStoreValue.loading = false
-					mutationStoreValue.error = nil
-				end
+					if Boolean.toJSBoolean(optimisticResponse) then
+						self_.cache:removeOptimistic(mutationId)
+					end
 
-				local storeResult: typeof(result) = Object.assign({}, result)
+					self_:broadcastQueries()
 
-				if isCallable(refetchQueries) then
-					refetchQueries = refetchQueries(storeResult)
-				end
-
-				if errorPolicy == "ignore" and graphQLResultHasError(storeResult) then
-					storeResult.errors = nil :: any
-				end
-
-				return self:markMutationResult({
-					mutationId = mutationId,
-					result = storeResult,
-					document = mutation,
-					variables = variables,
-					fetchPolicy = fetchPolicy,
-					errorPolicy = errorPolicy,
-					context = context,
-					update = updateWithProxyFn,
-					updateQueries = updateQueries,
-					awaitRefetchQueries = awaitRefetchQueries,
-					refetchQueries = refetchQueries,
-					removeOptimistic = Boolean.toJSBoolean(optimisticResponse) and mutationId or nil,
-					onQueryUpdated = onQueryUpdated,
-					keepRootFields = keepRootFields,
-				})
-			end
-		):subscribe({
-			next = function(_self, storeResult)
-				self_:broadcastQueries()
-				-- At the moment, a mutation can have only one result, so we can
-				-- immediately resolve upon receiving the first result. In the future,
-				-- mutations containing @defer or @stream directives might receive
-				-- multiple FetchResult payloads from the ApolloLink chain, so we will
-				-- probably need to collect those results in this next method and call
-				-- resolve only later, in an observer.complete function.
-				resolve(storeResult)
-			end,
-			error = function(_self, err: Error)
-				if Boolean.toJSBoolean(mutationStoreValue) then
-					mutationStoreValue.loading = false
-					mutationStoreValue.error = err
-				end
-
-				if Boolean.toJSBoolean(optimisticResponse) then
-					self_.cache:removeOptimistic(mutationId)
-				end
-
-				self_:broadcastQueries()
-
-				reject(instanceOf(err, ApolloError) and err or ApolloError.new({ networkError = err }))
-			end,
-		})
+					reject(instanceOf(err, ApolloError) and err or ApolloError.new({ networkError = err }))
+				end,
+			})
+		end)
 	end)
 end
 
@@ -565,6 +573,7 @@ function QueryManager:markMutationResult(
 
 		local updateQueries = mutation.updateQueries
 		if Boolean.toJSBoolean(updateQueries) then
+			-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
 			mapForEach(self.queries, function(ref, queryId)
 				local observableQuery = ref.observableQuery
 				local queryName
@@ -631,7 +640,8 @@ function QueryManager:markMutationResult(
 	then
 		local results: Array<any> = {}
 
-		Array.forEach(
+		-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
+		mapForEach(
 			self:refetchQueries({
 				updateCache = function(_self, cache: TCache_)
 					if not skipCache then
@@ -713,7 +723,8 @@ function QueryManager:markMutationResult(
 			-- Returning a promise here makes the mutation await that promise, so we
 			-- include results in that promise's work if awaitRefetchQueries or an
 			-- onQueryUpdated function was specified.
-			return Promise.all(results):andThen(function()
+			-- ROBLOX deviation: Promise.all doesn't work when passed a NULL
+			return Promise.all(Array.filter(results, toJSBoolean)):andThen(function()
 				return result
 			end)
 		end
@@ -755,13 +766,14 @@ end
 function QueryManager:fetchQuery(
 	queryId: string,
 	options: WatchQueryOptions<any, any>,
-	networkStatus: NetworkStatus
+	networkStatus: NetworkStatus?
 ): Promise<ApolloQueryResult<any>>
 	return self:fetchQueryObservable(queryId, options, networkStatus).promise
 end
 
 function QueryManager:getQueryStore(): Record<string, QueryStoreValue>
 	local store: Record<string, QueryStoreValue> = {}
+	-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
 	mapForEach(self.queries, function(info, queryId)
 		store[queryId] = {
 			variables = info.variables,
@@ -890,17 +902,17 @@ function QueryManager:query(options: QueryOptions<any, any>, queryId: string?): 
 
 	--[[
 		ROBLOX deviation: finally implementation is different than in JS.
-		Need to preserve value from `andThen` to return it in the finally callback
+		using separate andThen and catch to perform the same logic and not swallow the error
 	]]
-	local result
 	return self
 		:fetchQuery(queryId, options)
-		:andThen(function(val)
-			result = val
-		end)
-		:finally(function()
+		:andThen(function(result)
 			self:stopQuery(queryId)
 			return result
+		end)
+		:catch(function(err)
+			self:stopQuery(queryId)
+			error(err)
 		end)
 end
 
@@ -945,6 +957,7 @@ function QueryManager:clearStore(): Promise<nil>
 	-- so far and not yet resolved (in the case of queries).
 	self:cancelPendingFetches(InvariantError.new("Store reset while query was in flight (not completed in link chain)"))
 
+	-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
 	mapForEach(self.queries, function(queryInfo, _)
 		if Boolean.toJSBoolean(queryInfo.observableQuery) then
 			-- Set loading to true so listeners don't trigger unless they want
@@ -998,6 +1011,7 @@ function QueryManager:getObservableQueries(
 		end)
 	end
 
+	-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
 	mapForEach(self.queries, function(ref, queryId)
 		local oq, document = ref.observableQuery, ref.document
 		if Boolean.toJSBoolean(oq) then
@@ -1050,12 +1064,13 @@ function QueryManager:getObservableQueries(
 	end
 
 	if Boolean.toJSBoolean(_G.__DEV__) and Boolean.toJSBoolean(queryNamesAndDocs.size) then
+		-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
 		mapForEach(queryNamesAndDocs, function(included, nameOrDoc)
 			if not included then
 				invariant.warn(
 					("Unknown query %s%s requested in refetchQueries options.include array"):format(
 						typeof(nameOrDoc) == "string" and "named " or "",
-						HttpService.JSONEncode(nameOrDoc)
+						HttpService:JSONEncode(nameOrDoc)
 					)
 				)
 			end
@@ -1072,6 +1087,7 @@ function QueryManager:reFetchObservableQueries(includeStandby: boolean?): Promis
 
 	local observableQueryPromises: Array<Promise<ApolloQueryResult<any>>> = {}
 
+	-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
 	mapForEach(
 		self:getObservableQueries(Boolean.toJSBoolean(includeStandby) and "all" or "active"),
 		function(observableQuery, queryId)
@@ -1086,7 +1102,8 @@ function QueryManager:reFetchObservableQueries(includeStandby: boolean?): Promis
 
 	self:broadcastQueries()
 
-	return Promise.all(observableQueryPromises)
+	-- ROBLOX deviation: Promise.all doesn't work when passed a NULL
+	return Promise.all(Array.filter(observableQueryPromises, toJSBoolean))
 end
 
 function QueryManager:setObservableQuery(observableQuery: ObservableQuery<any, any>): ()
@@ -1181,6 +1198,7 @@ function QueryManager:broadcastQueries(): ()
 	if Boolean.toJSBoolean(self.onBroadcast) then
 		self:onBroadcast()
 	end
+	-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
 	mapForEach(self.queries, function(info, _)
 		return info:notify()
 	end)
@@ -1394,7 +1412,7 @@ function QueryManager:fetchQueryObservable(
 	self.fetchCancelFns:set(queryId, function(reason)
 		-- Delaying the cancellation using a Promise ensures that the
 		-- concast variable has been initialized.
-		Promise.resolve():andThen(function()
+		Promise.delay(0):andThen(function()
 			return concast:cancel(reason)
 		end)
 	end)
@@ -1446,6 +1464,7 @@ function QueryManager:refetchQueries(
 	local includedQueriesById = Map.new(nil)
 
 	if Boolean.toJSBoolean(include) then
+		-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
 		mapForEach(self:getObservableQueries(include), function(oq, queryId)
 			includedQueriesById:set(queryId, {
 				oq = oq,
@@ -1554,6 +1573,7 @@ function QueryManager:refetchQueries(
 	end
 
 	if Boolean.toJSBoolean(includedQueriesById.size) then
+		-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
 		mapForEach(includedQueriesById, function(ref__, queryId)
 			local oq, lastDiff, diff = ref__.oq, ref__.lastDiff, ref__.diff
 			local result: nil | boolean | InternalRefetchQueriesResult<any>
@@ -1630,7 +1650,7 @@ function QueryManager:fetchQueryByPolicy(
 		return queryInfo:getDiff(variables)
 	end
 
-	local function resultsFromCache(diff: any, networkStatus: NetworkStatus?)
+	local function resultsFromCache(diff: Cache_DiffResult<TData_>, networkStatus: NetworkStatus?)
 		if networkStatus == nil then
 			networkStatus = Boolean.toJSBoolean(queryInfo.networkStatus) and queryInfo.networkStatus
 				or NetworkStatus.loading
@@ -1640,6 +1660,8 @@ function QueryManager:fetchQueryByPolicy(
 
 		if
 			_G.__DEV__
+			-- ROBLOX deviation: adding additional nil check to help analyze tool
+			and diff.missing ~= nil
 			and isNonEmptyArray(diff.missing)
 			and not equal(data, {})
 			and not Boolean.toJSBoolean(returnPartialData)
@@ -1647,7 +1669,7 @@ function QueryManager:fetchQueryByPolicy(
 			invariant.warn(
 				("Missing cache result fields: %s"):format(Array.join(
 					Array.map(diff.missing, function(m)
-						return m.path:join(".")
+						return Array.join(m.path, ".")
 					end),
 					", "
 				)),
@@ -1725,7 +1747,7 @@ function QueryManager:fetchQueryByPolicy(
 			return { resultsFromCache(diff, queryInfo:markReady()) }
 		end
 
-		if Boolean.toJSBoolean(returnPartialData) and Boolean.toJSBoolean(shouldNotify) then
+		if Boolean.toJSBoolean(returnPartialData) or Boolean.toJSBoolean(shouldNotify) then
 			return { resultsFromCache(diff), resultsFromLink() }
 		end
 
@@ -1771,7 +1793,7 @@ function QueryManager:fetchQueryByPolicy(
 			return { resultsFromCache(diff, queryInfo:markReady()) }
 		end
 
-		if Boolean.toJSBoolean(returnPartialData) and Boolean.toJSBoolean(shouldNotify) then
+		if Boolean.toJSBoolean(returnPartialData) or Boolean.toJSBoolean(shouldNotify) then
 			return { resultsFromCache(diff), resultsFromLink() }
 		end
 
