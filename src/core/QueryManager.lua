@@ -585,7 +585,7 @@ function QueryManager:markMutationResult(
 				if not Boolean.toJSBoolean(queryName) or not hasOwnProperty(updateQueries, queryName) then
 					return
 				end
-				local updater = updateQueries[tostring(queryName)]
+				local updater = updateQueries[queryName]
 				local ref_ = self.queries:get(queryId)
 				local document, variables = ref_.document, ref_.variables
 
@@ -600,7 +600,7 @@ function QueryManager:markMutationResult(
 
 				if complete and Boolean.toJSBoolean(currentQueryResult) then
 					-- Run our reducer using the current query result and the mutation result.
-					local nextQueryResult = updater(currentQueryResult, {
+					local nextQueryResult = updater(updateQueries, currentQueryResult, {
 						mutationResult = result,
 						queryName = (function()
 							if Boolean.toJSBoolean(document) then

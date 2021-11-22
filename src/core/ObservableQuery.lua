@@ -529,7 +529,7 @@ end
 	* @param variables: The new set of variables. If there are missing variables,
 	* the previous values of those variables will be used.
 ]]
-function ObservableQuery:setVariables(variables: TVariables_): Promise<ApolloQueryResult<TData_>>?
+function ObservableQuery:setVariables(variables: TVariables_): Promise<ApolloQueryResult<TData_>?>
 	if equal(self.variables, variables) then
 		-- If we have no observers, then we don't actually want to make a network
 		-- request. As soon as someone observes the query, the request will kick
@@ -537,7 +537,7 @@ function ObservableQuery:setVariables(variables: TVariables_): Promise<ApolloQue
 		if Boolean.toJSBoolean(self.observers.size) then
 			return self:result()
 		else
-			return Promise:resolve()
+			return Promise.resolve()
 		end
 	end
 
@@ -545,7 +545,7 @@ function ObservableQuery:setVariables(variables: TVariables_): Promise<ApolloQue
 
 	-- See comment above
 	if not Boolean.toJSBoolean(self.observers.size) then
-		return Promise:resolve()
+		return Promise.resolve()
 	end
 
 	local fetchPolicy

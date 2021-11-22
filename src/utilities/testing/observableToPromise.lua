@@ -55,7 +55,7 @@ local function observableToPromiseAndSubscription(
 }
 	local cbs = { ... }
 
-	local observable = ref.observable -- ref.shouldResolve, ref.wait, ref.errorCallbacks
+	local observable = ref.observable
 	local shouldResolve, wait, errorCallbacks
 	if ref.shouldResolve ~= nil then
 		shouldResolve = ref.shouldResolve

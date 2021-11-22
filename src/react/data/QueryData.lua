@@ -8,7 +8,7 @@ local Boolean, Object = LuauPolyfill.Boolean, LuauPolyfill.Object
 local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
 type Promise<T> = PromiseTypeModule.Promise<T>
 local hasOwnProperty = require(srcWorkspace.luaUtils.hasOwnProperty)
-type Function = () -> ()
+type Function = (...any) -> ...any
 
 local equal = require(srcWorkspace.jsutils.equal)
 
@@ -338,7 +338,7 @@ function QueryData:startQuerySubscription(onNewData: Function?)
 		return
 	end
 	self.currentSubscription = self.currentObservable:subscribe({
-		next = function(ref)
+		next = function(_self, ref)
 			local loading, networkStatus, data = ref.loading, ref.networkStatus, ref.data
 			local previousResult = self.previous.result
 
@@ -352,9 +352,9 @@ function QueryData:startQuerySubscription(onNewData: Function?)
 				return
 			end
 
-			(onNewData :: Function)()
+			(onNewData :: Function)(self)
 		end,
-		["error"] = function(error_)
+		["error"] = function(_self, error_)
 			self:resubscribeToQuery()
 			if not hasOwnProperty(error_, "graphQLErrors") then
 				error(error_)
@@ -365,7 +365,7 @@ function QueryData:startQuerySubscription(onNewData: Function?)
 				or not equal(error_, self.previous.error)
 			then
 				self.previous.error = error_;
-				(onNewData :: Function)()
+				(onNewData :: Function)(self)
 			end
 		end,
 	})
@@ -534,7 +534,7 @@ end
 
 function QueryData:removeObservable(andDelete: boolean)
 	if Boolean.toJSBoolean(self.currentObservable) then
-		self.currentObservable["tearDownQuery"]()
+		self.currentObservable["tearDownQuery"](self.currentObservable)
 		if Boolean.toJSBoolean(andDelete) then
 			self.currentObservable = nil
 		end

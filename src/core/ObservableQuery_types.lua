@@ -96,7 +96,7 @@ export type ObservableQuery<TData, TVariables> = Observable<ApolloQueryResult<TD
 	setVariables: (
 		self: ObservableQuery<TData, TVariables>,
 		variables: TVariables
-	) -> Promise<ApolloQueryResult<TData>>?,
+	) -> Promise<ApolloQueryResult<TData>?>,
 	updateQuery: (
 		self: ObservableQuery<TData, TVariables>,
 		mapFn: (

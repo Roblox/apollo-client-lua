@@ -33,7 +33,7 @@ return function()
 		-- 			sum += yield i + 1;
 		-- 		} ]]
 		-- 		jestExpect(sum).toBe(55)
-		-- 		return Promise:resolve("ok")
+		-- 		return Promise.resolve("ok")
 		-- 	end)
 		-- )
 

@@ -423,7 +423,7 @@ return function()
 	-- 				sum += yield i + 1;
 	-- 			} ]]
 	-- 			jestExpect(sum).toBe(55)
-	-- 			return Promise:resolve("ok")
+	-- 			return Promise.resolve("ok")
 	-- 		end)
 	-- 	)
 	-- 	it("properly handles exceptions", function()
@@ -516,7 +516,7 @@ return function()
 	-- 				--[[ yield hahaPromise ]]
 	-- 			).toBe("hahahaha")
 	-- 			checkNoValues()
-	-- 			return Promise:all({ oyezPromise, hahaPromise })
+	-- 			return Promise.all({ oyezPromise, hahaPromise })
 	-- 		end)
 	-- 		return outer():then_(function(results)
 	-- 			checkNoValues()

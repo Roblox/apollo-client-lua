@@ -1119,7 +1119,7 @@ mutation SampleMutation {
 			end)
 
 			it("throws if the body can't be stringified", function()
-				fetch.mockReturnValueOnce(Promise:resolve({ data = {}, text = text }))
+				fetch.mockReturnValueOnce(Promise.resolve({ data = {}, text = text }))
 				local link = createHttpLink({ uri = "data", fetch = fetch :: any, includeUnusedVariables = true })
 				local b
 				local a: any = { b = b }

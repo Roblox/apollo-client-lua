@@ -361,7 +361,7 @@ function StoreReader:execSelectionSetImpl(ref: ExecSelectionSetOptions): ExecRes
 
 	local variables, policies, store = context.variables, context.policies, context.store
 	local objectsToMerge: Array<{ [string]: any }> = {}
-	local finalResult: ExecResult<any> = { result = nil }
+	local finalResult: ExecResult<any> = { result = NULL }
 	local typename = store:getFieldValue(objectOrReference, "__typename")
 
 	if
@@ -508,7 +508,7 @@ function StoreReader:execSubSelectedArrayImpl(ref: ExecSubSelectedArrayOptions):
 			missing = Boolean.toJSBoolean(missing) and missing or {}
 			local refArr = childResult.missing :: Array<any>
 			for i_ = 1, #refArr do
-				table.insert(missing :: Array<MissingFieldError>, ref[i_])
+				table.insert(missing :: Array<MissingFieldError>, refArr[i_])
 			end
 		end
 
