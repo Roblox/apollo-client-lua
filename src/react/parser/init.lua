@@ -114,19 +114,7 @@ local function parser(document: DocumentNode): IDocumentDefinition
 		type_ = DocumentType.Subscription
 	end
 
-	local definitions = (function()
-		if Boolean.toJSBoolean(#queries) then
-			return queries
-		else
-			return (function()
-				if Boolean.toJSBoolean(#mutations) then
-					return mutations
-				else
-					return subscriptions
-				end
-			end)()
-		end
-	end)()
+	local definitions = if #queries > 0 then queries else if #mutations > 0 then mutations else subscriptions
 
 	invariant(
 		#definitions == 1,
@@ -135,17 +123,9 @@ local function parser(document: DocumentNode): IDocumentDefinition
 			.. "You can use 'compose' to join multiple operation types to a component"
 	)
 
-	local definition = definitions[1]
-	variables = Boolean.toJSBoolean(definition.variableDefinitions) and definition.variableDefinitions or {}
-	if
-		Boolean.toJSBoolean((function()
-			if Boolean.toJSBoolean(definition.name) then
-				return definition.name.kind == "Name"
-			else
-				return definition.name
-			end
-		end)())
-	then
+	local definition = definitions[1] :: OperationDefinitionNode
+	variables = definition.variableDefinitions and definition.variableDefinitions or {}
+	if definition.name and definition.name.kind == "Name" then
 		name = definition.name.value
 	else
 		name = "data"

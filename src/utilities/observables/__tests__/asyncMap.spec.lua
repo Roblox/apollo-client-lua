@@ -34,7 +34,7 @@ return function()
 
 	local function wait(delayMs: number)
 		return Promise.new(function(resolve)
-			return setTimeout(resolve, delayMs)
+			setTimeout(resolve, delayMs)
 		end)
 	end
 

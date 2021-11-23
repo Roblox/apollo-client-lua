@@ -93,14 +93,14 @@ function ApolloError.new(ref: ApolloErrorConstructorArg): ApolloError
 	local graphQLErrors, clientErrors, networkError, errorMessage, extraInfo =
 		ref.graphQLErrors, ref.clientErrors, ref.networkError, ref.errorMessage, ref.extraInfo
 
-	local self = Error.new(errorMessage)
+	local self: any = Error.new(errorMessage)
 	self.graphQLErrors = Boolean.toJSBoolean(graphQLErrors) and graphQLErrors or {}
 	self.clientErrors = Boolean.toJSBoolean(clientErrors) and clientErrors or {}
 	self.networkError = Boolean.toJSBoolean(networkError) and networkError or nil
 	self.message = Boolean.toJSBoolean(errorMessage) and errorMessage or generateErrorMessage(self)
 	self.extraInfo = extraInfo
 
-	return setmetatable(self, ApolloError)
+	return (setmetatable(self, ApolloError) :: any) :: ApolloError
 end
 
 exports.ApolloError = ApolloError

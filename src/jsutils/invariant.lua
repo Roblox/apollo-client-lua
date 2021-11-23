@@ -11,7 +11,7 @@ local InvariantError = setmetatable({}, { __index = Error })
 InvariantError.__index = InvariantError
 
 export type InvariantError = Error & { framesToPop: number, name: string }
-function InvariantError.new(message_: (string | number)?)
+function InvariantError.new(message_: (string | number)?): InvariantError
 	local message = message_ :: string | number
 	if message_ == nil then
 		message = genericMessage
@@ -27,11 +27,11 @@ function InvariantError.new(message_: (string | number)?)
 		error_ = (message :: string)
 	end
 
-	local self = Error.new(error_)
+	local self: any = Error.new(error_)
 	self.framesToPop = 1
 	self.name = genericMessage
 
-	return setmetatable(self, InvariantError)
+	return (setmetatable(self, InvariantError) :: any) :: InvariantError
 end
 
 local function invariant(condition: any, message: string?)

@@ -993,7 +993,7 @@ return function()
 				return wait(function()
 					jestExpect(renderCount).toBe(4)
 				end):andThen(function()
-					return setTimeout(resolve, 300)
+					setTimeout(resolve, 300)
 				end, reject)
 			end)
 
@@ -3106,7 +3106,7 @@ return function()
 							gender = ref.gender
 						end
 						Promise.new(function(resolve)
-							return setTimeout(resolve, 300)
+							setTimeout(resolve, 300)
 						end):andThen(function()
 							observer:next({
 								data = {

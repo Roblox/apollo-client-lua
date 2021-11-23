@@ -630,7 +630,7 @@ return function()
 				-- (Promise.resolve().then) delay, so we need to wait at least that
 				-- long before verifying onRequestUnsubscribe was called.
 				function(resolve)
-					return setTimeout(resolve, 0)
+					setTimeout(resolve, 0)
 				end
 			)
 				:andThen(function()
@@ -5413,7 +5413,7 @@ return function()
 										-- Wait a bit to make sure the mutation really awaited the
 										-- refetching of the query.
 										return Promise.new(function(resolve)
-											return setTimeout(resolve, 100)
+											setTimeout(resolve, 100)
 										end):andThen(function()
 											finishedRefetch = true
 											return result
@@ -5520,11 +5520,11 @@ return function()
 		describe("awaitRefetchQueries", function()
 			local function awaitRefetchTest(ref: MutationBaseOptions_<any, any, any> & { testQueryError: boolean? })
 				local awaitRefetchQueries = ref.awaitRefetchQueries
-				local testQueryError
+				local testQueryError: boolean
 				if ref.testQueryError == nil then
 					testQueryError = false
 				else
-					testQueryError = ref.testQueryError
+					testQueryError = (ref.testQueryError :: any) :: boolean
 				end
 				return Promise.new(function(resolve, reject)
 					local query = gql([[
@@ -5569,7 +5569,7 @@ return function()
 
 					local variables = { id = "1234" }
 
-					local refetchError = if testQueryError then Error.new("Refetch failed") else  nil
+					local refetchError: Error | nil = testQueryError and Error.new("Refetch failed") or nil
 
 					local queryManager = mockQueryManager(reject, {
 						request = { query = query, variables = variables },
@@ -5622,25 +5622,20 @@ return function()
 							return resolve()
 						end)
 						:catch(function(error_)
-							local isRefetchError: boolean?
-							if not awaitRefetchQueries then
-								isRefetchError = awaitRefetchQueries
-							elseif not testQueryError then
-								isRefetchError = testQueryError
-							else
-								local ref_ = if Boolean.toJSBoolean(refetchError) then refetchError.message else nil
-
-								isRefetchError = string.find(error_.message, ref_, 1, true) ~= nil
-							end
+							local isRefetchError: boolean = awaitRefetchQueries
+								and testQueryError
+								and refetchError
+								and string.find(error_.message, refetchError.message, 1, true) ~= nil
 
 							if isRefetchError then
-								return setTimeout(
+								setTimeout(
 									function()
 										jestExpect(isRefetchErrorCaught).toBe(true)
 										resolve()
 									end, -- ROBLOX deviation: using multiple of TICK for timeout as it looks like the minimum value to ensure the correct order of execution
 									10 * TICK
 								)
+								return
 							end
 							reject(error_)
 						end)

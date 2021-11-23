@@ -167,7 +167,7 @@ mutation SampleMutation {
 
 	local function makePromise(res: any)
 		return Promise.new(function(resolve)
-			return setTimeout(function()
+			setTimeout(function()
 				return resolve(res)
 			end)
 		end)

@@ -201,7 +201,8 @@ return function()
 					end)
 				end)
 				local link = returnOne:concat(mock)
-				testLinkResults({ link = link, results = { 1, error_ } })
+				-- ROBLOX FIXME: Luau needs to stop insisting that mixed arrays can't exist
+				testLinkResults({ link = link, results = { 1, error_ :: any } })
 			end)
 
 			it("should concat a Link and function", function()

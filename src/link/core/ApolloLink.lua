@@ -71,10 +71,10 @@ local LinkError = setmetatable({}, { __index = Error })
 LinkError.__index = LinkError
 
 function LinkError.new(message: string?, link: ApolloLink?): LinkError
-	local self = Error.new(message)
+	local self: any = Error.new(message)
 	self.link = link
 
-	return setmetatable(self, LinkError)
+	return (setmetatable(self, LinkError) :: any) :: LinkError
 end
 
 function ApolloLink.empty(): ApolloLink

@@ -51,7 +51,7 @@ function MissingFieldError.new(
 	query: DocumentNode,
 	variables: Record<string, any>?
 ): MissingFieldError
-	local self = Error.new(message)
+	local self: any = Error.new(message)
 	self.message = message
 	self.path = path
 	self.query = query

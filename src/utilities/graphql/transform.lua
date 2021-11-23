@@ -382,10 +382,10 @@ function removeArgumentsFromDocument(config: Array<RemoveArgumentsConfig>, doc: 
 
 	return nullIfDocIsEmpty(visit(doc, {
 		OperationDefinition = {
-			enter = function(_self, node)
+			enter = function(_self, node: OperationDefinitionNode)
 				return Object.assign({}, node, {
 					-- Remove matching top level variables definitions.
-					variableDefinitions = Boolean.toJSBoolean(node.variableDefinitions) and Array.filter(
+					variableDefinitions = node.variableDefinitions and Array.filter(
 						node.variableDefinitions,
 						function(varDef)
 							return not Array.some(config, function(arg)
@@ -398,7 +398,7 @@ function removeArgumentsFromDocument(config: Array<RemoveArgumentsConfig>, doc: 
 		},
 
 		Field = {
-			enter = function(_self, node)
+			enter = function(_self, node: FieldNode)
 				-- If `remove` is set to true for an argument, and an argument match
 				-- is found for a field, remove the field as well.
 				local shouldRemoveField = Array.some(config, function(argConfig)
@@ -407,9 +407,9 @@ function removeArgumentsFromDocument(config: Array<RemoveArgumentsConfig>, doc: 
 
 				if shouldRemoveField then
 					local argMatchCount = 0
-					if Boolean.toJSBoolean(node.arguments) then
+					if node.arguments then
 						Array.forEach(node.arguments, function(arg)
-							if Boolean.toJSBoolean(argMatcher(arg)) then
+							if argMatcher(arg) then
 								argMatchCount += 1
 							end
 						end)
@@ -424,7 +424,7 @@ function removeArgumentsFromDocument(config: Array<RemoveArgumentsConfig>, doc: 
 		},
 
 		Argument = {
-			enter = function(_self, node)
+			enter = function(_self, node: ArgumentNode)
 				-- Remove all matching arguments.
 				if Boolean.toJSBoolean(argMatcher(node)) then
 					return REMOVE
@@ -493,7 +493,7 @@ local function buildQueryFromSelectionSet(document: DocumentNode): DocumentNode
 	-- Build a new query using the selection set of the main operation.
 	local modifiedDoc = visit(document, {
 		OperationDefinition = {
-			enter = function(_self, node)
+			enter = function(_self, node: OperationDefinitionNode)
 				return Object.assign({}, node, { operation = "query" })
 			end,
 		},
