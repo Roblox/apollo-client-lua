@@ -51,7 +51,7 @@ local function useBaseQuery(
 			queryDataRef.current = QueryData.new({
 				options = updatedOptions :: QueryDataOptions<any, any>,
 				context = context,
-				onNewData = function()
+				onNewData = function(_self)
 					if not Boolean.toJSBoolean(queryData:ssrInitiated()) then
 						-- // When new data is received from the `QueryData` object, we want to
 						-- // force a re-render to make sure the new data is displayed. We can't
@@ -59,11 +59,8 @@ local function useBaseQuery(
 						-- // safe we'll trigger the re-render in a microtask. In case the
 						-- // component gets unmounted before this callback fires, we re-check
 						-- // queryDataRef.current.isMounted before calling forceUpdate().
-						Promise.resolve():andThen(function()
-							if
-								Boolean.toJSBoolean(queryDataRef.current)
-								and Boolean.toJSBoolean(queryDataRef.current.isMounted)
-							then
+						Promise.delay(0):andThen(function()
+							if Boolean.toJSBoolean(queryDataRef.current) and queryDataRef.current.isMounted then
 								-- ROBLOX deviation: Roact forces us to provide a value here
 								return forceUpdate(nil)
 							end
@@ -113,13 +110,16 @@ local function useBaseQuery(
 			return queryData:cleanup()
 		end
 	end, {})
+
+	-- ROBLOX deviation: error is triggered because array with nil values has a different count
+	local NIL = { __value = "nil placeholder" }
 	useEffect(function()
 		return queryData:afterExecute({ lazy = lazy })
 	end, {
-		queryResult.loading,
-		queryResult.networkStatus,
-		queryResult.error_,
-		queryResult.data,
+		queryResult.loading ~= nil and queryResult.loading or NIL,
+		queryResult.networkStatus ~= nil and queryResult.networkStatus or NIL,
+		queryResult.error ~= nil and queryResult.error or NIL,
+		queryResult.data ~= nil and queryResult.data or NIL,
 	})
 	return result
 end

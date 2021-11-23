@@ -13,6 +13,7 @@ return function()
 		LuauPolyfill.Set,
 		LuauPolyfill.setTimeout
 	type Array<T> = LuauPolyfill.Array<T>
+	type Function = (...any) -> ...any
 
 	local Promise = require(rootWorkspace.Promise)
 	local RegExp = require(rootWorkspace.LuauRegExp)
@@ -39,7 +40,7 @@ return function()
 	local reactTestingModule = require(srcWorkspace.testUtils.react)
 	local render = reactTestingModule.render
 	local cleanup = reactTestingModule.cleanup
-	local wait = reactTestingModule.wait
+	local wait_ = reactTestingModule.wait
 	local act = reactTestingModule.act
 
 	local coreModule = require(srcWorkspace.core)
@@ -80,7 +81,18 @@ return function()
 		jestExpect(nil).toBe(("ROBLOX deviation - fail() was called with message: (%s)"):format(message))
 	end
 
-	xdescribe("useQuery Hook", function()
+	-- ROBLOX TODO: remove when unhandled errors are ... handled
+	local function rejectOnComponentThrow(reject, fn: Function)
+		local trace = debug.traceback()
+		local ok, result = pcall(fn)
+		if not ok then
+			print(result.message .. "\n" .. trace)
+			reject(result)
+		end
+		return result
+	end
+
+	describe("useQuery Hook", function()
 		local CAR_QUERY: DocumentNode = gql([[
 
 			query {
@@ -104,53 +116,56 @@ return function()
 			itAsync(it)("should handle a simple query properly", function(resolve, reject)
 				local function Component()
 					local queryResult = useQuery(CAR_QUERY)
-					local data, loading = queryResult.data, queryResult.loading
-					if not Boolean.toJSBoolean(loading) then
-						jestExpect(data).toEqual(CAR_RESULT_DATA)
-					end
+					rejectOnComponentThrow(reject, function()
+						local data, loading = queryResult.data, queryResult.loading
+						if not Boolean.toJSBoolean(loading) then
+							jestExpect(data).toEqual(CAR_RESULT_DATA)
+						end
+					end)
 					return nil
 				end
+
 				render(React.createElement(MockedProvider, { mocks = CAR_MOCKS }, React.createElement(Component, nil)))
 
-				return wait():andThen(resolve, reject)
+				return wait_():andThen(resolve, reject)
 			end)
 
 			itAsync(it)("should keep data as undefined until data is actually returned", function(resolve, reject)
 				local function Component()
 					local queryResult = useQuery(CAR_QUERY)
-					local data, loading = queryResult.data, queryResult.loading
-					if Boolean.toJSBoolean(loading) then
-						jestExpect(data).toBeUndefined()
-					else
-						jestExpect(data).toEqual(CAR_RESULT_DATA)
-					end
+					rejectOnComponentThrow(reject, function()
+						local data, loading = queryResult.data, queryResult.loading
+						if Boolean.toJSBoolean(loading) then
+							jestExpect(data).toBeUndefined()
+						else
+							jestExpect(data).toEqual(CAR_RESULT_DATA)
+						end
+					end)
 					return nil
 				end
 				render(React.createElement(MockedProvider, {
 					mocks = CAR_MOCKS,
 				}, React.createElement(Component, nil)))
-				return wait():andThen(resolve, reject)
+				return wait_():andThen(resolve, reject)
 			end)
 
 			itAsync(it)("should return a result upon first call, if data is available", function(resolve, reject)
-				--[[
-					// This test verifies that the `useQuery` hook returns a result upon its first
-					// invocation if the data is available in the cache. This is essential for SSR
-					// to work properly, since effects are not run during SSR.
-				]]
+				-- This test verifies that the `useQuery` hook returns a result upon its first
+				-- invocation if the data is available in the cache. This is essential for SSR
+				-- to work properly, since effects are not run during SSR.
 				local function Component(ref)
 					local expectData = ref.expectData
 					local queryResult = useQuery(CAR_QUERY)
-					local data = queryResult.data
-					if Boolean.toJSBoolean(expectData) then
-						jestExpect(data).toEqual(CAR_RESULT_DATA)
-					end
+					rejectOnComponentThrow(reject, function()
+						local data = queryResult.data
+						if Boolean.toJSBoolean(expectData) then
+							jestExpect(data).toEqual(CAR_RESULT_DATA)
+						end
+					end)
 					return nil
 				end
-				--[[
-					// Common cache instance to use across render passes.
-					// The cache will be warmed with the result of the query on the second pass.
-				]]
+				-- Common cache instance to use across render passes.
+				-- The cache will be warmed with the result of the query on the second pass.
 				local cache = InMemoryCache.new()
 
 				render(React.createElement(
@@ -164,7 +179,7 @@ return function()
 					})
 				))
 
-				wait():expect()
+				wait_():expect()
 
 				render(React.createElement(
 					MockedProvider,
@@ -176,7 +191,7 @@ return function()
 						expectData = true,
 					})
 				))
-				return wait():andThen(resolve, reject)
+				return wait_():andThen(resolve, reject)
 			end)
 
 			itAsync(it)("should ensure ObservableQuery fields have a stable identity", function(resolve, reject)
@@ -189,40 +204,42 @@ return function()
 
 				local function Component()
 					local queryResult = useQuery(CAR_QUERY)
-					local loading, refetch, fetchMore, updateQuery, startPolling, stopPolling, subscribeToMore =
-						queryResult.loading,
-						queryResult.refetch,
-						queryResult.fetchMore,
-						queryResult.updateQuery,
-						queryResult.startPolling,
-						queryResult.stopPolling,
-						queryResult.subscribeToMore
+					rejectOnComponentThrow(reject, function()
+						local loading, refetch, fetchMore, updateQuery, startPolling, stopPolling, subscribeToMore =
+							queryResult.loading,
+							queryResult.refetch,
+							queryResult.fetchMore,
+							queryResult.updateQuery,
+							queryResult.startPolling,
+							queryResult.stopPolling,
+							queryResult.subscribeToMore
 
-					if Boolean.toJSBoolean(loading) then
-						refetchFn = refetch
-						fetchMoreFn = fetchMore
-						updateQueryFn = updateQuery
-						startPollingFn = startPolling
-						stopPollingFn = stopPolling
-						subscribeToMoreFn = subscribeToMore
-					else
-						jestExpect(refetch).toBe(refetchFn)
-						jestExpect(fetchMore).toBe(fetchMoreFn)
-						jestExpect(updateQuery).toBe(updateQueryFn)
-						jestExpect(startPolling).toBe(startPollingFn)
-						jestExpect(stopPolling).toBe(stopPollingFn)
-						jestExpect(subscribeToMore).toBe(subscribeToMoreFn)
-					end
+						if Boolean.toJSBoolean(loading) then
+							refetchFn = refetch
+							fetchMoreFn = fetchMore
+							updateQueryFn = updateQuery
+							startPollingFn = startPolling
+							stopPollingFn = stopPolling
+							subscribeToMoreFn = subscribeToMore
+						else
+							jestExpect(refetch).toBe(refetchFn)
+							jestExpect(fetchMore).toBe(fetchMoreFn)
+							jestExpect(updateQuery).toBe(updateQueryFn)
+							jestExpect(startPolling).toBe(startPollingFn)
+							jestExpect(stopPolling).toBe(stopPollingFn)
+							jestExpect(subscribeToMore).toBe(subscribeToMoreFn)
+						end
+					end)
 					return nil
 				end
 
 				render(React.createElement(MockedProvider, {
 					mocks = CAR_MOCKS,
 				}, React.createElement(Component, nil)))
-				return wait():andThen(resolve, reject)
+				return wait_():andThen(resolve, reject)
 			end)
 
-			testingModule.itAsync(itFIXME)("should update result when query result change", function(resolve, reject)
+			itAsync(it)("should update result when query result change", function(resolve, reject)
 				local CAR_QUERY_BY_ID = gql([[
 
 					query($id: Int) {
@@ -266,7 +283,7 @@ return function()
 					}, hookResponse)
 				)).rerender
 
-				wait(function()
+				wait_(function()
 					jestExpect(hookResponse).toHaveBeenLastCalledWith({
 						data = CAR_DATA_A4,
 						loading = false,
@@ -283,7 +300,7 @@ return function()
 						id = 2,
 					}, hookResponse)
 				))
-				wait(function()
+				wait_(function()
 					jestExpect(hookResponse).toHaveBeenLastCalledWith({
 						data = CAR_DATA_RS8,
 						loading = false,
@@ -294,7 +311,7 @@ return function()
 				resolve()
 			end)
 
-			itAsync(it)("should return result when result is equivalent", function(resolve, reject)
+			itAsync(itFIXME)("should return result when result is equivalent", function(resolve, reject)
 				local CAR_QUERY_BY_ID = gql([[
 
 						query($id: Int) {
@@ -326,10 +343,12 @@ return function()
 								return ref.skip
 							end
 						end)()
+
 					local queryResult = useQuery(CAR_QUERY_BY_ID, {
 						variables = { id = id },
 						skip,
 					})
+
 					local data, loading, error_ = queryResult.data, queryResult.loading, queryResult.error
 					return children({ data = data, loading = loading, ["error"] = error_ })
 				end
@@ -344,7 +363,7 @@ return function()
 					}, hookResponse)
 				)).rerender
 
-				wait(function()
+				wait_(function()
 					jestExpect(hookResponse).toHaveBeenLastCalledWith({
 						data = CAR_DATA_A4,
 						loading = false,
@@ -375,7 +394,7 @@ return function()
 					}, hookResponse)
 				))
 
-				wait(function()
+				wait_(function()
 					jestExpect(hookResponse).toHaveBeenLastCalledWith({
 						data = CAR_DATA_A4,
 						loading = false,
@@ -407,13 +426,15 @@ return function()
 						fetchPolicy = "network-only",
 						variables = { something = something },
 					})
-					local loading, data = queryResult.loading, queryResult.data
-					renderCount += 1
-					if Boolean.toJSBoolean(loading) then
-						return nil
-					end
-					jestExpect(wasUpdateErrorLogged).toBeFalsy()
-					jestExpect(data).toEqual(CAR_RESULT_DATA)
+					rejectOnComponentThrow(reject, function()
+						local loading, data = queryResult.loading, queryResult.data
+						renderCount += 1
+						if Boolean.toJSBoolean(loading) then
+							return nil
+						end
+						jestExpect(wasUpdateErrorLogged).toBeFalsy()
+						jestExpect(data).toEqual(CAR_RESULT_DATA)
+					end)
 					return nil
 				end
 
@@ -451,7 +472,7 @@ return function()
 					)
 				))
 
-				wait(function()
+				wait_(function()
 					jestExpect(renderCount).toBe(3)
 				end)
 					:finally(function()
@@ -460,7 +481,7 @@ return function()
 					:andThen(resolve, reject)
 			end)
 
-			itAsync(
+			itAsync(it)(
 				"should update with proper loading state when variables change for cached queries",
 				function(resolve, reject)
 					local peopleQuery = gql([[
@@ -497,52 +518,52 @@ return function()
 					local renderCount = 0
 
 					local function Component()
-						local search, setSearch = table.unpack(useState(""), 1, 2)
+						local search, setSearch = useState("")
 						local queryResult = useQuery(peopleQuery, {
 							variables = {
 								search = search,
 							},
 						})
-						local loading, data = queryResult.loading, queryResult.data
-						--[[ ROBLOX comment: switch statement conversion ]]
-						local condition_ = (function()
+						rejectOnComponentThrow(reject, function()
+							local loading, data = queryResult.loading, queryResult.data
+							--[[ ROBLOX comment: switch statement conversion ]]
 							renderCount += 1
-							return renderCount
-						end)()
-						if condition_ == 1 then
-							jestExpect(loading).toBeTruthy()
-						elseif condition_ == 2 then
-							jestExpect(loading).toBeFalsy()
-							jestExpect(data).toEqual(peopleData)
-							setTimeout(function()
-								return setSearch("z")
-							end)
-						elseif condition_ == 3 then
-							jestExpect(loading).toBeTruthy()
-						elseif condition_ == 4 then
-							jestExpect(loading).toBeFalsy()
-							jestExpect(data).toEqual({ people = {} })
-							setTimeout(function()
-								return setSearch("")
-							end)
-						elseif condition_ == 5 then
-							jestExpect(loading).toBeFalsy()
-							jestExpect(data).toEqual(peopleData)
-							setTimeout(function()
-								return setSearch("z")
-							end)
-						elseif condition_ == 6 then
-							jestExpect(loading).toBeFalsy()
-							jestExpect(data).toEqual({ people = {} })
-							setTimeout(function()
-								return setSearch("zz")
-							end)
-						elseif condition_ == 7 then
-							jestExpect(loading).toBeTruthy()
-						elseif condition_ == 8 then
-							jestExpect(loading).toBeFalsy()
-							jestExpect(data).toEqual({ people = {} })
-						end
+							local condition_ = renderCount
+							if condition_ == 1 then
+								jestExpect(loading).toBeTruthy()
+							elseif condition_ == 2 then
+								jestExpect(loading).toBeFalsy()
+								jestExpect(data).toEqual(peopleData)
+								setTimeout(function()
+									return setSearch("z")
+								end)
+							elseif condition_ == 3 then
+								jestExpect(loading).toBeTruthy()
+							elseif condition_ == 4 then
+								jestExpect(loading).toBeFalsy()
+								jestExpect(data).toEqual({ people = {} })
+								setTimeout(function()
+									return setSearch("")
+								end)
+							elseif condition_ == 5 then
+								jestExpect(loading).toBeFalsy()
+								jestExpect(data).toEqual(peopleData)
+								setTimeout(function()
+									return setSearch("z")
+								end)
+							elseif condition_ == 6 then
+								jestExpect(loading).toBeFalsy()
+								jestExpect(data).toEqual({ people = {} })
+								setTimeout(function()
+									return setSearch("zz")
+								end)
+							elseif condition_ == 7 then
+								jestExpect(loading).toBeTruthy()
+							elseif condition_ == 8 then
+								jestExpect(loading).toBeFalsy()
+								jestExpect(data).toEqual({ people = {} })
+							end
+						end)
 						return nil
 					end
 
@@ -550,39 +571,40 @@ return function()
 						mocks = mocks,
 					}, React.createElement(Component, nil)))
 
-					return wait(function()
+					return wait_(function()
 						jestExpect(renderCount).toBe(8)
 					end):andThen(resolve, reject)
 				end
 			)
 		end)
 		describe("Polling", function()
-			itAsync(it)("should support polling", function(resolve, reject)
+			itAsync(itFIXME)("should support polling", function(resolve, reject)
 				local renderCount = 0
 
 				local function Component()
 					local queryResult = useQuery(CAR_QUERY, {
 						pollInterval = 10,
 					})
-					local data, loading, networkStatus, stopPolling =
-						queryResult.data, queryResult.loading, queryResult.networkStatus, queryResult.stopPolling
 
-					--[[ ROBLOX comment: switch statement conversion ]]
-					local condition_ = (function()
+					rejectOnComponentThrow(reject, function()
+						local data, loading, networkStatus, stopPolling =
+							queryResult.data, queryResult.loading, queryResult.networkStatus, queryResult.stopPolling
+
+						--[[ ROBLOX comment: switch statement conversion ]]
 						renderCount += 1
-						return renderCount
-					end)()
-					if condition_ == 1 then
-						jestExpect(loading).toBeTruthy()
-						jestExpect(networkStatus).toBe(NetworkStatus.loading)
-					elseif condition_ == 2 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(data).toEqual(CAR_RESULT_DATA)
-						jestExpect(networkStatus).toBe(NetworkStatus.ready)
-						stopPolling()
-					else
-						error(Error.new("Uh oh - we should have stopped polling!"))
-					end
+						local condition_ = renderCount
+						if condition_ == 1 then
+							jestExpect(loading).toBeTruthy()
+							jestExpect(networkStatus).toBe(NetworkStatus.loading)
+						elseif condition_ == 2 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(data).toEqual(CAR_RESULT_DATA)
+							jestExpect(networkStatus).toBe(NetworkStatus.ready)
+							stopPolling(queryResult)
+						else
+							error(Error.new("Uh oh - we should have stopped polling!"))
+						end
+					end)
 					return nil
 				end
 
@@ -590,42 +612,40 @@ return function()
 					mocks = CAR_MOCKS,
 				}, React.createElement(Component, nil)))
 
-				return wait(function()
+				return wait_(function()
 					jestExpect(renderCount).toBe(2)
 				end):andThen(resolve, reject)
 			end)
 
-			itAsync(it)("should stop polling when skip is true", function(resolve, reject)
+			itAsync(itFIXME)("should stop polling when skip is true", function(resolve, reject)
 				local renderCount = 0
 
 				local function Component()
-					local shouldSkip, setShouldSkip = table.unpack(useState(false), 1, 2)
+					local shouldSkip, setShouldSkip = useState(false)
 					local queryResult = useQuery(CAR_QUERY, {
 						pollInterval = 100,
 						skip = shouldSkip,
 					})
-					local data, loading = queryResult.data, queryResult.loading
-					--[[ ROBLOX comment: switch statement conversion ]]
-					local condition_ = (function()
+					rejectOnComponentThrow(reject, function()
+						local data, loading = queryResult.data, queryResult.loading
+						--[[ ROBLOX comment: switch statement conversion ]]
 						renderCount += 1
-						return renderCount
-					end)()
-					if condition_ == 1 then
-						jestExpect(loading).toBeTruthy()
-					elseif condition_ == 2 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(data).toEqual(CAR_RESULT_DATA)
-						setShouldSkip(true)
-					elseif condition_ == 3 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(data).toBeUndefined()
-					elseif condition_ == 4 then
-						error(Error.new("Uh oh - we should have stopped polling!"))
-					else
-						--[[
-						// Do nothing
-					]]
-					end
+						local condition_ = renderCount
+						if condition_ == 1 then
+							jestExpect(loading).toBeTruthy()
+						elseif condition_ == 2 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(data).toEqual(CAR_RESULT_DATA)
+							setShouldSkip(true)
+						elseif condition_ == 3 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(data).toBeUndefined()
+						elseif condition_ == 4 then
+							error(Error.new("Uh oh - we should have stopped polling!"))
+						else
+							-- Do nothing
+						end
+					end)
 					return nil
 				end
 
@@ -633,12 +653,12 @@ return function()
 					link = MockLink.new(CAR_MOCKS):setOnError(reject),
 				}, React.createElement(Component, nil)))
 
-				return wait(function()
+				return wait_(function()
 					jestExpect(renderCount).toBe(3)
 				end):andThen(resolve, reject)
 			end)
 
-			itAsync(it)("should start polling when skip goes from true to false", function(resolve, reject)
+			itAsync(itFIXME)("should start polling when skip goes from true to false", function(resolve, reject)
 				local query = gql([[
 
 					query car {
@@ -657,39 +677,41 @@ return function()
 				local renderCount = 0
 
 				local function Component()
-					local shouldSkip, setShouldSkip = table.unpack(useState(false), 1, 2)
+					local shouldSkip, setShouldSkip = useState(false)
 					local queryResult = useQuery(query, {
 						pollInterval = 100,
 						skip = shouldSkip,
 					})
-					local data, loading, stopPolling = queryResult.data, queryResult.loading, queryResult.stopPolling
 
-					--[[ ROBLOX comment: switch statement conversion ]]
-					local condition_ = (function()
+					rejectOnComponentThrow(reject, function()
+						local data, loading, stopPolling =
+							queryResult.data, queryResult.loading, queryResult.stopPolling
+
+						--[[ ROBLOX comment: switch statement conversion ]]
 						renderCount += 1
-						return renderCount
-					end)()
-					if condition_ == 1 then
-						jestExpect(loading).toBeTruthy()
-						jestExpect(data).toBeUndefined()
-					elseif condition_ == 2 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(data).toEqual(data1)
-						setShouldSkip(true)
-					elseif condition_ == 3 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(data).toBeUndefined()
-						setShouldSkip(false)
-					elseif condition_ == 4 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(data).toEqual(data1)
-					elseif condition_ == 5 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(data).toEqual(data2)
-						stopPolling()
-					else
-						reject(Error.new("too many updates"))
-					end
+						local condition_ = renderCount
+						if condition_ == 1 then
+							jestExpect(loading).toBeTruthy()
+							jestExpect(data).toBeUndefined()
+						elseif condition_ == 2 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(data).toEqual(data1)
+							setShouldSkip(true)
+						elseif condition_ == 3 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(data).toBeUndefined()
+							setShouldSkip(false)
+						elseif condition_ == 4 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(data).toEqual(data1)
+						elseif condition_ == 5 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(data).toEqual(data2)
+							stopPolling(queryResult)
+						else
+							reject(Error.new("too many updates"))
+						end
+					end)
 					return nil
 				end
 
@@ -697,13 +719,13 @@ return function()
 					link = MockLink.new(mocks):setOnError(reject),
 				}, React.createElement(Component, nil)))
 
-				return wait(function()
+				return wait_(function()
 					jestExpect(renderCount).toBe(5)
 				end):andThen(resolve, reject)
 			end)
 
 			local function useStatefulUnmount()
-				local queryMounted, setQueryMounted = table.unpack(useState(true), 1, 2)
+				local queryMounted, setQueryMounted = useState(true)
 				local mounted = false
 				useEffect(function()
 					mounted = true
@@ -725,41 +747,40 @@ return function()
 				}
 			end
 
-			itAsync(it)("should stop polling when the component is unmounted", function(resolve, reject)
-				local mocks = Array.concat(
-					{},
-					table.unpack(CAR_MOCKS),
-					table.unpack(CAR_MOCKS),
-					table.unpack(CAR_MOCKS),
-					table.unpack(CAR_MOCKS)
-				)
+			itAsync(itFIXME)("should stop polling when the component is unmounted", function(resolve, reject)
+				local mocks = Array.concat({}, CAR_MOCKS, CAR_MOCKS, CAR_MOCKS, CAR_MOCKS)
 				local mockLink = MockLink.new(mocks):setOnError(reject)
-				-- ROBLOX TODO: spyon not available. replace with jest.fn?
-				local linkRequestSpy: any = function(...) end
-				-- local linkRequestSpy = jest:spyOn(mockLink, "request")
+
+				local linkRequestSpy: any = jest.fn()
+				mockLink.request = function(_self, ...)
+					return linkRequestSpy(...)
+				end
+
 				local renderCount = 0
 
 				local function QueryComponent(ref)
 					local unmount = ref.unmount
 					local queryResult = useQuery(CAR_QUERY, { pollInterval = 10 })
-					local data, loading = queryResult.data, queryResult.loading
+					rejectOnComponentThrow(reject, function()
+						local data, loading = queryResult.data, queryResult.loading
 
-					--[[ ROBLOX comment: switch statement conversion ]]
-					local condition_ = (function()
+						--[[ ROBLOX comment: switch statement conversion ]]
 						renderCount += 1
-						return renderCount
-					end)()
+						local condition_ = renderCount
 
-					if condition_ == 1 then
-						jestExpect(loading).toBeTruthy()
-					elseif condition_ == 2 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(data).toEqual(CAR_RESULT_DATA)
-						jestExpect(linkRequestSpy).toHaveBeenCalledTimes(1)
-						setTimeout(unmount, 10)
-					else
-						reject("unreached")
-					end
+						if condition_ == 1 then
+							jestExpect(loading).toBeTruthy()
+						elseif condition_ == 2 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(data).toEqual(CAR_RESULT_DATA)
+							jestExpect(linkRequestSpy).toHaveBeenCalledTimes(1)
+							setTimeout(function()
+								unmount(ref)
+							end, 10)
+						else
+							reject("unreached")
+						end
+					end)
 					return nil
 				end
 
@@ -772,7 +793,9 @@ return function()
 						nil,
 						Boolean.toJSBoolean(mounted)
 								and React.createElement(QueryComponent, {
-									unmount = unmount,
+									unmount = function()
+										unmount(ref)
+									end,
 								})
 							or nil
 					)
@@ -783,22 +806,16 @@ return function()
 					link = mockLink,
 				}, React.createElement(Component, nil)))
 
-				return wait(function()
+				return wait_(function()
 					jestExpect(linkRequestSpy).toHaveBeenCalledTimes(1)
 					jestExpect(renderCount).toBe(2)
 				end):andThen(resolve, reject)
 			end)
 
-			itAsync(it)(
+			itAsync(itFIXME)(
 				"should stop polling when the component is unmounted when using StrictMode",
 				function(resolve, reject)
-					local mocks = Array.concat(
-						{},
-						table.unpack(CAR_MOCKS),
-						table.unpack(CAR_MOCKS),
-						table.unpack(CAR_MOCKS),
-						table.unpack(CAR_MOCKS)
-					)
+					local mocks = Array.concat({}, CAR_MOCKS, CAR_MOCKS, CAR_MOCKS, CAR_MOCKS)
 					local mockLink = MockLink.new(mocks):setOnError(reject)
 					-- ROBLOX TODO: spyon not available. replace with jest.fn?
 					local linkRequestSpy: any = function(...) end
@@ -812,10 +829,8 @@ return function()
 
 						repeat --[[ ROBLOX comment: switch statement conversion ]]
 							local entered_, break_ = false, false
-							local condition_ = (function()
-								renderCount += 1
-								return renderCount
-							end)()
+							renderCount += 1
+							local condition_ = renderCount
 							for _, v in ipairs({ 1, 2, 3, 4 }) do
 								if condition_ == v then
 									if v == 1 then
@@ -836,7 +851,9 @@ return function()
 										jestExpect(data).toEqual(CAR_RESULT_DATA)
 										jestExpect(linkRequestSpy).toHaveBeenCalledTimes(1)
 										if renderCount == 3 then
-											setTimeout(unmount, 10)
+											setTimeout(function()
+												unmount(ref)
+											end, 10)
 										end
 										break_ = true
 										break
@@ -859,7 +876,9 @@ return function()
 							nil,
 							Boolean.toJSBoolean(mounted)
 									and React.createElement(QueryComponent, {
-										unmount = unmount,
+										unmount = function()
+											unmount(ref)
+										end,
 									})
 								or nil
 						)
@@ -874,14 +893,14 @@ return function()
 						}, React.createElement(Component, nil))
 					))
 
-					return wait(function()
+					return wait_(function()
 						jestExpect(linkRequestSpy).toHaveBeenCalledTimes(1)
 						jestExpect(renderCount).toBe(4)
 					end):andThen(resolve, reject)
 				end
 			)
 
-			itAsync(it)(
+			itAsync(itFIXME)(
 				"should not throw an error if `stopPolling` is called manually after "
 					.. "a component has unmounted (even though polling has already been "
 					.. "stopped automatically)",
@@ -893,37 +912,43 @@ return function()
 						local queryResult = useQuery(CAR_QUERY, {
 							pollInterval = 10,
 						})
-						local data, loading, stopPolling =
-							queryResult.data, queryResult.loading, queryResult.stopPolling
+						rejectOnComponentThrow(reject, function()
+							local data, loading, stopPolling =
+								queryResult.data, queryResult.loading, queryResult.stopPolling
 
-						--[[ ROBLOX comment: switch statement conversion ]]
-						if renderCount == 0 then
-							jestExpect(loading).toBeTruthy()
-						elseif renderCount == 1 then
-							jestExpect(loading).toBeFalsy()
-							jestExpect(data).toEqual(CAR_RESULT_DATA)
-							setTimeout(function()
-								unmount()
-								stopPolling()
-							end)
-						end
-						renderCount += 1
+							--[[ ROBLOX comment: switch statement conversion ]]
+							if renderCount == 0 then
+								jestExpect(loading).toBeTruthy()
+							elseif renderCount == 1 then
+								jestExpect(loading).toBeFalsy()
+								jestExpect(data).toEqual(CAR_RESULT_DATA)
+								setTimeout(function()
+									unmount()
+									stopPolling(queryResult)
+								end)
+							end
+							renderCount += 1
+						end)
 						return nil
 					end
 
-					local mocks = Array.concat({}, table.unpack(CAR_MOCKS), table.unpack(CAR_MOCKS))
+					local mocks = Array.concat({}, CAR_MOCKS, CAR_MOCKS)
 
-					unmount = render(React.createElement(MockedProvider, {
+					local rendered = render(React.createElement(MockedProvider, {
 						link = MockLink.new(mocks):setOnError(reject),
-					}, React.createElement(Component, nil))).unmount
+					}, React.createElement(Component, nil)))
 
-					return wait(function()
+					unmount = function()
+						rendered:unmount()
+					end
+
+					return wait_(function()
 						jestExpect(renderCount).toBe(2)
 					end):andThen(resolve, reject)
 				end
 			)
 
-			itAsync(it)("stop polling and start polling should work with StrictMode", function(resolve, reject)
+			itAsync(itFIXME)("stop polling and start polling should work with StrictMode", function(resolve, reject)
 				local query = gql([[
 
 					query car {
@@ -941,44 +966,23 @@ return function()
 					local queryResult = useQuery(query, {
 						pollInterval = 100,
 					})
+					rejectOnComponentThrow(reject, function()
+						local data, loading, stopPolling =
+							queryResult.data, queryResult.loading, queryResult.stopPolling
 
-					local data, loading, stopPolling = queryResult.data, queryResult.loading, queryResult.stopPolling
-
-					repeat --[[ ROBLOX comment: switch statement conversion ]]
-						local entered_, break_ = false, false
-						local condition_ = (function()
-							renderCount += 1
-							return renderCount
-						end)()
-						for _, v in ipairs({ 1, 2, 3, 4 }) do
-							if condition_ == v then
-								if v == 1 then
-									entered_ = true
-								end
-								if v == 2 or entered_ then
-									entered_ = true
-									jestExpect(loading).toBeTruthy()
-									jestExpect(data).toBeUndefined()
-									break_ = true
-									break
-								end
-								if v == 3 or entered_ then
-									entered_ = true
-								end
-								if v == 4 or entered_ then
-									entered_ = true
-									jestExpect(loading).toBeFalsy()
-									jestExpect(data).toEqual(data1)
-									stopPolling()
-									break_ = true
-									break
-								end
-							end
-						end
-						if not break_ then
+						renderCount += 1
+						local condition_ = renderCount
+						if condition_ == 1 or condition_ == 2 then
+							jestExpect(loading).toBeTruthy()
+							jestExpect(data).toBeUndefined()
+						elseif condition_ == 3 or condition_ == 4 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(data).toEqual(data1)
+							stopPolling(queryResult)
+						else
 							reject(Error.new("UnjestExpected render count"))
 						end
-					until true
+					end)
 					return nil
 				end
 
@@ -990,7 +994,7 @@ return function()
 					}, React.createElement(Component, nil))
 				))
 
-				return wait(function()
+				return wait_(function()
 					jestExpect(renderCount).toBe(4)
 				end):andThen(function()
 					setTimeout(resolve, 300)
@@ -1001,10 +1005,8 @@ return function()
 				local function Component()
 					local queryResult = useQuery(CAR_QUERY)
 					local loading, called = queryResult.loading, queryResult.called
-
 					jestExpect(loading).toBeTruthy()
 					jestExpect(called).toBeTruthy()
-
 					return nil
 				end
 
@@ -1031,19 +1033,21 @@ return function()
 
 				local function Component()
 					local queryResult = useQuery(query)
-					local loading, error_ = queryResult.loading, queryResult.error
+					rejectOnComponentThrow(reject, function()
+						local loading, error_ = queryResult.loading, queryResult.error
 
-					if not Boolean.toJSBoolean(loading) then
-						jestExpect(error_).toBeDefined()
-						jestExpect(error_.message).toEqual("forced error")
-					end
+						if not Boolean.toJSBoolean(loading) then
+							jestExpect(error_).toBeDefined()
+							jestExpect(error_.message).toEqual("forced error")
+						end
+					end)
 					return nil
 				end
 
 				render(React.createElement(MockedProvider, {
 					mocks = mocks,
 				}, React.createElement(Component, nil)))
-				return wait():andThen(resolve, reject)
+				return wait_():andThen(resolve, reject)
 			end)
 
 			itAsync(it)("should only call onError callbacks once", function(resolve, reject)
@@ -1063,7 +1067,7 @@ return function()
 					if not Boolean.toJSBoolean(callCount) then
 						callCount += 1
 						return Observable.new(function(observer)
-							observer:error_(Error.new("Oh no!"))
+							observer:error(Error.new("Oh no!"))
 						end)
 					else
 						return Observable.of({ data = resultData })
@@ -1081,44 +1085,45 @@ return function()
 						onError = onError,
 						notifyOnNetworkStatusChange = true,
 					})
-					local loading, error_, refetch, data, networkStatus =
-						queryResult.loading,
-						queryResult.error,
-						queryResult.refetch,
-						queryResult.data,
-						queryResult.networkStatus
 
-					--[[ ROBLOX comment: switch statement conversion ]]
-					local condition_ = (function()
+					rejectOnComponentThrow(reject, function()
+						local loading, error_, refetch, data, networkStatus =
+							queryResult.loading,
+							queryResult.error,
+							queryResult.refetch,
+							queryResult.data,
+							queryResult.networkStatus
+
+						--[[ ROBLOX comment: switch statement conversion ]]
 						renderCount += 1
-						return renderCount
-					end)()
-					if condition_ == 1 then
-						jestExpect(loading).toBeTruthy()
-					elseif condition_ == 2 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(error_).toBeDefined()
-						jestExpect(error_.message).toEqual("Oh no!")
-						onErrorPromise:andThen(function()
-							return refetch()
-						end)
-					elseif condition_ == 3 then
-						jestExpect(loading).toBeTruthy()
-						jestExpect(networkStatus).toBe(NetworkStatus.refetch)
-					elseif condition_ == 4 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(data).toEqual(resultData)
-					else
-						--[[
-								// Do nothing
-							]]
-					end
+						local condition_ = renderCount
+						if condition_ == 1 then
+							jestExpect(loading).toBeTruthy()
+						elseif condition_ == 2 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(error_).toBeDefined()
+							jestExpect(error_.message).toEqual("Oh no!")
+							onErrorPromise:andThen(function()
+								return refetch(queryResult)
+							end)
+						elseif condition_ == 3 then
+							jestExpect(loading).toBeTruthy()
+							jestExpect(networkStatus).toBe(NetworkStatus.refetch)
+						elseif condition_ == 4 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(data).toEqual(resultData)
+						else
+							-- Do nothing
+						end
+					end)
 					return nil
 				end
+
 				render(React.createElement(ApolloProvider, {
 					client = client,
 				}, React.createElement(Component, nil)))
-				return wait(function()
+
+				return wait_(function()
 					jestExpect(renderCount).toBe(4)
 				end):andThen(resolve, reject)
 			end)
@@ -1141,40 +1146,35 @@ return function()
 				}
 				local renderCount = 0
 				local function App()
-					local forceUpdate = table.unpack(
-						useReducer(function(x: number)
-							return x + 1
-						end, 0, nil),
-						1,
-						1
-					)
+					local _tick, forceUpdate = useReducer(function(x: number)
+						return x + 1
+					end, 0, nil)
+
 					local queryRef = useQuery(query)
-					local loading, error_ = queryRef.loading, queryRef.error
 
-					--[[ ROBLOX comment: switch statement conversion ]]
-					local condition_ = (function()
+					rejectOnComponentThrow(reject, function()
+						local loading, error_ = queryRef.loading, queryRef.error
+
+						--[[ ROBLOX comment: switch statement conversion ]]
 						renderCount += 1
-						return renderCount
-					end)()
+						local condition_ = renderCount
 
-					if condition_ == 1 then
-						jestExpect(loading).toBeTruthy()
-						jestExpect(error_).toBeUndefined()
-					elseif condition_ == 2 then
-						jestExpect(error_).toBeDefined()
-						jestExpect(error_.message).toEqual("forced error")
-						setTimeout(function()
-							forceUpdate()
-						end)
-					elseif condition_ == 3 then
-						jestExpect(error_).toBeDefined()
-						jestExpect(error_.message).toEqual("forced error")
-					else
-						--[[
-							// Do nothing
-						]]
-					end
-
+						if condition_ == 1 then
+							jestExpect(loading).toBeTruthy()
+							jestExpect(error_).toBeUndefined()
+						elseif condition_ == 2 then
+							jestExpect(error_).toBeDefined()
+							jestExpect(error_.message).toEqual("forced error")
+							setTimeout(function()
+								forceUpdate()
+							end)
+						elseif condition_ == 3 then
+							jestExpect(error_).toBeDefined()
+							jestExpect(error_.message).toEqual("forced error")
+						else
+							-- Do nothing
+						end
+					end)
 					return nil
 				end
 
@@ -1182,12 +1182,12 @@ return function()
 					mocks = mocks,
 				}, React.createElement(App, nil)))
 
-				return wait(function()
+				return wait_(function()
 					jestExpect(renderCount).toBe(3)
 				end):andThen(resolve, reject)
 			end)
 
-			itAsync(it)(
+			itAsync(itFIXME)(
 				"should persist errors on re-render when inlining onError and/or " .. "onCompleted callbacks",
 				function(resolve, reject)
 					local query = gql([[
@@ -1218,53 +1218,50 @@ return function()
 					local renderCount = 0
 
 					local function App()
-						local forceUpdate = table.unpack(
-							useReducer(function(x: number)
-								return x + 1
-							end, 0, nil),
-							1,
-							1
-						)
+						local _tick, forceUpdate = useReducer(function(x: number)
+							return x + 1
+						end, 0, nil)
 
 						local queryRef = useQuery(query, {
 							onError = function() end,
 							onCompleted = function() end,
 						})
-						local loading, error_ = queryRef.loading, queryRef.error
 
-						--[[ ROBLOX comment: switch statement conversion ]]
-						local condition_ = (function()
+						rejectOnComponentThrow(reject, function()
+							local loading, error_ = queryRef.loading, queryRef.error
+
+							--[[ ROBLOX comment: switch statement conversion ]]
 							renderCount += 1
-							return renderCount
-						end)()
-						if condition_ == 1 then
-							jestExpect(loading).toBeTruthy()
-							jestExpect(error_).toBeUndefined()
-						elseif condition_ == 2 then
-							jestExpect(error_).toBeDefined()
-							jestExpect(error_.message).toEqual("forced error")
-							setTimeout(function()
-								forceUpdate()
-							end)
-						elseif condition_ == 3 then
-							jestExpect(error_).toBeDefined()
-							jestExpect(error_.message).toEqual("forced error")
-						else
-							--[[
-												// Do nothing
-											]]
-						end
+							local condition_ = renderCount
+							if condition_ == 1 then
+								jestExpect(loading).toBeTruthy()
+								jestExpect(error_).toBeUndefined()
+							elseif condition_ == 2 then
+								jestExpect(error_).toBeDefined()
+								jestExpect(error_.message).toEqual("forced error")
+								setTimeout(function()
+									forceUpdate()
+								end)
+							elseif condition_ == 3 then
+								jestExpect(error_).toBeDefined()
+								jestExpect(error_.message).toEqual("forced error")
+							else
+								-- Do nothing
+							end
+						end)
 						return nil
 					end
 
 					render(React.createElement(MockedProvider, {
 						link = link,
 					}, React.createElement(App, nil)))
-					return wait(function()
+
+					return wait_(function()
 						jestExpect(renderCount).toBe(3)
 					end):andThen(resolve, reject)
 				end
 			)
+
 			itAsync(it)(
 				"should render errors (different error messages) with loading done on refetch",
 				function(resolve, reject)
@@ -1276,6 +1273,7 @@ return function()
 								  }
 								}
 							]])
+
 					local mocks = {
 						{
 							request = { query = query },
@@ -1291,53 +1289,53 @@ return function()
 						},
 					}
 					local renderCount = 0
+
 					local function App()
 						local queryRef = useQuery(query, {
 							notifyOnNetworkStatusChange = true,
 						})
-						local loading, error_, refetch = queryRef.loading, queryRef.error, queryRef.refetch
 
-						--[[ ROBLOX comment: switch statement conversion ]]
-						local condition_ = (function()
+						rejectOnComponentThrow(reject, function()
+							local loading, error_, refetch = queryRef.loading, queryRef.error, queryRef.refetch
+
+							--[[ ROBLOX comment: switch statement conversion ]]
 							renderCount += 1
-							return renderCount
-						end)()
-						if condition_ == 1 then
-							jestExpect(loading).toBeTruthy()
-							jestExpect(error_).toBeUndefined()
-						elseif condition_ == 2 then
-							jestExpect(loading).toBeFalsy()
-							jestExpect(error_).toBeDefined()
-							jestExpect(error_.message).toEqual("an error 1")
-							setTimeout(function()
-								--[[
-														// catch here to avoid failing due to 'uncaught promise rejection'
-													]]
-								refetch():catch(function() end)
-							end)
-						elseif condition_ == 3 then
-							jestExpect(loading).toBeTruthy()
-							jestExpect(error_).toBeUndefined()
-						elseif condition_ == 4 then
-							jestExpect(loading).toBeFalsy()
-							jestExpect(error_).toBeDefined()
-							jestExpect(error_.message).toEqual("an error 2")
-						else
-							--[[
-													// Do nothing
-												]]
-						end
+							local condition_ = renderCount
+							if condition_ == 1 then
+								jestExpect(loading).toBeTruthy()
+								jestExpect(error_).toBeUndefined()
+							elseif condition_ == 2 then
+								jestExpect(loading).toBeFalsy()
+								jestExpect(error_).toBeDefined()
+								jestExpect(error_.message).toEqual("an error 1")
+								setTimeout(function()
+									-- catch here to avoid failing due to 'uncaught promise rejection'
+									refetch(queryRef):catch(function() end)
+								end)
+							elseif condition_ == 3 then
+								jestExpect(loading).toBeTruthy()
+								jestExpect(error_).toBeUndefined()
+							elseif condition_ == 4 then
+								jestExpect(loading).toBeFalsy()
+								jestExpect(error_).toBeDefined()
+								jestExpect(error_.message).toEqual("an error 2")
+							else
+								-- Do nothing
+							end
+						end)
 						return nil
 					end
 
 					render(React.createElement(MockedProvider, {
 						mocks = mocks,
 					}, React.createElement(App, nil)))
-					return wait(function()
+
+					return wait_(function()
 						jestExpect(renderCount).toBe(4)
 					end):andThen(resolve, reject)
 				end
 			)
+
 			itAsync(it)("should not re-render same error message on refetch", function(resolve, reject)
 				local query = gql([[
 
@@ -1365,40 +1363,38 @@ return function()
 						notifyOnNetworkStatusChange = true,
 					})
 
-					local loading, error_, refetch = queryRef.loading, queryRef.error, queryRef.refetch
+					rejectOnComponentThrow(reject, function()
+						local loading, error_, refetch = queryRef.loading, queryRef.error, queryRef.refetch
 
-					--[[ ROBLOX comment: switch statement conversion ]]
-					local condition_ = (function()
+						--[[ ROBLOX comment: switch statement conversion ]]
 						renderCount += 1
-						return renderCount
-					end)()
+						local condition_ = renderCount
 
-					if condition_ == 1 then
-						jestExpect(loading).toBeTruthy()
-						jestExpect(error_).toBeUndefined()
-					elseif condition_ == 2 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(error_).toBeDefined()
-						jestExpect(error_.message).toEqual("same error message")
-						refetch():catch(function(error_)
-							if error_.message ~= "same error message" then
-								reject(error_)
-							end
-						end)
-					end
-					if condition_ == 3 then
-						jestExpect(loading).toBeTruthy()
-						jestExpect(error_).toBeUndefined()
-					end
-					if condition_ == 4 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(error_).toBeDefined()
-						jestExpect(error_.message).toEqual("same error message")
-					else
-						--[[
-										// Do nothing
-									]]
-					end
+						if condition_ == 1 then
+							jestExpect(loading).toBeTruthy()
+							jestExpect(error_).toBeUndefined()
+						elseif condition_ == 2 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(error_).toBeDefined()
+							jestExpect(error_.message).toEqual("same error message")
+							refetch(queryRef):catch(function(error_)
+								if error_.message ~= "same error message" then
+									reject(error_)
+								end
+							end)
+						end
+						if condition_ == 3 then
+							jestExpect(loading).toBeTruthy()
+							jestExpect(error_).toBeUndefined()
+						end
+						if condition_ == 4 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(error_).toBeDefined()
+							jestExpect(error_.message).toEqual("same error message")
+						else
+							-- Do nothing
+						end
+					end)
 					return nil
 				end
 
@@ -1406,7 +1402,7 @@ return function()
 					mocks = mocks,
 				}, React.createElement(App, nil)))
 
-				return wait(function()
+				return wait_(function()
 					jestExpect(renderCount).toBe(4)
 				end):andThen(resolve, reject)
 			end)
@@ -1426,73 +1422,67 @@ return function()
 						},
 					}
 					local renderCount = 0
+
 					local function App()
 						local queryRef = useQuery(CAR_QUERY, {
 							notifyOnNetworkStatusChange = true,
 						})
-						local loading, data, error_, refetch =
-							queryRef.loading, queryRef.data, queryRef.error, queryRef.refetch
 
-						--[[ ROBLOX comment: switch statement conversion ]]
-						local condition_ = (function()
+						rejectOnComponentThrow(reject, function()
+							local loading, data, error_, refetch =
+								queryRef.loading, queryRef.data, queryRef.error, queryRef.refetch
+
+							--[[ ROBLOX comment: switch statement conversion ]]
 							renderCount += 1
-							return renderCount
-						end)()
+							local condition_ = renderCount
 
-						if condition_ == 1 then
-							jestExpect(loading).toBeTruthy()
-							jestExpect(error_).toBeUndefined()
-						elseif condition_ == 2 then
-							jestExpect(loading).toBeFalsy()
-							jestExpect(error_).toBeDefined()
-							jestExpect(error_.message).toEqual("same error message")
-							setTimeout(function()
-								--[[
-														// catch here to avoid failing due to 'uncaught promise rejection'
-													]]
-								refetch():catch(function() end)
-							end)
-						elseif condition_ == 3 then
-							jestExpect(loading).toBeTruthy()
-						elseif condition_ == 4 then
-							jestExpect(loading).toBeFalsy()
-							jestExpect(error_).toBeUndefined()
-							jestExpect(data).toEqual(CAR_RESULT_DATA)
-							setTimeout(function()
-								--[[
-														// catch here to avoid failing due to 'uncaught promise rejection'
-													]]
-								refetch():catch(function() end)
-							end)
-						elseif condition_ == 5 then
-							jestExpect(loading).toBeTruthy()
-						elseif condition_ == 6 then
-							jestExpect(loading).toBeFalsy()
-							jestExpect(error_).toBeDefined()
-							jestExpect(error_.message).toEqual("same error message")
-						else
-							--[[
-											// Do nothing
-										]]
-						end
-
+							if condition_ == 1 then
+								jestExpect(loading).toBeTruthy()
+								jestExpect(error_).toBeUndefined()
+							elseif condition_ == 2 then
+								jestExpect(loading).toBeFalsy()
+								jestExpect(error_).toBeDefined()
+								jestExpect(error_.message).toEqual("same error message")
+								setTimeout(function()
+									-- catch here to avoid failing due to 'uncaught promise rejection'
+									refetch(queryRef):catch(function() end)
+								end)
+							elseif condition_ == 3 then
+								jestExpect(loading).toBeTruthy()
+							elseif condition_ == 4 then
+								jestExpect(loading).toBeFalsy()
+								jestExpect(error_).toBeUndefined()
+								jestExpect(data).toEqual(CAR_RESULT_DATA)
+								setTimeout(function()
+									-- catch here to avoid failing due to 'uncaught promise rejection'
+									refetch(queryRef):catch(function() end)
+								end)
+							elseif condition_ == 5 then
+								jestExpect(loading).toBeTruthy()
+							elseif condition_ == 6 then
+								jestExpect(loading).toBeFalsy()
+								jestExpect(error_).toBeDefined()
+								jestExpect(error_.message).toEqual("same error message")
+							else
+								-- Do nothing
+							end
+						end)
 						return nil
 					end
 					render(React.createElement(MockedProvider, {
 						mocks = mocks,
 					}, React.createElement(App, nil)))
-					return wait(function()
+					return wait_(function()
 						jestExpect(renderCount).toBe(6)
 					end):andThen(resolve, reject)
 				end
 			)
 		end)
-		describe("Pagination", function()
-			--[[
-				// Because fetchMore with updateQuery is deprecated, this setup/teardown
-    		// code is used to squash deprecation notices.
-    		// TODO: delete me after fetchMore with updateQuery is removed.
-			]]
+
+		xdescribe("Pagination", function()
+			-- Because fetchMore with updateQuery is deprecated, this setup/teardown
+			-- code is used to squash deprecation notices.
+			-- TODO: delete me after fetchMore with updateQuery is removed.
 			local spy: any
 			local warned = false
 			beforeEach(function()
@@ -1570,10 +1560,8 @@ return function()
 									ref.loading, ref.networkStatus, ref.data, ref.fetchMore
 							end
 							--[[ ROBLOX comment: switch statement conversion ]]
-							local condition_ = (function()
-								renderCount += 1
-								return renderCount
-							end)()
+							renderCount += 1
+							local condition_ = renderCount
 							if condition_ == 1 then
 								jestExpect(loading).toBeTruthy()
 								jestExpect(networkStatus).toBe(NetworkStatus.loading)
@@ -1604,12 +1592,8 @@ return function()
 								jestExpect(networkStatus).toBe(NetworkStatus.ready)
 								jestExpect(data).toEqual({
 									cars = {
-										carResults.cars[
-											1 --[[ ROBLOX adaptation: added 1 to array index ]]
-										],
-										moreCarResults.cars[
-											1 --[[ ROBLOX adaptation: added 1 to array index ]]
-										],
+										carResults.cars[1],
+										moreCarResults.cars[1],
 									},
 								})
 							else
@@ -1618,12 +1602,10 @@ return function()
 							return nil
 						end
 						render(React.createElement(MockedProvider, { mocks = mocks }, React.createElement(App, nil)))
-						return wait(function()
+						return wait_(function()
 							jestExpect(renderCount).toBe(4)
-							--[[
-							          // TODO: delete me after fetchMore with updateQuery is removed.
+							-- TODO: delete me after fetchMore with updateQuery is removed.
 
-						]]
 							if Boolean.toJSBoolean(spy) then
 								jestExpect(spy).toHaveBeenCalledTimes(1)
 								spy:mockRestore()
@@ -1643,10 +1625,8 @@ return function()
 								loading, networkStatus, data, fetchMore =
 									ref.loading, ref.networkStatus, ref.data, ref.fetchMore
 							end
-							local condition_ = (function()
-								renderCount += 1
-								return renderCount
-							end)()
+							renderCount += 1
+							local condition_ = renderCount
 							if condition_ == 1 then
 								jestExpect(loading).toBeTruthy()
 								jestExpect(networkStatus).toBe(NetworkStatus.loading)
@@ -1684,11 +1664,9 @@ return function()
 								React.createElement(App, nil)
 							)
 						)
-						return wait(function()
+						return wait_(function()
 							jestExpect(renderCount).toBe(4)
-							--[[
-							// TODO: delete me after fetchMore with updateQuery is removed.
-						]]
+							-- TODO: delete me after fetchMore with updateQuery is removed.
 							if Boolean.toJSBoolean(spy) then
 								jestExpect(spy).toHaveBeenCalledTimes(1)
 								spy:mockRestore()
@@ -1789,7 +1767,7 @@ return function()
 							return nil
 						end
 						render(React.createElement(MockedProvider, { mocks = mocks }, React.createElement(App, nil)))
-						return wait(function()
+						return wait_(function()
 							jestExpect(renderCount).toBe(3)
 						end):andThen(resolve, reject)
 					end)
@@ -1815,12 +1793,8 @@ return function()
 								jestExpect(loading).toBeFalsy()
 								jestExpect(data).toEqual({
 									cars = {
-										carResults.cars[
-											1 --[[ ROBLOX adaptation: added 1 to array index ]]
-										],
-										moreCarResults.cars[
-											1 --[[ ROBLOX adaptation: added 1 to array index ]]
-										],
+										carResults.cars[1],
+										moreCarResults.cars[1],
 									},
 								})
 							end
@@ -1837,7 +1811,7 @@ return function()
 								React.createElement(App, nil)
 							)
 						)
-						return wait(function()
+						return wait_(function()
 							jestExpect(renderCount).toBe(3)
 						end):andThen(resolve, reject)
 					end)
@@ -1902,25 +1876,24 @@ return function()
 					},
 				}
 				local renderCount = 0
+
 				local function App()
-					local loading, data, refetch
-					do
-						local ref = useQuery(carQuery, { variables = { id = 1 }, notifyOnNetworkStatusChange = true })
-						loading, data, refetch = ref.loading, ref.data, ref.refetch
-					end
+					local ref = useQuery(carQuery, { variables = { id = 1 }, notifyOnNetworkStatusChange = true })
+					local loading, data, refetch = ref.loading, ref.data, ref.refetch
+
 					--[[ ROBLOX comment: switch statement conversion ]]
 					if renderCount == 0 then
 						jestExpect(loading).toBeTruthy()
 					elseif renderCount == 1 then
 						jestExpect(loading).toBeFalsy()
 						jestExpect(data).toEqual(carData1)
-						refetch({ id = 2 })
+						refetch(ref, { id = 2 })
 					elseif renderCount == 2 then
 						jestExpect(loading).toBeTruthy()
 					elseif renderCount == 3 then
 						jestExpect(loading).toBeFalsy()
 						jestExpect(data).toEqual(carData2)
-						refetch({ id = 1 })
+						refetch(ref, { id = 1 })
 					elseif renderCount == 4 then
 						jestExpect(loading).toBeTruthy()
 					elseif renderCount == 5 then
@@ -1932,7 +1905,7 @@ return function()
 					return nil
 				end
 				render(React.createElement(MockedProvider, { mocks = mocks }, React.createElement(App, nil)))
-				return wait(function()
+				return wait_(function()
 					jestExpect(renderCount).toBe(6)
 				end):andThen(resolve, reject)
 			end)
@@ -1965,7 +1938,7 @@ return function()
 							fields = {
 								primes = {
 									keyArgs = false,
-									merge = function(self, existing, incoming)
+									merge = function(_self, existing, incoming)
 										table.insert(mergeParams, { existing, incoming })
 										return Boolean.toJSBoolean(existing) and Array.concat({}, existing, incoming)
 											or incoming
@@ -1976,79 +1949,70 @@ return function()
 					},
 				} :: any)
 				local renderCount = 0
-				local function App()
-					local loading, networkStatus, data, error_, refetch
-					do
-						local ref = useQuery(query, {
-							variables = { min = 0, max = 12 },
-							notifyOnNetworkStatusChange = true,
-							--[[
 
-								// This is the key line in this test.
-							]]
-							refetchWritePolicy = "overwrite",
-						})
-						loading, networkStatus, data, error_, refetch =
+				local function App()
+					local ref = useQuery(query, {
+						variables = { min = 0, max = 12 },
+						notifyOnNetworkStatusChange = true,
+						-- This is the key line in this test.
+						refetchWritePolicy = "overwrite",
+					})
+
+					rejectOnComponentThrow(reject, function()
+						local loading, networkStatus, data, error_, refetch =
 							ref.loading, ref.networkStatus, ref.data, ref.error, ref.refetch
-					end
-					local condition_ = (function()
 						renderCount += 1
-						return renderCount
-					end)()
-					if condition_ == 1 then
-						jestExpect(loading).toBeTruthy()
-						jestExpect(error_).toBeUndefined()
-						jestExpect(data).toBeUndefined()
-						jestExpect(typeof(refetch)).toBe("function")
-					elseif condition_ == 2 then
-						jestExpect(loading).toBe(false)
-						jestExpect(error_).toBeUndefined()
-						jestExpect(data).toEqual({ primes = { 2, 3, 5, 7, 11 } })
-						jestExpect(mergeParams).toEqual({ { nil, { 2, 3, 5, 7, 11 } :: any } })
-						act(function()
-							refetch({ min = 12, max = 30 }):andThen(function(result)
-								jestExpect(result).toEqual({
-									loading = false,
-									networkStatus = NetworkStatus.ready,
-									data = { primes = { 13, 17, 19, 23, 29 } },
-								})
+						local condition_ = renderCount
+						if condition_ == 1 then
+							jestExpect(loading).toBeTruthy()
+							jestExpect(error_).toBeUndefined()
+							jestExpect(data).toBeUndefined()
+							jestExpect(typeof(refetch)).toBe("function")
+						elseif condition_ == 2 then
+							jestExpect(loading).toBe(false)
+							jestExpect(error_).toBeUndefined()
+							jestExpect(data).toEqual({ primes = { 2, 3, 5, 7, 11 } })
+							jestExpect(mergeParams).toEqual({ { nil, { 2, 3, 5, 7, 11 } :: any } })
+							act(function()
+								refetch(ref, { min = 12, max = 30 }):andThen(function(result)
+									jestExpect(result).toEqual({
+										loading = false,
+										networkStatus = NetworkStatus.ready,
+										data = { primes = { 13, 17, 19, 23, 29 } },
+									})
+								end)
 							end)
-						end)
-					elseif condition_ == 3 then
-						jestExpect(loading).toBe(true)
-						jestExpect(error_).toBeUndefined()
-						jestExpect(data).toEqual({
-							--[[
-											// We get the stale data because we configured keyArgs: false.
-										]]
-							primes = { 2, 3, 5, 7, 11 },
-						})
-						--[[
-											// This networkStatus is setVariables instead of refetch because
-											// we called refetch with new variables.
-										]]
-						jestExpect(networkStatus).toBe(NetworkStatus.setVariables)
-					elseif condition_ == 4 then
-						jestExpect(loading).toBe(false)
-						jestExpect(error_).toBeUndefined()
-						jestExpect(data).toEqual({ primes = { 13, 17, 19, 23, 29 } })
-						jestExpect(mergeParams).toEqual({
-							{ nil, { 2, 3, 5, 7, 11 } :: any },
-							--[[
-											// Without refetchWritePolicy: "overwrite", this array will be
-			  								// all 10 primes (2 through 29) together.
-										]]
-							{ nil, { 13, 17, 19, 23, 29 } :: any },
-						})
-					else
-						reject("too many renders")
-					end
+						elseif condition_ == 3 then
+							jestExpect(loading).toBe(true)
+							jestExpect(error_).toBeUndefined()
+							jestExpect(data).toEqual({
+								-- We get the stale data because we configured keyArgs: false.
+								primes = { 2, 3, 5, 7, 11 },
+							})
+							-- This networkStatus is setVariables instead of refetch because
+							-- we called refetch with new variables.
+							jestExpect(networkStatus).toBe(NetworkStatus.setVariables)
+						elseif condition_ == 4 then
+							jestExpect(loading).toBe(false)
+							jestExpect(error_).toBeUndefined()
+							jestExpect(data).toEqual({ primes = { 13, 17, 19, 23, 29 } })
+							jestExpect(mergeParams).toEqual({
+								{ nil, { 2, 3, 5, 7, 11 } :: any },
+								-- Without refetchWritePolicy: "overwrite", this array will be
+								-- all 10 primes (2 through 29) together.
+								{ nil, { 13, 17, 19, 23, 29 } :: any },
+							})
+						else
+							reject("too many renders")
+						end
+					end)
+
 					return nil
 				end
 				render(
 					React.createElement(MockedProvider, { cache = cache, mocks = mocks }, React.createElement(App, nil))
 				)
-				return wait(function()
+				return wait_(function()
 					jestExpect(renderCount).toBe(4)
 				end):andThen(resolve, reject)
 			end)
@@ -2061,14 +2025,9 @@ return function()
 							fields = {
 								primes = {
 									keyArgs = false,
-									merge = function(self, existing, incoming)
+									merge = function(_self, existing, incoming)
 										table.insert(mergeParams, { existing, incoming })
-										return Boolean.toJSBoolean(existing)
-												and Array.concat(
-													{},
-													table.unpack(existing),
-													table.unpack(incoming)
-												)
+										return Boolean.toJSBoolean(existing) and Array.concat({}, existing, incoming)
 											or incoming
 									end,
 								},
@@ -2077,83 +2036,75 @@ return function()
 					},
 				} :: any)
 				local renderCount = 0
+
 				local function App()
-					local loading, networkStatus, data, error_, refetch
-					do
-						local ref = useQuery(query, {
-							variables = { min = 0, max = 12 },
-							notifyOnNetworkStatusChange = true,
-							--[[
-								// This is the key line in this test.
-							]]
-							refetchWritePolicy = "merge",
-						})
-						loading, networkStatus, data, error_, refetch =
+					local ref = useQuery(query, {
+						variables = { min = 0, max = 12 },
+						notifyOnNetworkStatusChange = true,
+						-- This is the key line in this test.
+						refetchWritePolicy = "merge",
+					})
+
+					rejectOnComponentThrow(reject, function()
+						local loading, networkStatus, data, error_, refetch =
 							ref.loading, ref.networkStatus, ref.data, ref.error, ref.refetch
-					end
-					--[[ ROBLOX comment: switch statement conversion ]]
-					local condition_ = (function()
+
+						--[[ ROBLOX comment: switch statement conversion ]]
 						renderCount += 1
-						return renderCount
-					end)()
-					if condition_ == 1 then
-						jestExpect(loading).toBeTruthy()
-						jestExpect(error_).toBeUndefined()
-						jestExpect(data).toBeUndefined()
-						jestExpect(typeof(refetch)).toBe("function")
-					elseif condition_ == 2 then
-						jestExpect(loading).toBe(false)
-						jestExpect(error_).toBeUndefined()
-						jestExpect(data).toEqual({ primes = { 2, 3, 5, 7, 11 } })
-						jestExpect(mergeParams).toEqual({ { nil, { 2, 3, 5, 7, 11 } :: any } })
-						act(function()
-							refetch({ min = 12, max = 30 }):andThen(function(result)
-								jestExpect(result).toEqual({
-									loading = false,
-									networkStatus = NetworkStatus.ready,
-									data = { primes = { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29 } },
-								})
+						local condition_ = renderCount
+						if condition_ == 1 then
+							jestExpect(loading).toBeTruthy()
+							jestExpect(error_).toBeUndefined()
+							jestExpect(data).toBeUndefined()
+							jestExpect(typeof(refetch)).toBe("function")
+						elseif condition_ == 2 then
+							jestExpect(loading).toBe(false)
+							jestExpect(error_).toBeUndefined()
+							jestExpect(data).toEqual({ primes = { 2, 3, 5, 7, 11 } })
+							jestExpect(mergeParams).toEqual({ { nil, { 2, 3, 5, 7, 11 } :: any } })
+							act(function()
+								refetch(ref, { min = 12, max = 30 }):andThen(function(result)
+									jestExpect(result).toEqual({
+										loading = false,
+										networkStatus = NetworkStatus.ready,
+										data = { primes = { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29 } },
+									})
+								end)
 							end)
-						end)
-					elseif condition_ == 3 then
-						jestExpect(loading).toBe(true)
-						jestExpect(error_).toBeUndefined()
-						jestExpect(data).toEqual({
-							--[[
-											// We get the stale data because we configured keyArgs: false.
-										]]
-							primes = { 2, 3, 5, 7, 11 },
-						})
-						--[[
-											// This networkStatus is setVariables instead of refetch because
-											// we called refetch with new variables.
-										]]
-						jestExpect(networkStatus).toBe(NetworkStatus.setVariables)
-					elseif condition_ == 4 then
-						jestExpect(loading).toBe(false)
-						jestExpect(error_).toBeUndefined()
-						jestExpect(data).toEqual({
-							--[[
-											// Thanks to refetchWritePolicy: "merge".
-										]]
-							primes = { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29 },
-						})
-						jestExpect(mergeParams).toEqual({
-							{ nil, { 2, 3, 5, 7, 11 } :: any },
-							--[[
-											// This indicates concatenation happened.
-										]]
-							{ { 2, 3, 5, 7, 11 } :: any, { 13, 17, 19, 23, 29 } :: any },
-						})
-					else
-						reject("too many renders")
-					end
+						elseif condition_ == 3 then
+							jestExpect(loading).toBe(true)
+							jestExpect(error_).toBeUndefined()
+							jestExpect(data).toEqual({
+								-- We get the stale data because we configured keyArgs: false.
+								primes = { 2, 3, 5, 7, 11 },
+							})
+							-- This networkStatus is setVariables instead of refetch because
+							-- we called refetch with new variables.
+							jestExpect(networkStatus).toBe(NetworkStatus.setVariables)
+						elseif condition_ == 4 then
+							jestExpect(loading).toBe(false)
+							jestExpect(error_).toBeUndefined()
+							jestExpect(data).toEqual({
+								-- Thanks to refetchWritePolicy: "merge".
+								primes = { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29 },
+							})
+							jestExpect(mergeParams).toEqual({
+								{ nil, { 2, 3, 5, 7, 11 } :: any },
+								-- This indicates concatenation happened.
+								{ { 2, 3, 5, 7, 11 } :: any, { 13, 17, 19, 23, 29 } :: any },
+							})
+						else
+							reject("too many renders")
+						end
+					end)
 					return nil
 				end
+
 				render(
 					React.createElement(MockedProvider, { cache = cache, mocks = mocks }, React.createElement(App, nil))
 				)
-				return wait(function()
+
+				return wait_(function()
 					jestExpect(renderCount).toBe(4)
 				end):andThen(resolve, reject)
 			end)
@@ -2166,14 +2117,9 @@ return function()
 							fields = {
 								primes = {
 									keyArgs = false,
-									merge = function(self, existing, incoming)
+									merge = function(_self, existing, incoming)
 										table.insert(mergeParams, { existing, incoming })
-										return Boolean.toJSBoolean(existing)
-												and Array.concat(
-													{},
-													table.unpack(existing),
-													table.unpack(incoming)
-												)
+										return Boolean.toJSBoolean(existing) and Array.concat({}, existing, incoming)
 											or incoming
 									end,
 								},
@@ -2182,80 +2128,73 @@ return function()
 					},
 				} :: any)
 				local renderCount = 0
+
 				local function App()
-					local loading, networkStatus, data, error_, refetch
-					do
-						local ref = useQuery(query, {
-							variables = { min = 0, max = 12 },
-							notifyOnNetworkStatusChange = true,
-							--[[
-							// Intentionally not passing refetchWritePolicy.
-						]]
-						})
-						loading, networkStatus, data, error_, refetch =
+					local ref = useQuery(query, {
+						variables = { min = 0, max = 12 },
+						notifyOnNetworkStatusChange = true,
+						-- Intentionally not passing refetchWritePolicy.
+					})
+					rejectOnComponentThrow(reject, function()
+						local loading, networkStatus, data, error_, refetch =
 							ref.loading, ref.networkStatus, ref.data, ref.error, ref.refetch
-					end
-					--[[ ROBLOX comment: switch statement conversion ]]
-					local condition_ = (function()
+
+						--[[ ROBLOX comment: switch statement conversion ]]
 						renderCount += 1
-						return renderCount
-					end)()
-					if condition_ == 1 then
-						jestExpect(loading).toBeTruthy()
-						jestExpect(error_).toBeUndefined()
-						jestExpect(data).toBeUndefined()
-						jestExpect(typeof(refetch)).toBe("function")
-					elseif condition_ == 2 then
-						jestExpect(loading).toBe(false)
-						jestExpect(error_).toBeUndefined()
-						jestExpect(data).toEqual({ primes = { 2, 3, 5, 7, 11 } })
-						jestExpect(mergeParams).toEqual({
-							{ nil, { 2, 3, 5, 7, 11 } :: any },
-						})
-						act(function()
-							refetch({ min = 12, max = 30 }):andThen(function(result)
-								jestExpect(result).toEqual({
-									loading = false,
-									networkStatus = NetworkStatus.ready,
-									data = { primes = { 13, 17, 19, 23, 29 } },
-								})
+						local condition_ = renderCount
+						if condition_ == 1 then
+							jestExpect(loading).toBeTruthy()
+							jestExpect(error_).toBeUndefined()
+							jestExpect(data).toBeUndefined()
+							jestExpect(typeof(refetch)).toBe("function")
+						elseif condition_ == 2 then
+							jestExpect(loading).toBe(false)
+							jestExpect(error_).toBeUndefined()
+							jestExpect(data).toEqual({ primes = { 2, 3, 5, 7, 11 } })
+							jestExpect(mergeParams).toEqual({
+								{ nil, { 2, 3, 5, 7, 11 } :: any },
+							})
+							act(function()
+								refetch(ref, { min = 12, max = 30 }):andThen(function(result)
+									jestExpect(result).toEqual({
+										loading = false,
+										networkStatus = NetworkStatus.ready,
+										data = { primes = { 13, 17, 19, 23, 29 } },
+									})
+								end)
 							end)
-						end)
-					elseif condition_ == 3 then
-						jestExpect(loading).toBe(true)
-						jestExpect(error_).toBeUndefined()
-						jestExpect(data).toEqual({
-							--[[
-											// We get the stale data because we configured keyArgs: false.
-										]]
-							primes = { 2, 3, 5, 7, 11 },
-						})
-						--[[
-											// This networkStatus is setVariables instead of refetch because
-											// we called refetch with new variables.
-										]]
-						jestExpect(networkStatus).toBe(NetworkStatus.setVariables)
-					elseif condition_ == 4 then
-						jestExpect(loading).toBe(false)
-						jestExpect(error_).toBeUndefined()
-						jestExpect(data).toEqual({ primes = { 13, 17, 19, 23, 29 } })
-						jestExpect(mergeParams).toEqual({
-							{ nil, { 2, 3, 5, 7, 11 } :: any },
-							--[[
-											// Without refetchWritePolicy: "overwrite", this array will be
-			  								// all 10 primes (2 through 29) together.
-										]]
-							{ nil, { 13, 17, 19, 23, 29 } :: any },
-						})
-					else
-						reject("too many renders")
-					end
+						elseif condition_ == 3 then
+							jestExpect(loading).toBe(true)
+							jestExpect(error_).toBeUndefined()
+							jestExpect(data).toEqual({
+								-- We get the stale data because we configured keyArgs: false.
+								primes = { 2, 3, 5, 7, 11 },
+							})
+							-- This networkStatus is setVariables instead of refetch because
+							-- we called refetch with new variables.
+							jestExpect(networkStatus).toBe(NetworkStatus.setVariables)
+						elseif condition_ == 4 then
+							jestExpect(loading).toBe(false)
+							jestExpect(error_).toBeUndefined()
+							jestExpect(data).toEqual({ primes = { 13, 17, 19, 23, 29 } })
+							jestExpect(mergeParams).toEqual({
+								{ nil, { 2, 3, 5, 7, 11 } :: any },
+								-- Without refetchWritePolicy: "overwrite", this array will be
+								-- all 10 primes (2 through 29) together.
+								{ nil, { 13, 17, 19, 23, 29 } :: any },
+							})
+						else
+							reject("too many renders")
+						end
+					end)
 					return nil
 				end
+
 				render(
 					React.createElement(MockedProvider, { cache = cache, mocks = mocks }, React.createElement(App, nil))
 				)
-				return wait(function()
+
+				return wait_(function()
 					jestExpect(renderCount).toBe(4)
 				end):andThen(resolve, reject)
 			end)
@@ -2280,7 +2219,9 @@ return function()
 						}
 					]])
 					type Data = { allPeople: { people: Array<{ name: string }> } }
+
 					local peopleData: Data = { allPeople = { people = { { name = "Luke Skywalker" } } } }
+
 					local link = mockSingleLink({
 						request = { query = query, variables = { someVar = "abc123" } },
 						result = { data = nil },
@@ -2290,6 +2231,7 @@ return function()
 					})
 					local client = ApolloClient.new({ link = link, cache = InMemoryCache.new() })
 					local renderCount = 0
+
 					local function Component()
 						local loading, data, networkStatus
 						do
@@ -2300,50 +2242,47 @@ return function()
 							})
 							loading, data, networkStatus = ref.loading, ref.data, ref.networkStatus
 						end
-						--[[ ROBLOX comment: switch statement conversion ]]
-						local condition_ = (function()
-							renderCount += 1
-							return renderCount
-						end)()
-						if condition_ == 1 then
-							--[[
-											// Initial loading render
-										]]
-							jestExpect(loading).toBeTruthy()
-							jestExpect(data).toBeUndefined()
-							jestExpect(networkStatus).toBe(NetworkStatus.loading)
-						elseif condition_ == 2 then
-							--[[
-											// `data` is missing and `partialRetch` is true, so a refetch
-			  								// is triggered and loading is set as true again
-										]]
-							jestExpect(loading).toBeTruthy()
-							jestExpect(data).toBeUndefined()
-							jestExpect(networkStatus).toBe(NetworkStatus.loading)
-						elseif condition_ == 3 then
-							jestExpect(loading).toBeTruthy()
-							jestExpect(data).toBeUndefined()
-							jestExpect(networkStatus).toBe(NetworkStatus.refetch)
-						elseif condition_ == 4 then
-							--[[
-											// Refetch has completed
-										]]
-							jestExpect(loading).toBeFalsy()
-							jestExpect(data).toEqual(peopleData)
-							jestExpect(networkStatus).toBe(NetworkStatus.ready)
-						end
 
+						rejectOnComponentThrow(reject, function()
+							--[[ ROBLOX comment: switch statement conversion ]]
+							renderCount += 1
+							local condition_ = renderCount
+							if condition_ == 1 then
+								-- Initial loading render
+								jestExpect(loading).toBeTruthy()
+								jestExpect(data).toBeUndefined()
+								jestExpect(networkStatus).toBe(NetworkStatus.loading)
+							elseif condition_ == 2 then
+								-- `data` is missing and `partialRetch` is true, so a refetch
+								-- is triggered and loading is set as true again
+								jestExpect(loading).toBeTruthy()
+								jestExpect(data).toBeUndefined()
+								jestExpect(networkStatus).toBe(NetworkStatus.loading)
+							elseif condition_ == 3 then
+								jestExpect(loading).toBeTruthy()
+								jestExpect(data).toBeUndefined()
+								jestExpect(networkStatus).toBe(NetworkStatus.refetch)
+							elseif condition_ == 4 then
+								-- Refetch has completed
+								jestExpect(loading).toBeFalsy()
+								jestExpect(data).toEqual(peopleData)
+								jestExpect(networkStatus).toBe(NetworkStatus.ready)
+							end
+						end)
 						return nil
 					end
+
 					render(
 						React.createElement(ApolloProvider, { client = client }, React.createElement(Component, nil))
 					)
-					return wait(function()
+
+					return wait_(function()
 						jestExpect(renderCount).toBe(4)
 					end):andThen(resolve, reject)
 				end
 			)
 		end)
+
 		describe("Callbacks", function()
 			itAsync(it)(
 				"should pass loaded data to onCompleted when using the cache-only " .. "fetch policy",
@@ -2352,27 +2291,32 @@ return function()
 					local client = ApolloClient.new({ cache = cache, resolvers = {} })
 					cache:writeQuery({ query = CAR_QUERY, data = CAR_RESULT_DATA })
 					local onCompletedCalled = false
+
 					local function Component()
 						local loading, data
 						do
 							local ref = useQuery(CAR_QUERY, {
 								fetchPolicy = "cache-only",
-								onCompleted = function(self, data)
+								onCompleted = function(data)
 									onCompletedCalled = true
 									jestExpect(data).toBeDefined()
 								end,
 							})
 							loading, data = ref.loading, ref.data
 						end
-						if not Boolean.toJSBoolean(loading) then
-							jestExpect(data).toEqual(CAR_RESULT_DATA)
-						end
+
+						rejectOnComponentThrow(reject, function()
+							if not Boolean.toJSBoolean(loading) then
+								jestExpect(data).toEqual(CAR_RESULT_DATA)
+							end
+						end)
 						return nil
 					end
 					render(
 						React.createElement(ApolloProvider, { client = client }, React.createElement(Component, nil))
 					)
-					return wait(function()
+
+					return wait_(function()
 						jestExpect(onCompletedCalled).toBeTruthy()
 					end):andThen(resolve, reject)
 				end
@@ -2384,28 +2328,30 @@ return function()
 				cache:writeQuery({ query = CAR_QUERY, data = CAR_RESULT_DATA })
 				local onCompletedCount = 0
 				local function Component()
-					local loading, data
-					do
-						local ref = useQuery(CAR_QUERY, {
-							fetchPolicy = "cache-only",
-							onCompleted = function(self)
-								onCompletedCount += 1
-							end,
-						})
-						loading, data = ref.loading, ref.data
-					end
-					if not Boolean.toJSBoolean(loading) then
-						jestExpect(data).toEqual(CAR_RESULT_DATA)
-					end
+					local ref = useQuery(CAR_QUERY, {
+						fetchPolicy = "cache-only",
+						onCompleted = function()
+							onCompletedCount += 1
+						end,
+					})
+					rejectOnComponentThrow(reject, function()
+						local loading, data = ref.loading, ref.data
+
+						if not Boolean.toJSBoolean(loading) then
+							jestExpect(data).toEqual(CAR_RESULT_DATA)
+						end
+					end)
 					return nil
 				end
+
 				render(React.createElement(ApolloProvider, { client = client }, React.createElement(Component, nil)))
-				return wait(function()
+
+				return wait_(function()
 					jestExpect(onCompletedCount).toBe(1)
 				end):andThen(resolve, reject)
 			end)
 
-			itAsync(it)("should not repeatedly call onCompleted if it alters state", function(resolve, reject)
+			itAsync(itFIXME)("should not repeatedly call onCompleted if it alters state", function(resolve, reject)
 				local query = gql([[
 
 					query people($first: Int) {
@@ -2421,31 +2367,33 @@ return function()
 					{ request = { query = query, variables = { first = 1 } }, result = { data = data1 } },
 				}
 				local renderCount = 0
-				local function Component()
-					local onCompletedCallCount, setOnCompletedCallCount = table.unpack(useState(0), 1, 2)
-					local loading, data
-					do
-						local ref = useQuery(query, {
-							variables = { first = 1 },
-							onCompleted = function(self)
-								setOnCompletedCallCount(onCompletedCallCount + 1)
-							end,
-						})
-						loading, data = ref.loading, ref.data
-					end
 
-					if renderCount == 0 then
-						jestExpect(loading).toBeTruthy()
-					elseif renderCount == 1 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(data).toEqual(data1)
-					elseif renderCount == 2 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(onCompletedCallCount).toBe(1)
-					end
-					renderCount += 1
+				local function Component()
+					local onCompletedCallCount, setOnCompletedCallCount = useState(0)
+					local ref = useQuery(query, {
+						variables = { first = 1 },
+						onCompleted = function()
+							setOnCompletedCallCount(onCompletedCallCount + 1)
+						end,
+					})
+
+					rejectOnComponentThrow(reject, function()
+						local loading, data = ref.loading, ref.data
+
+						if renderCount == 0 then
+							jestExpect(loading).toBeTruthy()
+						elseif renderCount == 1 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(data).toEqual(data1)
+						elseif renderCount == 2 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(onCompletedCallCount).toBe(1)
+						end
+						renderCount += 1
+					end)
 					return nil
 				end
+
 				render(
 					React.createElement(
 						MockedProvider,
@@ -2453,65 +2401,70 @@ return function()
 						React.createElement(Component, nil)
 					)
 				)
-				return wait(function()
+
+				return wait_(function()
 					jestExpect(renderCount).toBe(3)
 				end):andThen(resolve, reject)
 			end)
 
 			itAsync(it)("should not call onCompleted if skip is true", function(resolve, reject)
 				local function Component()
-					local loading
-					do
-						local ref = useQuery(CAR_QUERY, {
-							skip = true,
-							onCompleted = function(self)
-								fail("should not call onCompleted!")
-							end,
-						})
-						loading = ref.loading
-					end
-					jestExpect(loading).toBeFalsy()
+					local ref = useQuery(CAR_QUERY, {
+						skip = true,
+						onCompleted = function()
+							fail("should not call onCompleted!")
+						end,
+					})
+
+					rejectOnComponentThrow(reject, function()
+						local loading = ref.loading
+						jestExpect(loading).toBeFalsy()
+					end)
 					return nil
 				end
+
 				render(React.createElement(MockedProvider, { mocks = CAR_MOCKS }, React.createElement(Component, nil)))
-				return wait():andThen(resolve, reject)
+
+				return wait_():andThen(resolve, reject)
 			end)
 
-			itAsync(
+			-- ROBLOX FIXME: unhandled equality check for function
+			itAsync(itFIXME)(
 				"should not make extra network requests when `onCompleted` is "
 					.. "defined with a `network-only` fetch policy",
 				function(resolve, reject)
 					local renderCount = 0
 					local function Component()
-						local loading, data
-						do
-							local ref = useQuery(CAR_QUERY, {
-								fetchPolicy = "network-only",
-								onCompleted = function()
-									return nil
-								end,
-							})
-							loading, data = ref.loading, ref.data
-						end
-						--[[ ROBLOX comment: switch statement conversion ]]
-						local condition_ = (function()
+						local ref = useQuery(CAR_QUERY, {
+							fetchPolicy = "network-only",
+							onCompleted = function()
+								return nil
+							end,
+						})
+
+						rejectOnComponentThrow(reject, function()
+							local loading, data = ref.loading, ref.data
+
+							--[[ ROBLOX comment: switch statement conversion ]]
 							renderCount += 1
-							return renderCount
-						end)()
-						if condition_ == 1 then
-							jestExpect(loading).toBeTruthy()
-						elseif condition_ == 2 then
-							jestExpect(loading).toBeFalsy()
-							jestExpect(data).toEqual(CAR_RESULT_DATA)
-						elseif condition_ == 3 then
-							fail("Too many renders")
-						end
+							local condition_ = renderCount
+							if condition_ == 1 then
+								jestExpect(loading).toBeTruthy()
+							elseif condition_ == 2 then
+								jestExpect(loading).toBeFalsy()
+								jestExpect(data).toEqual(CAR_RESULT_DATA)
+							elseif condition_ == 3 then
+								fail("Too many renders")
+							end
+						end)
 						return nil
 					end
+
 					render(
 						React.createElement(MockedProvider, { mocks = CAR_MOCKS }, React.createElement(Component, nil))
 					)
-					return wait(function()
+
+					return wait_(function()
 						jestExpect(renderCount).toBe(2)
 					end):andThen(resolve, reject)
 				end
@@ -2547,9 +2500,7 @@ return function()
 				local carData = { id = 2, make = "Ford", model = "Pinto", __typename = "Car" }
 				local allCarsData = {
 					cars = {
-						carsData.cars[
-							1 --[[ ROBLOX adaptation: added 1 to array index ]]
-						],
+						carsData.cars[1],
 						carData,
 					},
 				}
@@ -2604,72 +2555,59 @@ return function()
 						data, queryLoading = ref.data, ref.loading
 					end
 					--[[ ROBLOX comment: switch statement conversion ]]
-					local condition_ = (function()
-						renderCount += 1
-						return renderCount
-					end)()
+					renderCount += 1
+					local condition_ = renderCount
 					if condition_ == 1 then
-						--[[
-							// The query ran and is loading the result.
-						]]
+						-- The query ran and is loading the result.
 						jestExpect(queryLoading).toBeTruthy()
 					elseif condition_ == 2 then
-						--[[
-							// The query has completed.
-						]]
+						-- The query has completed.
 						jestExpect(queryLoading).toBeFalsy()
 						jestExpect(data).toEqual(carsData)
-						--[[
-							// Trigger a mutation (with optimisticResponse data).
-						]]
+						-- Trigger a mutation (with optimisticResponse data).
 						mutate()
 					elseif condition_ == 3 then
-						--[[
-							// The mutation ran and is loading the result. The query stays at
-							// not loading as nothing has changed for the query.
-						]]
+						-- The mutation ran and is loading the result. The query stays at
+						-- not loading as nothing has changed for the query.
 						jestExpect(mutationLoading).toBeTruthy()
 						jestExpect(queryLoading).toBeFalsy()
 					elseif condition_ == 4 then
-						--[[
-							// The first part of the mutation has completed using the defined
-							// optimisticResponse data. This means that while the mutation
-							// stays in a loading state, it has made its optimistic data
-							// available to the query. New optimistic data doesn't trigger a
-							// query loading state.
-						]]
+						-- The first part of the mutation has completed using the defined
+						-- optimisticResponse data. This means that while the mutation
+						-- stays in a loading state, it has made its optimistic data
+						-- available to the query. New optimistic data doesn't trigger a
+						-- query loading state.
 						jestExpect(mutationLoading).toBeTruthy()
 						jestExpect(queryLoading).toBeFalsy()
 						jestExpect(data).toEqual(allCarsData)
 					elseif condition_ == 5 then
-						--[[
-							// The mutation wasn't able to fulfill its network request so it
-							// errors, which means the initially returned optimistic data is
-							// rolled back, and the query no longer has access to it.
-						]]
+						-- The mutation wasn't able to fulfill its network request so it
+						-- errors, which means the initially returned optimistic data is
+						-- rolled back, and the query no longer has access to it.
 						jestExpect(mutationLoading).toBeTruthy()
 						jestExpect(queryLoading).toBeFalsy()
 						jestExpect(data).toEqual(carsData)
 					elseif condition_ == 6 then
-						--[[
-							// The mutation has completely finished, leaving the query
-							// with access to the original cache data.
-						]]
+						-- The mutation has completely finished, leaving the query
+						-- with access to the original cache data.
 						jestExpect(mutationLoading).toBeFalsy()
 						jestExpect(queryLoading).toBeFalsy()
 						jestExpect(data).toEqual(carsData)
 					end
 					return nil
 				end
+
 				render(React.createElement(MockedProvider, { mocks = mocks }, React.createElement(Component, nil)))
-				return wait(function()
+
+				return wait_(function()
 					jestExpect(renderCount).toBe(6)
 				end):andThen(resolve, reject)
 			end)
 		end)
 
 		describe("Client Resolvers", function()
-			itAsync(it)(
+			-- ROBLOX TODO: requires fragments
+			itAsync(itSKIP)(
 				"should receive up to date @client(always: true) fields on entity update",
 				function(resolve, reject)
 					local query = gql([[
@@ -2699,7 +2637,7 @@ return function()
 					local client = ApolloClient.new({
 						cache = InMemoryCache.new(),
 						link = ApolloLink.new(function()
-							return Observable:of({ data = {} })
+							return Observable.of({ data = {} })
 						end),
 						resolvers = {
 							ClientData = {
@@ -2742,10 +2680,8 @@ return function()
 							data = ref.data
 						end
 						--[[ ROBLOX comment: switch statement conversion ]]
-						local condition_ = (function()
-							renderCount += 1
-							return renderCount
-						end)()
+						renderCount += 1
+						local condition_ = renderCount
 						if condition_ == 2 then
 							jestExpect(data.clientEntity).toEqual({
 								id = entityId,
@@ -2767,14 +2703,12 @@ return function()
 								__typename = "ClientData",
 							})
 						else
-							--[[
-										// Do nothing
-									]]
+							-- Do nothing
 						end
 						return nil
 					end
 					render(React.createElement(ApolloProvider, { client = client }, React.createElement(App, nil)))
-					return wait(function()
+					return wait_(function()
 						jestExpect(renderCount).toBe(3)
 					end):andThen(resolve, reject)
 				end
@@ -2785,35 +2719,36 @@ return function()
 			itAsync(it)("should skip running a query when `skip` is `true`", function(resolve, reject)
 				local renderCount = 0
 				local function Component()
-					local skip, setSkip = table.unpack(useState(true), 1, 2)
-					local loading, data
-					do
-						local ref = useQuery(CAR_QUERY, { skip = skip })
-						loading, data = ref.loading, ref.data
-					end
-					local condition_ = (function()
+					local skip, setSkip = useState(true)
+
+					local ref = useQuery(CAR_QUERY, { skip = skip })
+
+					rejectOnComponentThrow(reject, function()
+						local loading, data = ref.loading, ref.data
 						renderCount += 1
-						return renderCount
-					end)()
-					if condition_ == 1 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(data).toBeUndefined()
-						setTimeout(function()
-							return setSkip(false)
-						end)
-					elseif condition_ == 2 then
-						jestExpect(loading).toBeTruthy()
-						jestExpect(data).toBeUndefined()
-					elseif condition_ == 3 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(data).toEqual(CAR_RESULT_DATA)
-					else
-						reject("too many renders")
-					end
+						local condition_ = renderCount
+						if condition_ == 1 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(data).toBeUndefined()
+							setTimeout(function()
+								return setSkip(false)
+							end)
+						elseif condition_ == 2 then
+							jestExpect(loading).toBeTruthy()
+							jestExpect(data).toBeUndefined()
+						elseif condition_ == 3 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(data).toEqual(CAR_RESULT_DATA)
+						else
+							reject("too many renders")
+						end
+					end)
 					return nil
 				end
+
 				render(React.createElement(MockedProvider, { mocks = CAR_MOCKS }, React.createElement(Component, nil)))
-				return wait(function()
+
+				return wait_(function()
 					jestExpect(renderCount).toBe(3)
 				end):andThen(resolve, reject)
 			end)
@@ -2831,45 +2766,48 @@ return function()
 					request = { query = CAR_QUERY, variables = { someVar = true } },
 					result = { data = CAR_RESULT_DATA },
 				}))
+
 				local client = ApolloClient.new({ link = link, cache = InMemoryCache.new() })
+
 				local renderCount = 0
+
 				local function Component()
-					local skip, setSkip = table.unpack(useState(false), 1, 2)
-					local loading, data
-					do
-						local ref = useQuery(CAR_QUERY, {
-							fetchPolicy = "no-cache",
-							skip = skip,
-							variables = { someVar = not Boolean.toJSBoolean(skip) },
-						})
-						loading, data = ref.loading, ref.data
-					end
-					--[[ ROBLOX comment: switch statement conversion ]]
-					local condition_ = (function()
+					local skip, setSkip = useState(false)
+
+					local ref = useQuery(CAR_QUERY, {
+						fetchPolicy = "no-cache",
+						skip = skip,
+						variables = { someVar = not Boolean.toJSBoolean(skip) },
+					})
+					rejectOnComponentThrow(reject, function()
+						local loading, data = ref.loading, ref.data
+						--[[ ROBLOX comment: switch statement conversion ]]
 						renderCount += 1
-						return renderCount
-					end)()
-					if condition_ == 1 then
-						jestExpect(loading).toBeTruthy()
-						jestExpect(data).toBeUndefined()
-					elseif condition_ == 2 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(data).toEqual(CAR_RESULT_DATA)
-						jestExpect(networkRequestCount).toBe(1)
-						setTimeout(function()
-							return setSkip(true)
-						end)
-					elseif condition_ == 3 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(data).toBeUndefined()
-						jestExpect(networkRequestCount).toBe(1)
-					else
-						reject("too many renders")
-					end
+						local condition_ = renderCount
+						if condition_ == 1 then
+							jestExpect(loading).toBeTruthy()
+							jestExpect(data).toBeUndefined()
+						elseif condition_ == 2 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(data).toEqual(CAR_RESULT_DATA)
+							jestExpect(networkRequestCount).toBe(1)
+							setTimeout(function()
+								return setSkip(true)
+							end)
+						elseif condition_ == 3 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(data).toBeUndefined()
+							jestExpect(networkRequestCount).toBe(1)
+						else
+							reject("too many renders")
+						end
+					end)
 					return nil
 				end
+
 				render(React.createElement(ApolloProvider, { client = client }, React.createElement(Component, nil)))
-				return wait(function()
+
+				return wait_(function()
 					jestExpect(renderCount).toBe(3)
 				end):andThen(resolve, reject)
 			end)
@@ -2883,12 +2821,16 @@ return function()
 					useQuery(CAR_QUERY, { skip = true })
 					return nil
 				end
+
 				local app = render(
 					React.createElement(ApolloProvider, { client = client }, React.createElement(Component, nil))
 				)
+
 				jestExpect(client["queryManager"]["queries"].size).toBe(1)
+
 				app:unmount()
-				return wait(function()
+
+				return wait_(function()
 					jestExpect(client["queryManager"]["queries"].size).toBe(0)
 				end)
 			end)
@@ -2910,6 +2852,7 @@ return function()
 					  }
 					}
 				]])
+
 					local carData = {
 						cars = {
 							{
@@ -2921,6 +2864,7 @@ return function()
 							},
 						},
 					}
+
 					local mocks = {
 						{
 							request = { query = carQuery, variables = { id = 1 } },
@@ -2929,41 +2873,44 @@ return function()
 							},
 						},
 					}
+
 					local renderCount = 0
+
 					local function App()
-						local loading, data, error_
-						do
-							local ref = useQuery(carQuery, { variables = { id = 1 } })
-							loading, data, error_ = ref.loading, ref.data, ref.error
-						end
-						--[[ ROBLOX comment: switch statement conversion ]]
-						if renderCount == 0 then
-							jestExpect(loading).toBeTruthy()
-							jestExpect(data).toBeUndefined()
-							jestExpect(error_).toBeUndefined()
-						elseif renderCount == 1 then
-							jestExpect(loading).toBeFalsy()
-							jestExpect(data).toBeUndefined()
-							jestExpect(error_).toBeDefined()
-							--[[
-										// TODO: ApolloError.name is Error for some reason
-              							// expect(error!.name).toBe(ApolloError);
-									]]
-							jestExpect(#error_.clientErrors).toEqual(1)
-							jestExpect(error_.message).toMatch(RegExp("Can't find field 'vin' on Car:1"))
-						else
-							error(Error.new("Unexpected render"))
-						end
-						renderCount += 1
+						local ref = useQuery(carQuery, { variables = { id = 1 } })
+
+						rejectOnComponentThrow(reject, function()
+							local loading, data, error_ = ref.loading, ref.data, ref.error
+							--[[ ROBLOX comment: switch statement conversion ]]
+							if renderCount == 0 then
+								jestExpect(loading).toBeTruthy()
+								jestExpect(data).toBeUndefined()
+								jestExpect(error_).toBeUndefined()
+							elseif renderCount == 1 then
+								jestExpect(loading).toBeFalsy()
+								jestExpect(data).toBeUndefined()
+								jestExpect(error_).toBeDefined()
+								-- TODO: ApolloError.name is Error for some reason
+								-- expect(error!.name).toBe(ApolloError);
+								jestExpect(#error_.clientErrors).toEqual(1)
+								jestExpect(error_.message).toMatch(RegExp("Can't find field 'vin' on Car:1"))
+							else
+								error(Error.new("Unexpected render"))
+							end
+							renderCount += 1
+						end)
 						return nil
 					end
+
 					render(React.createElement(MockedProvider, { mocks = mocks }, React.createElement(App, nil)))
-					return wait(function()
+
+					return wait_(function()
 						jestExpect(renderCount).toBe(2)
 					end):andThen(resolve, reject)
 				end
 			)
 		end)
+
 		describe("Previous data", function()
 			itAsync(it)("should persist previous data when a query is re-run", function(resolve, reject)
 				local query = gql([[
@@ -2982,47 +2929,49 @@ return function()
 					{ request = { query = query }, result = { data = data2 } },
 				}
 				local renderCount = 0
+
 				local function App()
-					local loading, data, previousData, refetch
-					do
-						local ref = useQuery(query, { notifyOnNetworkStatusChange = true })
-						loading, data, previousData, refetch = ref.loading, ref.data, ref.previousData, ref.refetch
-					end
-					--[[ ROBLOX comment: switch statement conversion ]]
-					local condition_ = (function()
+					local ref = useQuery(query, { notifyOnNetworkStatusChange = true })
+
+					rejectOnComponentThrow(reject, function()
+						local loading, data, previousData, refetch =
+							ref.loading, ref.data, ref.previousData, ref.refetch
+
+						--[[ ROBLOX comment: switch statement conversion ]]
 						renderCount += 1
-						return renderCount
-					end)()
-					if condition_ == 1 then
-						jestExpect(loading).toBeTruthy()
-						jestExpect(data).toBeUndefined()
-						jestExpect(previousData).toBeUndefined()
-					elseif condition_ == 2 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(data).toEqual(data1)
-						jestExpect(previousData).toBeUndefined()
-						setTimeout(refetch)
-					elseif condition_ == 3 then
-						jestExpect(loading).toBeTruthy()
-						jestExpect(data).toEqual(data1)
-						jestExpect(previousData).toEqual(data1)
-					elseif condition_ == 4 then
-						jestExpect(loading).toBeFalsy()
-						jestExpect(data).toEqual(data2)
-						jestExpect(previousData).toEqual(data1)
-					else
-						--[[
-								// Do nothing
-							]]
-					end
+						local condition_ = renderCount
+						if condition_ == 1 then
+							jestExpect(loading).toBeTruthy()
+							jestExpect(data).toBeUndefined()
+							jestExpect(previousData).toBeUndefined()
+						elseif condition_ == 2 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(data).toEqual(data1)
+							jestExpect(previousData).toBeUndefined()
+							setTimeout(refetch)
+						elseif condition_ == 3 then
+							jestExpect(loading).toBeTruthy()
+							jestExpect(data).toEqual(data1)
+							jestExpect(previousData).toEqual(data1)
+						elseif condition_ == 4 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(data).toEqual(data2)
+							jestExpect(previousData).toEqual(data1)
+						else
+							-- Do nothing
+						end
+					end)
 					return nil
 				end
+
 				render(React.createElement(MockedProvider, { mocks = mocks }, React.createElement(App, nil)))
-				return wait(function()
+
+				return wait_(function()
 					jestExpect(renderCount).toBe(4)
 				end):andThen(resolve, reject)
 			end)
-			itAsync(it)("should persist result.previousData across multiple results", function(resolve, reject)
+
+			itAsync(itFIXME)("should persist result.previousData across multiple results", function(resolve, reject)
 				local query: TypedDocumentNode<{ car: { id: string, make: string } }, { vin: string }> = gql([[
 
 					query car($vin: String) {
@@ -3044,48 +2993,53 @@ return function()
 					},
 				}
 				local renderCount = 0
+
 				local function App()
-					local loading, data, previousData, refetch
-					do
-						local ref = useQuery(query, { notifyOnNetworkStatusChange = true })
-						loading, data, previousData, refetch = ref.loading, ref.data, ref.previousData, ref.refetch
-					end
-					--[[ ROBLOX comment: switch statement conversion ]]
-					local condition_ = (function()
+					local ref = useQuery(query, { notifyOnNetworkStatusChange = true })
+
+					rejectOnComponentThrow(reject, function()
+						local loading, data, previousData, refetch =
+							ref.loading, ref.data, ref.previousData, ref.refetch
+						--[[ ROBLOX comment: switch statement conversion ]]
 						renderCount += 1
-						return renderCount
-					end)()
-					if condition_ == 1 then
-						jestExpect(loading).toBe(true)
-						jestExpect(data).toBeUndefined()
-						jestExpect(previousData).toBeUndefined()
-					elseif condition_ == 2 then
-						jestExpect(loading).toBe(false)
-						jestExpect(data).toEqual(data1)
-						jestExpect(previousData).toBeUndefined()
-						setTimeout(refetch)
-					elseif condition_ == 3 then
-						jestExpect(loading).toBe(true)
-						jestExpect(data).toEqual(data1)
-						jestExpect(previousData).toEqual(data1)
-						refetch({ vin = "ABCDEFG0123456789" })
-					elseif condition_ == 4 then
-						jestExpect(loading).toBe(true)
-						jestExpect(data).toBeUndefined()
-						jestExpect(previousData).toEqual(data1)
-					elseif condition_ == 5 then
-						jestExpect(loading).toBe(false)
-						jestExpect(data).toEqual(data3)
-						jestExpect(previousData).toEqual(data1)
-					else
-						--[[
-								// Do nothing
-							]]
-					end
+						local condition_ = renderCount
+						if condition_ == 1 then
+							jestExpect(loading).toBe(true)
+							jestExpect(data).toBeUndefined()
+							jestExpect(previousData).toBeUndefined()
+						elseif condition_ == 2 then
+							jestExpect(loading).toBe(false)
+							jestExpect(data).toEqual(data1)
+							jestExpect(previousData).toBeUndefined()
+							setTimeout(function()
+								refetch(ref)
+							end)
+						elseif condition_ == 3 then
+							jestExpect(loading).toBe(true)
+							jestExpect(data).toEqual(data1)
+							jestExpect(previousData).toEqual(data1)
+							-- Interrupt the first refetch by refetching again with
+							-- variables the cache has not seen before, thereby skipping
+							-- data2 entirely.
+							refetch(ref, { vin = "ABCDEFG0123456789" })
+						elseif condition_ == 4 then
+							jestExpect(loading).toBe(true)
+							jestExpect(data).toBeUndefined()
+							jestExpect(previousData).toEqual(data1)
+						elseif condition_ == 5 then
+							jestExpect(loading).toBe(false)
+							jestExpect(data).toEqual(data3)
+							jestExpect(previousData).toEqual(data1)
+						else
+							-- Do nothing
+						end
+					end)
 					return nil
 				end
+
 				render(React.createElement(MockedProvider, { mocks = mocks }, React.createElement(App, nil)))
-				return wait(function()
+
+				return wait_(function()
 					jestExpect(renderCount).toBe(5)
 				end):andThen(resolve, reject)
 			end)
@@ -3098,7 +3052,7 @@ return function()
 					{ id = 4, name = "Johnny Appleseed", gender = "male" },
 					{ id = 5, name = "Ada Lovelace", gender = "female" },
 				}
-				local link = ApolloLink.new(function(operation)
+				local link = ApolloLink.new(function(_self, operation)
 					return Observable.new(function(observer)
 						local gender
 						do
@@ -3142,153 +3096,152 @@ return function()
 					}
 				]])
 				local renderCount = 0
-				local function App()
-					local gender, setGender = table.unpack(useState("all"), 1, 2)
-					local loading, networkStatus, data
-					do
-						local ref = useQuery(
-							ALL_PEOPLE,
-							{ variables = { gender = gender }, fetchPolicy = "network-only" }
-						)
-						loading, networkStatus, data = ref.loading, ref.networkStatus, ref.data
-					end
-					local currentPeopleNames = data
-							and data.people
-							and Array.map(data.people, function(person)
-								return person.name
-							end, nil)
-						or nil
 
-					--[[ ROBLOX comment: switch statement conversion ]]
-					local condition_ = (function()
+				local function App()
+					local gender, setGender = useState("all")
+					local ref = useQuery(ALL_PEOPLE, { variables = { gender = gender }, fetchPolicy = "network-only" })
+					rejectOnComponentThrow(reject, function()
+						local loading, networkStatus, data = ref.loading, ref.networkStatus, ref.data
+						local currentPeopleNames = data
+								and data.people
+								and Array.map(data.people, function(person)
+									return person.name
+								end, nil)
+							or nil
+
+						--[[ ROBLOX comment: switch statement conversion ]]
 						renderCount += 1
-						return renderCount
-					end)()
-					if condition_ == 1 then
-						jestExpect(gender).toBe("all")
-						jestExpect(loading).toBe(true)
-						jestExpect(networkStatus).toBe(NetworkStatus.loading)
-						jestExpect(data).toBeUndefined()
-						jestExpect(currentPeopleNames).toBeUndefined()
-					elseif condition_ == 2 then
-						jestExpect(gender).toBe("all")
-						jestExpect(loading).toBe(false)
-						jestExpect(networkStatus).toBe(NetworkStatus.ready)
-						jestExpect(data).toEqual({
-							people = Array.map(peopleData, function(ref)
-								local _gender, person = ref.gender, Object.assign({}, ref, { gender = Object.None })
-								return person
-							end, nil),
-						})
-						jestExpect(currentPeopleNames).toEqual({
-							"John Smith",
-							"Sara Smith",
-							"Budd Deey",
-							"Johnny Appleseed",
-							"Ada Lovelace",
-						})
-						act(function()
-							setGender("female")
-						end)
-					elseif condition_ == 3 then
-						jestExpect(gender).toBe("female")
-						jestExpect(loading).toBe(true)
-						jestExpect(networkStatus).toBe(NetworkStatus.setVariables)
-						jestExpect(data).toBeUndefined()
-						jestExpect(currentPeopleNames).toBeUndefined()
-					elseif condition_ == 4 then
-						jestExpect(gender).toBe("female")
-						jestExpect(loading).toBe(false)
-						jestExpect(networkStatus).toBe(NetworkStatus.ready)
-						jestExpect(#data.people).toBe(2)
-						jestExpect(currentPeopleNames).toEqual({ "Sara Smith", "Ada Lovelace" })
-						act(function()
-							setGender("nonbinary")
-						end)
-					elseif condition_ == 5 then
-						jestExpect(gender).toBe("nonbinary")
-						jestExpect(loading).toBe(true)
-						jestExpect(networkStatus).toBe(NetworkStatus.setVariables)
-						jestExpect(data).toBeUndefined()
-						jestExpect(currentPeopleNames).toBeUndefined()
-					elseif condition_ == 6 then
-						jestExpect(gender).toBe("nonbinary")
-						jestExpect(loading).toBe(false)
-						jestExpect(networkStatus).toBe(NetworkStatus.ready)
-						jestExpect(#data.people).toBe(1)
-						jestExpect(currentPeopleNames).toEqual({ "Budd Deey" })
-						act(function()
-							setGender("male")
-						end)
-					elseif condition_ == 7 then
-						jestExpect(gender).toBe("male")
-						jestExpect(loading).toBe(true)
-						jestExpect(networkStatus).toBe(NetworkStatus.setVariables)
-						jestExpect(data).toBeUndefined()
-						jestExpect(currentPeopleNames).toBeUndefined()
-					elseif condition_ == 8 then
-						jestExpect(gender).toBe("male")
-						jestExpect(loading).toBe(false)
-						jestExpect(networkStatus).toBe(NetworkStatus.ready)
-						jestExpect(#data.people).toBe(2)
-						jestExpect(currentPeopleNames).toEqual({
-							"John Smith",
-							"Johnny Appleseed",
-						})
-						act(function()
-							setGender("female")
-						end)
-					elseif condition_ == 9 then
-						jestExpect(gender).toBe("female")
-						jestExpect(loading).toBe(true)
-						jestExpect(networkStatus).toBe(NetworkStatus.setVariables)
-						jestExpect(#data.people).toBe(2)
-						jestExpect(currentPeopleNames).toEqual({ "Sara Smith", "Ada Lovelace" })
-					elseif condition_ == 10 then
-						jestExpect(gender).toBe("female")
-						jestExpect(loading).toBe(false)
-						jestExpect(networkStatus).toBe(NetworkStatus.ready)
-						jestExpect(#data.people).toBe(2)
-						jestExpect(currentPeopleNames).toEqual({ "Sara Smith", "Ada Lovelace" })
-						act(function()
-							setGender("all")
-						end)
-					elseif condition_ == 11 then
-						jestExpect(gender).toBe("all")
-						jestExpect(loading).toBe(true)
-						jestExpect(networkStatus).toBe(NetworkStatus.setVariables)
-						jestExpect(#data.people).toBe(5)
-						jestExpect(currentPeopleNames).toEqual({
-							"John Smith",
-							"Sara Smith",
-							"Budd Deey",
-							"Johnny Appleseed",
-							"Ada Lovelace",
-						})
-					elseif condition_ == 12 then
-						jestExpect(gender).toBe("all")
-						jestExpect(loading).toBe(false)
-						jestExpect(networkStatus).toBe(NetworkStatus.ready)
-						jestExpect(#data.people).toBe(5)
-						jestExpect(currentPeopleNames).toEqual({
-							"John Smith",
-							"Sara Smith",
-							"Budd Deey",
-							"Johnny Appleseed",
-							"Ada Lovelace",
-						})
-					else
-						reject(("too many (%s) renders"):format(tostring(renderCount)))
-					end
+						local condition_ = renderCount
+						if condition_ == 1 then
+							jestExpect(gender).toBe("all")
+							jestExpect(loading).toBe(true)
+							jestExpect(networkStatus).toBe(NetworkStatus.loading)
+							jestExpect(data).toBeUndefined()
+							jestExpect(currentPeopleNames).toBeUndefined()
+						elseif condition_ == 2 then
+							jestExpect(gender).toBe("all")
+							jestExpect(loading).toBe(false)
+							jestExpect(networkStatus).toBe(NetworkStatus.ready)
+							jestExpect(data).toEqual({
+								people = Array.map(peopleData, function(ref)
+									local _gender, person = ref.gender, Object.assign({}, ref, { gender = Object.None })
+									return person
+								end, nil),
+							})
+							jestExpect(currentPeopleNames).toEqual({
+								"John Smith",
+								"Sara Smith",
+								"Budd Deey",
+								"Johnny Appleseed",
+								"Ada Lovelace",
+							})
+							act(function()
+								setGender("female")
+							end)
+						elseif condition_ == 3 then
+							jestExpect(gender).toBe("female")
+							jestExpect(loading).toBe(true)
+							jestExpect(networkStatus).toBe(NetworkStatus.setVariables)
+							jestExpect(data).toBeUndefined()
+							jestExpect(currentPeopleNames).toBeUndefined()
+						elseif condition_ == 4 then
+							jestExpect(gender).toBe("female")
+							jestExpect(loading).toBe(false)
+							jestExpect(networkStatus).toBe(NetworkStatus.ready)
+							jestExpect(#data.people).toBe(2)
+							jestExpect(currentPeopleNames).toEqual({ "Sara Smith", "Ada Lovelace" })
+							act(function()
+								setGender("nonbinary")
+							end)
+						elseif condition_ == 5 then
+							jestExpect(gender).toBe("nonbinary")
+							jestExpect(loading).toBe(true)
+							jestExpect(networkStatus).toBe(NetworkStatus.setVariables)
+							jestExpect(data).toBeUndefined()
+							jestExpect(currentPeopleNames).toBeUndefined()
+						elseif condition_ == 6 then
+							jestExpect(gender).toBe("nonbinary")
+							jestExpect(loading).toBe(false)
+							jestExpect(networkStatus).toBe(NetworkStatus.ready)
+							jestExpect(#data.people).toBe(1)
+							jestExpect(currentPeopleNames).toEqual({ "Budd Deey" })
+							act(function()
+								setGender("male")
+							end)
+						elseif condition_ == 7 then
+							jestExpect(gender).toBe("male")
+							jestExpect(loading).toBe(true)
+							jestExpect(networkStatus).toBe(NetworkStatus.setVariables)
+							jestExpect(data).toBeUndefined()
+							jestExpect(currentPeopleNames).toBeUndefined()
+						elseif condition_ == 8 then
+							jestExpect(gender).toBe("male")
+							jestExpect(loading).toBe(false)
+							jestExpect(networkStatus).toBe(NetworkStatus.ready)
+							jestExpect(#data.people).toBe(2)
+							jestExpect(currentPeopleNames).toEqual({
+								"John Smith",
+								"Johnny Appleseed",
+							})
+							act(function()
+								setGender("female")
+							end)
+						elseif condition_ == 9 then
+							jestExpect(gender).toBe("female")
+							jestExpect(loading).toBe(true)
+							jestExpect(networkStatus).toBe(NetworkStatus.setVariables)
+							jestExpect(#data.people).toBe(2)
+							jestExpect(currentPeopleNames).toEqual({ "Sara Smith", "Ada Lovelace" })
+						elseif condition_ == 10 then
+							jestExpect(gender).toBe("female")
+							jestExpect(loading).toBe(false)
+							jestExpect(networkStatus).toBe(NetworkStatus.ready)
+							jestExpect(#data.people).toBe(2)
+							jestExpect(currentPeopleNames).toEqual({ "Sara Smith", "Ada Lovelace" })
+							act(function()
+								setGender("all")
+							end)
+						elseif condition_ == 11 then
+							jestExpect(gender).toBe("all")
+							jestExpect(loading).toBe(true)
+							jestExpect(networkStatus).toBe(NetworkStatus.setVariables)
+							jestExpect(#data.people).toBe(5)
+							jestExpect(currentPeopleNames).toEqual({
+								"John Smith",
+								"Sara Smith",
+								"Budd Deey",
+								"Johnny Appleseed",
+								"Ada Lovelace",
+							})
+						elseif condition_ == 12 then
+							jestExpect(gender).toBe("all")
+							jestExpect(loading).toBe(false)
+							jestExpect(networkStatus).toBe(NetworkStatus.ready)
+							jestExpect(#data.people).toBe(5)
+							jestExpect(currentPeopleNames).toEqual({
+								"John Smith",
+								"Sara Smith",
+								"Budd Deey",
+								"Johnny Appleseed",
+								"Ada Lovelace",
+							})
+						else
+							reject(("too many (%s) renders"):format(tostring(renderCount)))
+						end
+					end)
 					return nil
 				end
+
 				local client = ApolloClient.new({ cache = InMemoryCache.new(), link = link })
+
 				render(React.createElement(ApolloProvider, { client = client }, React.createElement(App, nil)))
-				return wait(function()
+
+				return wait_(function()
 					jestExpect(renderCount).toBe(12)
 				end):andThen(resolve, reject)
 			end)
 		end)
+
 		describe("canonical cache results", function()
 			itAsync(it)("can be disabled via useQuery options", function(resolve, reject)
 				local cache = InMemoryCache.new({ typePolicies = { Result = { keyFields = false } } } :: any)
@@ -3310,83 +3263,82 @@ return function()
 				}
 				cache:writeQuery({ query = query, data = { results = results } })
 				local renderCount = 0
+
 				local function App()
-					local canonizeResults, setCanonize = table.unpack(useState(false), 1, 2)
-					local loading, data
-					do
-						local ref = useQuery(query, { fetchPolicy = "cache-only", canonizeResults = canonizeResults })
-						loading, data = ref.loading, ref.data
-					end
-					--[[ ROBLOX comment: switch statement conversion ]]
-					local condition_ = (function()
+					local canonizeResults, setCanonize = useState(false)
+
+					local ref = useQuery(query, { fetchPolicy = "cache-only", canonizeResults = canonizeResults })
+
+					rejectOnComponentThrow(reject, function()
+						local loading, data = ref.loading, ref.data
+						--[[ ROBLOX comment: switch statement conversion ]]
 						renderCount += 1
-						return renderCount
-					end)()
-					if condition_ == 1 then
-						do
-							jestExpect(loading).toBe(false)
-							jestExpect(data).toEqual({ results = results })
-							jestExpect(#data.results).toBe(6)
-							local resultSet = Set.new(
-								data.results :: any --[[ ROBLOX TODO: Unhandled node for type: TSTypeQuery ]]
-								--[[ typeof results ]]
-							)
-							jestExpect(resultSet.size).toBe(6)
-							act(function()
-								return setCanonize(true)
-							end)
+						local condition_ = renderCount
+						if condition_ == 1 then
+							do
+								jestExpect(loading).toBe(false)
+								jestExpect(data).toEqual({ results = results })
+								jestExpect(#data.results).toBe(6)
+								local resultSet = Set.new(data.results :: any)
+								-- Since canonization is not happening, the duplicate 1 results are
+								-- returned as distinct objects.
+								jestExpect(resultSet.size).toBe(6)
+								act(function()
+									return setCanonize(true)
+								end)
+							end
+						elseif condition_ == 2 then
+							do
+								jestExpect(loading).toBe(false)
+								jestExpect(data).toEqual({ results = results })
+								jestExpect(#data.results).toBe(6)
+								local resultSet = Set.new(data.results :: any)
+								-- Since canonization is happening now, the duplicate 1 results are
+								-- returned as identical (===) objects.
+								jestExpect(resultSet.size).toBe(5)
+								local values: Array<number> = {}
+								for _, result in resultSet:ipairs() do
+									table.insert(values, result.value)
+								end
+								jestExpect(values).toEqual({ 0, 1, 2, 3, 5 })
+								act(function()
+									table.insert(results, { __typename = "Result", value = 8 })
+									-- Append another element to the results array, invalidating the
+									-- array itself, triggering another render (below).
+									cache:writeQuery({
+										query = query,
+										overwrite = true,
+										data = { results = results },
+									})
+								end)
+							end
+						elseif condition_ == 3 then
+							do
+								jestExpect(loading).toBe(false)
+								jestExpect(data).toEqual({ results = results })
+								jestExpect(#data.results).toBe(7)
+								local resultSet = Set.new(data.results :: any)
+								-- Since canonization is happening now, the duplicate 1 results are
+								-- returned as identical (===) objects.
+								jestExpect(resultSet.size).toBe(6)
+								local values: Array<number> = {}
+								for _, result in resultSet:ipairs() do
+									table.insert(values, result.value)
+								end
+								jestExpect(values).toEqual({ 0, 1, 2, 3, 5, 8 })
+							end
+						else
+							do
+								reject("too many renders")
+							end
 						end
-					elseif condition_ == 2 then
-						do
-							jestExpect(loading).toBe(false)
-							jestExpect(data).toEqual({ results = results })
-							jestExpect(#data.results).toBe(6)
-							local resultSet = Set.new(
-								data.results :: any --[[ ROBLOX TODO: Unhandled node for type: TSTypeQuery ]]
-								--[[ typeof results ]]
-							)
-							jestExpect(resultSet.size).toBe(5)
-							local values: any --[[ ROBLOX TODO: Unhandled node for type: TSArrayType ]] --[[ number[] ]] =
-								{}
-							resultSet:forEach(function(result)
-								return table.insert(values, result.value)
-							end)
-							jestExpect(values).toEqual({ 0, 1, 2, 3, 5 })
-							act(function()
-								table.insert(results, { __typename = "Result", value = 8 })
-								cache:writeQuery({
-									query = query,
-									overwrite = true,
-									data = { results = results },
-								})
-							end)
-						end
-					elseif condition_ == 3 then
-						do
-							jestExpect(loading).toBe(false)
-							jestExpect(data).toEqual({ results = results })
-							jestExpect(#data.results).toBe(7)
-							local resultSet = Set.new(
-								data.results :: any --[[ ROBLOX TODO: Unhandled node for type: TSTypeQuery ]]
-								--[[ typeof results ]]
-							)
-							jestExpect(resultSet.size).toBe(6)
-							local values: any --[[ ROBLOX TODO: Unhandled node for type: TSArrayType ]] --[[ number[] ]] =
-								{}
-							resultSet:forEach(function(result)
-								return table.insert(values, result.value)
-							end)
-							jestExpect(values).toEqual({ 0, 1, 2, 3, 5, 8 })
-						end
-					else
-						do
-							reject("too many renders")
-						end
-					end
+					end)
 					return nil
 				end
+
 				render(React.createElement(MockedProvider, { cache = cache }, React.createElement(App, nil)))
-				return wait(function()
+
+				return wait_(function()
 					jestExpect(renderCount).toBe(3)
 				end):andThen(resolve, reject)
 			end)
@@ -3398,10 +3350,11 @@ return function()
 			local bQuery: TypedDocumentNode<{ b: ABFields }, { [string]: any }> = gql([[query B { b { id name }}]])
 			local aData = { a = { __typename = "A", id = 65, name = "ay" } }
 			local bData = { b = { __typename = "B", id = 66, name = "bee" } }
+
 			local function makeClient()
 				return ApolloClient.new({
 					cache = InMemoryCache.new(),
-					link = ApolloLink.new(function(operation)
+					link = ApolloLink.new(function(_self, operation)
 						return Observable.new(function(observer)
 							--[[ ROBLOX comment: switch statement conversion ]]
 							local condition_ = operation.operationName
@@ -3416,45 +3369,50 @@ return function()
 					end),
 				})
 			end
+
 			local function check(aFetchPolicy: WatchQueryFetchPolicy, bFetchPolicy: WatchQueryFetchPolicy)
 				return function(resolve: ((result: any) -> any), reject: ((reason: any) -> any))
 					local renderCount = 0
+
 					local function App()
 						local a = useQuery(aQuery, { fetchPolicy = aFetchPolicy })
 						local b = useQuery(bQuery, { fetchPolicy = bFetchPolicy })
-						--[[ ROBLOX comment: switch statement conversion ]]
-						local condition_ = (function()
+						rejectOnComponentThrow(reject, function()
+							--[[ ROBLOX comment: switch statement conversion ]]
 							renderCount += 1
-							return renderCount
-						end)()
-						if condition_ == 1 then
-							jestExpect(a.loading).toBe(true)
-							jestExpect(b.loading).toBe(true)
-							jestExpect(a.data).toBeUndefined()
-							jestExpect(b.data).toBeUndefined()
-						elseif condition_ == 2 then
-							jestExpect(a.loading).toBe(false)
-							jestExpect(b.loading).toBe(true)
-							jestExpect(a.data).toEqual(aData)
-							jestExpect(b.data).toBeUndefined()
-						elseif condition_ == 3 then
-							jestExpect(a.loading).toBe(false)
-							jestExpect(b.loading).toBe(false)
-							jestExpect(a.data).toEqual(aData)
-							jestExpect(b.data).toEqual(bData)
-						else
-							reject("too many renders: " .. tostring(renderCount))
-						end
+							local condition_ = renderCount
+							if condition_ == 1 then
+								jestExpect(a.loading).toBe(true)
+								jestExpect(b.loading).toBe(true)
+								jestExpect(a.data).toBeUndefined()
+								jestExpect(b.data).toBeUndefined()
+							elseif condition_ == 2 then
+								jestExpect(a.loading).toBe(false)
+								jestExpect(b.loading).toBe(true)
+								jestExpect(a.data).toEqual(aData)
+								jestExpect(b.data).toBeUndefined()
+							elseif condition_ == 3 then
+								jestExpect(a.loading).toBe(false)
+								jestExpect(b.loading).toBe(false)
+								jestExpect(a.data).toEqual(aData)
+								jestExpect(b.data).toEqual(bData)
+							else
+								reject("too many renders: " .. tostring(renderCount))
+							end
+						end)
 						return nil
 					end
+
 					render(
 						React.createElement(ApolloProvider, { client = makeClient() }, React.createElement(App, nil))
 					)
-					return wait(function()
+
+					return wait_(function()
 						jestExpect(renderCount).toBe(3)
 					end):andThen(resolve, reject)
 				end
 			end
+
 			itAsync(it)("cache-first for both", check("cache-first", "cache-first"))
 			itAsync(it)("cache-first first, cache-and-network second", check("cache-first", "cache-and-network"))
 			itAsync(it)("cache-first first, network-only second", check("cache-first", "network-only"))

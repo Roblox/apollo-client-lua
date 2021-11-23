@@ -43,10 +43,7 @@ local Scheduler = require(rootWorkspace.Dev.Scheduler)
 local ReactReconcilerInit = require(rootWorkspace.Dev.ReactReconciler)
 local ReactFiberReconciler = ReactReconcilerInit({})
 local flushPassiveEffects = ReactFiberReconciler.flushPassiveEffects
-local IsThisRendererActing = ReactFiberReconciler.IsThisRendererActing
 local batchedUpdates = ReactFiberReconciler.batchedUpdates
-
-local IsSomeRendererActing = ReactSharedInternals.IsSomeRendererActing
 
 -- this implementation should be exactly the same in
 -- ReactTestUtilsAct.js, ReactTestRendererAct.js, createReactNoop.js
@@ -62,7 +59,7 @@ local flushWork = function()
 end
 
 local function flushWorkAndMicroTasks(onDone: (err: any?) -> ())
-	xpcall(function()
+	local ok, err = pcall(function()
 		flushWork()
 		enqueueTask(function()
 			if flushWork() then
@@ -71,9 +68,11 @@ local function flushWorkAndMicroTasks(onDone: (err: any?) -> ())
 				onDone()
 			end
 		end)
-	end, function(err)
-		onDone(err)
 	end)
+
+	if not ok then
+		onDone(err)
+	end
 end
 
 -- we track the 'depth' of the act() calls with this counter,
@@ -96,15 +95,15 @@ local function act(callback: (() -> Thenable<any>) | () -> ())
 	local previousIsThisRendererActing
 	actingUpdatesScopeDepth += 1
 
-	previousIsSomeRendererActing = IsSomeRendererActing.current
-	previousIsThisRendererActing = IsThisRendererActing.current
-	IsSomeRendererActing.current = true
-	IsThisRendererActing.current = true
+	previousIsSomeRendererActing = ReactSharedInternals.IsSomeRendererActing.current
+	previousIsThisRendererActing = ReactFiberReconciler.IsThisRendererActing.current
+	ReactSharedInternals.IsSomeRendererActing.current = true
+	ReactFiberReconciler.IsThisRendererActing.current = true
 
 	local function onDone()
 		actingUpdatesScopeDepth -= 1
-		IsSomeRendererActing.current = previousIsSomeRendererActing
-		IsThisRendererActing.current = previousIsThisRendererActing
+		ReactSharedInternals.IsSomeRendererActing.current = previousIsSomeRendererActing
+		ReactFiberReconciler.IsThisRendererActing.current = previousIsThisRendererActing
 		if Boolean.toJSBoolean(_G.__DEV__) then
 			if actingUpdatesScopeDepth > previousActingUpdatesScopeDepth then
 				-- if it's _less than_ previousActingUpdatesScopeDepth, then we can assume the 'other' one has warned

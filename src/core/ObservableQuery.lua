@@ -451,12 +451,20 @@ once, rather than every time you call fetchMore.]])
 					data = data,
 				})
 			end
-
 			return fetchMoreResult :: ApolloQueryResult<TData_>
-		end)
-		:finally(function()
+		end) --[[
+			ROBLOX deviation: finally implementation is different than in JS.
+			using separate andThen and catch to perform the same logic and not swallow the error
+		]]
+		:andThen(function(result)
 			self.queryManager:stopQuery(qid)
 			self:reobserve()
+			return result
+		end)
+		:catch(function(err)
+			self.queryManager:stopQuery(qid)
+			self:reobserve()
+			error(err)
 		end)
 end
 

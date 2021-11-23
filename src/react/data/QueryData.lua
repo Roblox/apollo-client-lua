@@ -72,7 +72,11 @@ local QueryData = setmetatable({}, { __index = OperationData })
 QueryData.__index = QueryData
 
 function QueryData.new(
-	ref: { options: QueryDataOptions<any, any>, context: any, onNewData: Function }
+	ref: {
+		options: QueryDataOptions<any, any>,
+		context: any,
+		onNewData: (self: QueryData<any, any>) -> (),
+	}
 ): QueryData<any, any>
 	local options, context, onNewData = ref.options, ref.context, ref.onNewData
 	local self: any = OperationData.new(options, context)
@@ -87,7 +91,7 @@ function QueryData.new(
 		self:onNewData()
 	end
 
-	self.obsRefetch = function(variables: any?)
+	self.obsRefetch = function(_self: QueryData<any, any>, variables: any?)
 		if Boolean.toJSBoolean(self.currentObservable) then
 			return self.currentObservable:refetch(variables)
 		end

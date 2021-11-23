@@ -37,8 +37,13 @@ local function waitForExpect(expectation: () -> (), _timeout: number?, _interval
 			tries += 1
 			do --[[ ROBLOX COMMENT: try-catch block conversion ]]
 				xpcall(function()
-					Promise
-						:resolve(expectation())
+					Promise.delay(0)
+						:andThen(function()
+							return expectation()
+						end)
+						:andThen(function()
+							return Promise.delay(0)
+						end)
 						:andThen(function()
 							return resolve()
 						end)

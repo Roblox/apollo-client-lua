@@ -8,13 +8,15 @@ return function()
 	type Array<T> = LuauPolyfill.Array<T>
 	type ReadonlyArray<T> = Array<T>
 
+	type Function = (...any) -> ...any
+
 	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
 	local jestExpect = JestGlobals.expect
 
 	local React = require(rootWorkspace.React)
 	local reactTestUtilsModule = require(srcWorkspace.testUtils.react)
 	local render = reactTestUtilsModule.render
-	local wait = reactTestUtilsModule.wait
+	local wait_ = reactTestUtilsModule.wait
 	local gql = require(rootWorkspace.Dev.GraphQLTag).default
 
 	local itAsync = require(script.Parent.Parent.Parent.itAsync)
@@ -25,16 +27,22 @@ return function()
 	local graphQLModule = require(rootWorkspace.GraphQL)
 	type DocumentNode = graphQLModule.DocumentNode
 
-	-- ROBLOX TODO: port when available
-	-- local useQuery = require(script.Parent.Parent.Parent.Parent.Parent.react.hooks.useQuery).useQuery
-	local useQuery = function(...)
-		warn("useQuery not implemented")
-		return {} :: { loading: boolean, data: any, error: any }
-	end
+	local useQuery = require(script.Parent.Parent.Parent.Parent.Parent.react.hooks.useQuery).useQuery
 
 	local InMemoryCache = require(srcWorkspace.cache.inmemory.inMemoryCache).InMemoryCache
 
 	local ApolloLink = require(srcWorkspace.link.core).ApolloLink
+
+	-- ROBLOX TODO: remove when unhandled errors are ... handled
+	local function rejectOnComponentThrow(reject, fn: Function)
+		local trace = debug.traceback()
+		local ok, result = pcall(fn)
+		if not ok then
+			print(result.message .. "\n" .. trace)
+			reject(result)
+		end
+		return result
+	end
 
 	local variables = { username = "mock_username" }
 
@@ -80,41 +88,41 @@ return function()
 		return observer
 	end)
 
-	--ROBLOX TODO: requires InMemoryCache, useQuery
 	describe("General use", function()
 		beforeEach(function()
 			errorThrown = false
 		end)
 
-		itAsync(xit)("should mock the data", function(resolve, reject)
+		itAsync(it)("should mock the data", function(resolve, reject)
 			local function Component(ref: Variables)
 				local _username = ref.username
-				local loading, data
-				do
-					local ref_ = useQuery(query, { variables = variables })
-					loading, data = ref_.loading, ref_.data
-				end
-				if not loading then
-					jestExpect((data :: any).user).toMatchSnapshot()
-				end
+
+				local ref_ = useQuery(query, { variables = variables })
+
+				rejectOnComponentThrow(reject, function()
+					local loading, data = ref_.loading, ref_.data
+					if not loading then
+						jestExpect((data :: any).user).toMatchSnapshot()
+					end
+				end)
 				return nil
 			end
 
 			render(React.createElement(MockedProvider, { mocks = mocks }, React.createElement(Component, variables)))
-			return wait():andThen(resolve, reject)
+			return wait_():andThen(resolve, reject)
 		end)
 
-		itAsync(xit)("should allow querying with the typename", function(resolve, reject)
+		itAsync(it)("should allow querying with the typename", function(resolve, reject)
 			local function Component(ref: Variables)
 				local _username = ref.username
-				local loading, data
-				do
-					local ref_ = useQuery(query, { variables = variables })
-					loading, data = ref_.loading, ref_.data
-				end
-				if not loading then
-					jestExpect((data :: any).user).toMatchSnapshot()
-				end
+
+				local ref_ = useQuery(query, { variables = variables })
+				rejectOnComponentThrow(reject, function()
+					local loading, data = ref_.loading, ref_.data
+					if not loading then
+						jestExpect((data :: any).user).toMatchSnapshot()
+					end
+				end)
 				return nil
 			end
 
@@ -133,23 +141,24 @@ return function()
 				)
 			)
 
-			return wait():andThen(resolve, reject)
+			return wait_():andThen(resolve, reject)
 		end)
 
-		itAsync(xit)("should allow using a custom cache", function(resolve, reject)
+		itAsync(it)("should allow using a custom cache", function(resolve, reject)
 			local cache = InMemoryCache.new()
 			cache:writeQuery({ query = query, variables = variables, data = { user = user } })
 
 			local function Component(ref: Variables)
 				local _username = ref.username
-				local loading, data
-				do
-					local ref_ = useQuery(query, { variables = variables })
-					loading, data = ref_.loading, ref_.data
-				end
-				if not loading then
-					jestExpect(data).toMatchObject({ user = user })
-				end
+
+				local ref_ = useQuery(query, { variables = variables })
+				rejectOnComponentThrow(reject, function()
+					local loading, data = ref_.loading, ref_.data
+
+					if not loading then
+						jestExpect(data).toMatchObject({ user = user })
+					end
+				end)
 				return nil
 			end
 
@@ -161,20 +170,22 @@ return function()
 				)
 			)
 
-			return wait():andThen(resolve, reject)
+			return wait_():andThen(resolve, reject)
 		end)
 
-		itAsync(xit)("should error if the variables in the mock and component do not match", function(resolve, reject)
+		itAsync(it)("should error if the variables in the mock and component do not match", function(resolve, reject)
 			local function Component(ref)
 				local variables = Object.assign({}, ref, {})
-				local loading, error_
-				do
-					local ref_ = useQuery(query, { variables = variables })
-					loading, error_ = ref_.loading, ref_.error
-				end
-				if not loading then
-					jestExpect(error_).toMatchSnapshot()
-				end
+
+				local ref_ = useQuery(query, { variables = variables })
+				rejectOnComponentThrow(reject, function()
+					local loading, error_ = ref_.loading, ref_.error
+
+					if not loading then
+						-- ROBLOX deviation: must use error message (otherwise we get a table id)
+						jestExpect(error_.message).toMatchSnapshot()
+					end
+				end)
 				return nil
 			end
 
@@ -182,20 +193,23 @@ return function()
 
 			render(React.createElement(MockedProvider, { mocks = mocks }, React.createElement(Component, variables2)))
 
-			return wait():andThen(resolve, reject)
+			return wait_():andThen(resolve, reject)
 		end)
 
-		itAsync(xit)("should error if the variables do not deep equal", function(resolve, reject)
+		itAsync(it)("should error if the variables do not deep equal", function(resolve, reject)
 			local function Component(ref: Variables)
 				local variables = Object.assign({}, ref, {})
-				local loading, error_
-				do
-					local ref_ = useQuery(query, { variables = variables })
-					loading, error_ = ref_.loading, ref_.error
-				end
-				if not loading then
-					jestExpect(error_).toMatchSnapshot()
-				end
+
+				local ref_ = useQuery(query, { variables = variables })
+
+				rejectOnComponentThrow(reject, function()
+					local loading, error_ = ref_.loading, ref_.error
+
+					if not loading then
+						-- ROBLOX deviation: must use error message (otherwise we get a table id)
+						jestExpect(error_.message).toMatchSnapshot()
+					end
+				end)
 				return nil
 			end
 
@@ -210,20 +224,21 @@ return function()
 
 			render(React.createElement(MockedProvider, { mocks = mocks2 }, React.createElement(Component, variables2)))
 
-			return wait():andThen(resolve, reject)
+			return wait_():andThen(resolve, reject)
 		end)
 
-		itAsync(xit)("should not error if the variables match but have different order", function(resolve, reject)
+		itAsync(it)("should not error if the variables match but have different order", function(resolve, reject)
 			local function Component(ref)
 				local variables = Object.assign({}, ref, {})
-				local loading, data
-				do
-					local ref_ = useQuery(query, { variables = variables })
-					loading, data = ref_.loading, ref_.data
-				end
-				if not loading then
-					jestExpect(data).toMatchSnapshot()
-				end
+
+				local ref_ = useQuery(query, { variables = variables })
+				rejectOnComponentThrow(reject, function()
+					local loading, data = ref_.loading, ref_.data
+
+					if not loading then
+						jestExpect(data).toMatchSnapshot()
+					end
+				end)
 				return nil
 			end
 
@@ -238,26 +253,30 @@ return function()
 
 			render(React.createElement(MockedProvider, { mocks = mocks2 }, React.createElement(Component, variables2)))
 
-			return wait():andThen(resolve, reject)
+			return wait_():andThen(resolve, reject)
 		end)
 
-		itAsync(xit)("should support mocking a network error", function(resolve, reject)
+		itAsync(it)("should support mocking a network error", function(resolve, reject)
 			local function Component(ref)
 				local variables = Object.assign({}, ref, {})
-				local loading, error_
-				do
-					local ref_ = useQuery(query, { variables = variables })
-					loading, error_ = ref_.loading, ref_.error
-				end
-				if not loading then
-					jestExpect(error_).toEqual(Error.new("something went wrong"))
-				end
+
+				local ref_ = useQuery(query, { variables = variables })
+
+				rejectOnComponentThrow(reject, function()
+					local loading, error_ = ref_.loading, ref_.error
+
+					if not loading then
+						-- ROBLOX deviation: comparing error messages
+						jestExpect(error_.message).toEqual(Error.new("something went wrong").message)
+					end
+				end)
 				return nil
 			end
+
 			local mocksError = {
 				{
 					request = { query = query, variables = variables },
-					["error"] = Error.new("something went wrong"),
+					error = Error.new("something went wrong"),
 				},
 			}
 
@@ -265,20 +284,23 @@ return function()
 				React.createElement(MockedProvider, { mocks = mocksError }, React.createElement(Component, variables))
 			)
 
-			return wait():andThen(resolve, reject)
+			return wait_():andThen(resolve, reject)
 		end)
 
-		itAsync(xit)("should error if the query in the mock and component do not match", function(resolve, reject)
+		itAsync(it)("should error if the query in the mock and component do not match", function(resolve, reject)
 			local function Component(ref: Variables)
 				local variables = Object.assign({}, ref, {})
-				local loading, error_
-				do
-					local ref_ = useQuery(query, { variables = variables })
-					loading, error_ = ref_.loading, ref_.error
-				end
-				if not loading then
-					jestExpect(error_).toMatchSnapshot()
-				end
+
+				local ref_ = useQuery(query, { variables = variables })
+
+				rejectOnComponentThrow(reject, function()
+					local loading, error_ = ref_.loading, ref_.error
+
+					if not loading then
+						-- ROBLOX deviation: must use error message (otherwise we get a table id)
+						jestExpect(error_.message).toMatchSnapshot()
+					end
+				end)
 				return nil
 			end
 
@@ -307,7 +329,7 @@ return function()
 				)
 			)
 
-			return wait():andThen(resolve, reject)
+			return wait_():andThen(resolve, reject)
 		end)
 
 		it("should pass down props prop in mock as props for the component", function()
@@ -327,36 +349,35 @@ return function()
 			)
 		end)
 
-		xit("should not crash on unmount if there is no query manager", function()
+		it("should not crash on unmount if there is no query manager", function()
 			local function Component()
 				return nil
 			end
 
-			local unmount
-			do
-				local ref = render(React.createElement(MockedProvider, nil, React.createElement(Component, nil)))
-				unmount = ref.unmount
-			end
+			local ref = render(React.createElement(MockedProvider, nil, React.createElement(Component, nil)))
+			local unmount = ref.unmount
 
-			unmount()
+			unmount(ref)
 		end)
 
-		itAsync(xit)("should support returning mocked results from a function", function(resolve, reject)
+		itAsync(it)("should support returning mocked results from a function", function(resolve, reject)
 			local resultReturned = false
 
 			local testUser = { __typename = "User", id = 12345 }
 
 			local function Component(ref: Variables)
 				local variables = Object.assign({}, ref, {})
-				local loading, data
-				do
-					local ref_ = useQuery(query, { variables = variables })
-					loading, data = ref_.loading, ref_.data
-				end
-				if not loading then
-					jestExpect((data :: any).user).toEqual(testUser)
-					jestExpect(resultReturned).toBe(true)
-				end
+
+				local ref_ = useQuery(query, { variables = variables })
+
+				rejectOnComponentThrow(reject, function()
+					local loading, data = ref_.loading, ref_.data
+
+					if not loading then
+						jestExpect((data :: any).user).toEqual(testUser)
+						jestExpect(resultReturned).toBe(true)
+					end
+				end)
 				return nil
 			end
 
@@ -388,19 +409,20 @@ return function()
 				)
 			)
 
-			return wait():andThen(resolve, reject)
+			return wait_():andThen(resolve, reject)
 		end)
 
-		itAsync(xit)('should return "No more mocked responses" errors in response', function(resolve, reject)
+		itAsync(it)('should return "No more mocked responses" errors in response', function(resolve, reject)
 			local function Component()
-				local loading, error_
-				do
-					local ref = useQuery(query)
-					loading, error_ = ref.loading, ref.error
-				end
-				if not loading then
-					jestExpect(error_).toMatchSnapshot()
-				end
+				local ref = useQuery(query)
+				rejectOnComponentThrow(reject, function()
+					local loading, error_ = ref.loading, ref.error
+
+					if not loading then
+						-- ROBLOX deviation: must use error message (otherwise we get a table id)
+						jestExpect(error_.message).toMatchSnapshot()
+					end
+				end)
 				return nil
 			end
 
@@ -408,24 +430,27 @@ return function()
 
 			render(React.createElement(MockedProvider, { link = link }, React.createElement(Component, nil)))
 
-			return wait(function()
+			return wait_(function()
 				-- The "No more mocked responses" error should not be thrown as an
 				-- uncaught exception.
 				jestExpect(errorThrown).toBeFalsy()
 			end):andThen(resolve, reject)
 		end)
 
-		itAsync(xit)('should return "Mocked response should contain" errors in response', function(resolve, reject)
+		itAsync(it)('should return "Mocked response should contain" errors in response', function(resolve, reject)
 			local function Component(ref: Variables)
 				local variables = Object.assign({}, ref, {})
-				local loading, error_
-				do
-					local ref_ = useQuery(query, { variables = variables })
-					loading, error_ = ref_.loading, ref_.error
-				end
-				if not loading then
-					jestExpect(error_).toMatchSnapshot()
-				end
+
+				local ref_ = useQuery(query, { variables = variables })
+
+				rejectOnComponentThrow(reject, function()
+					local loading, error_ = ref_.loading, ref_.error
+
+					if not loading then
+						-- ROBLOX deviation: must use error message (otherwise we get a table id)
+						jestExpect(error_.message).toMatchSnapshot()
+					end
+				end)
 				return nil
 			end
 
@@ -436,14 +461,14 @@ return function()
 
 			render(React.createElement(MockedProvider, { link = link }, React.createElement(Component, variables)))
 
-			return wait(function()
+			return wait_(function()
 				-- The "Mocked response should contain" error should not be thrown as an
 				-- uncaught exception.
 				jestExpect(errorThrown).toBeFalsy()
 			end):andThen(resolve, reject)
 		end)
 
-		itAsync(xit)("should support custom error handling using setOnError", function(resolve, reject)
+		itAsync(it)("should support custom error handling using setOnError", function(resolve, reject)
 			local function Component(ref: Variables)
 				local variables = Object.assign({}, ref, {})
 				useQuery(query, { variables = variables })
@@ -451,30 +476,34 @@ return function()
 			end
 
 			local mockLink = MockLink.new({})
-			mockLink:setOnError(function(error_)
-				jestExpect(error_).toMatchSnapshot()
+			mockLink:setOnError(function(_self, error_)
+				-- ROBLOX deviation: must use error message (otherwise we get a table id)
+				jestExpect(error_.message).toMatchSnapshot()
 			end)
 
 			local link = ApolloLink.from({ errorLink, mockLink })
 
 			render(React.createElement(MockedProvider, { link = link }, React.createElement(Component, variables)))
 
-			return wait():andThen(resolve, reject)
+			return wait_():andThen(resolve, reject)
 		end)
 
-		itAsync(xit)(
+		itAsync(it)(
 			"should pipe exceptions thrown in custom onError functions through the link chain",
 			function(resolve, reject)
 				local function Component(ref: Variables)
 					local variables = Object.assign({}, ref, {})
-					local loading, error_
-					do
-						local ref_ = useQuery(query, { variables = variables })
-						loading, error_ = ref_.loading, ref_.error
-					end
-					if not loading then
-						jestExpect(error_).toMatchSnapshot()
-					end
+
+					local ref_ = useQuery(query, { variables = variables })
+
+					rejectOnComponentThrow(reject, function()
+						local loading, error_ = ref_.loading, ref_.error
+
+						if not loading then
+							-- ROBLOX deviation: must use error message (otherwise we get a table id)
+							jestExpect(error_.message).toMatchSnapshot()
+						end
+					end)
 					return nil
 				end
 
@@ -487,13 +516,13 @@ return function()
 
 				render(React.createElement(MockedProvider, { link = link }, React.createElement(Component, variables)))
 
-				return wait():andThen(resolve, reject)
+				return wait_():andThen(resolve, reject)
 			end
 		)
 	end)
 
 	describe("@client testing", function()
-		itAsync(xit)("should support @client fields with a custom cache", function(resolve, reject)
+		itAsync(it)("should support @client fields with a custom cache", function(resolve, reject)
 			local cache = InMemoryCache.new()
 
 			cache:writeQuery({
@@ -506,28 +535,29 @@ return function()
 			})
 
 			local function Component()
-				local loading, data
-				do
-					local ref = useQuery(gql([[{
+				local ref = useQuery(gql([[{
         networkStatus @client {
           isOnline
         }
       }]]))
-					loading, data = ref.loading, ref.data
-				end
-				if not loading then
-					jestExpect((data :: any).networkStatus.__typename).toEqual("NetworkStatus")
-					jestExpect((data :: any).networkStatus.isOnline).toEqual(true)
-				end
+
+				rejectOnComponentThrow(reject, function()
+					local loading, data = ref.loading, ref.data
+
+					if not loading then
+						jestExpect((data :: any).networkStatus.__typename).toEqual("NetworkStatus")
+						jestExpect((data :: any).networkStatus.isOnline).toEqual(true)
+					end
+				end)
 				return nil
 			end
 
 			render(React.createElement(MockedProvider, { cache = cache }, React.createElement(Component, nil)))
 
-			return wait():andThen(resolve, reject)
+			return wait_():andThen(resolve, reject)
 		end)
 
-		itAsync(xit)("should support @client fields with field policies", function(resolve, reject)
+		itAsync(it)("should support @client fields with field policies", function(resolve, reject)
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					Query = {
@@ -541,25 +571,26 @@ return function()
 			} :: any)
 
 			local function Component()
-				local loading, data
-				do
-					local ref = useQuery(gql([[{
+				local ref = useQuery(gql([[{
         networkStatus @client {
           isOnline
         }
       }]]))
-					loading, data = ref.loading, ref.data
-				end
-				if not loading then
-					jestExpect((data :: any).networkStatus.__typename).toEqual("NetworkStatus")
-					jestExpect((data :: any).networkStatus.isOnline).toEqual(true)
-				end
+
+				rejectOnComponentThrow(reject, function()
+					local loading, data = ref.loading, ref.data
+
+					if not loading then
+						jestExpect((data :: any).networkStatus.__typename).toEqual("NetworkStatus")
+						jestExpect((data :: any).networkStatus.isOnline).toEqual(true)
+					end
+				end)
 				return nil
 			end
 
 			render(React.createElement(MockedProvider, { cache = cache }, React.createElement(Component, nil)))
 
-			return wait():andThen(resolve, reject)
+			return wait_():andThen(resolve, reject)
 		end)
 	end)
 end
