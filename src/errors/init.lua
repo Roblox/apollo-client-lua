@@ -61,7 +61,15 @@ local function generateErrorMessage(err: ApolloError)
 		end
 	end
 	if err.networkError ~= nil then
-		message ..= ("%s\n"):format((err.networkError :: any).message)
+		-- ROBLOX deviation START: errors returned from Promise have a different shape
+		local networkError = (err.networkError :: any)
+		local message_ = if typeof(networkError) == "string" 
+			then networkError
+			else if networkError.message
+				then networkError.message
+				else networkError.error
+		message ..= ("%s\n"):format(message_)
+		-- ROBLOX deviation END
 	end
 	message = string.gsub(message, "\n$", "")
 	return message

@@ -92,7 +92,7 @@ local function asyncMap(
 						end)
 				end
 			else
-				return function(arg)
+				return function(_self, arg)
 					if Boolean.toJSBoolean(delegate) then
 						(delegate :: Function)(observer, arg)
 					end
