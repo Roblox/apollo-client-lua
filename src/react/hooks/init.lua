@@ -8,13 +8,13 @@ local Object = LuauPolyfill.Object
 Object.assign(
 	exports,
 	require(script.useApolloClient),
+	require(script.useLazyQuery),
+	-- ROBLOX TODO: uncomment these exports as we implement them
+	-- require(script.useMutation),
 	require(script.useQuery)
 	-- ROBLOX TODO: uncomment these exports as we implement them
-	-- require(script.useLazyQuery))
-	-- require(script.useMutation))
-	-- require(script.useQuery))
-	-- require(script.useSubscription))
-	-- require(script.useReactiveVar))
+	-- require(script.useSubscription),
+	-- require(script.useReactiveVar)
 )
 
 return exports

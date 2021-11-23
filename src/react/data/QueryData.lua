@@ -213,13 +213,13 @@ function QueryData:getOptions(): any
 	local options = super.getOptions(self)
 
 	if Boolean.toJSBoolean(self.lazyOptions) then
-		Object.assign({}, options.variables, self.lazyOptions.variables)
-		Object.assign({}, options.context, self.lazyOptions.context)
+		options.variables = Object.assign({}, options.variables, self.lazyOptions.variables)
+		options.context = Object.assign({}, options.context, self.lazyOptions.context)
 	end
 
-	--   // skip is not supported when using lazy query execution.
+	-- skip is not supported when using lazy query execution.
 	if Boolean.toJSBoolean(self.runLazy) then
-		self.options = nil
+		self.options.skip = nil
 	end
 	return options
 end
