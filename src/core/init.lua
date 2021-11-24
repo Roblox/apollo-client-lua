@@ -92,10 +92,8 @@ export type FragmentMatcher = localStateModule.FragmentMatcher
 } from '../cache'; ]]
 --[[ ROBLOX TODO: Unhandled node for type: ExportAllDeclaration ]]
 --[[ export * from '../cache/inmemory/types'; ]]
---[[ ROBLOX TODO: Unhandled node for type: ExportAllDeclaration ]]
---[[ export * from '../link/core'; ]]
---[[ ROBLOX TODO: Unhandled node for type: ExportAllDeclaration ]]
---[[ export * from '../link/http'; ]]
+Object.assign(exports, require(script.Parent.link.core))
+Object.assign(exports, require(script.Parent.link.http))
 --[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
 --[[ export {
   fromError,
@@ -105,6 +103,7 @@ export type FragmentMatcher = localStateModule.FragmentMatcher
   throwServerError,
 } from '../link/utils'; ]]
 local utilitiesModule = require(script.Parent.utilities)
+exports.Observable = utilitiesModule.Observable
 export type Observable<T> = utilitiesModule.Observable<T>
 export type Observer<T> = utilitiesModule.Observer<T>
 export type ObservableSubscription = utilitiesModule.ObservableSubscription

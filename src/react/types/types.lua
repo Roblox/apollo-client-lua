@@ -253,7 +253,14 @@ export type MutationFunction<TData, TVariables, TContext, TCache> = (
 	MutationFunctionOptions<TData, TVariables, TContext, TCache>?
 ) -> Promise<FetchResult<TData>>
 
---[[ ROBLOX deviation: there are no default generic params in Luau: `<TData = any, TVariables = OperationVariables, TContext = DefaultContext, TCache extends ApolloCache<any> = ApolloCache<any>,` ]]
+-- ROBLOX TODO: a workaround to mimic the default generic type params. Remove when default generic types are supported
+export type MutationHookOptions_<TData, TVariables, TContext> =
+	MutationHookOptions<TData, TVariables, TContext, ApolloCache<any>>
+export type MutationHookOptions__<TData, TVariables> =
+	MutationHookOptions<TData, TVariables, DefaultContext, ApolloCache<any>>
+export type MutationHookOptions___<TData> =
+	MutationHookOptions<TData, OperationVariables, DefaultContext, ApolloCache<any>>
+export type MutationHookOptions____ = MutationHookOptions<any, OperationVariables, DefaultContext, ApolloCache<any>>
 export type MutationHookOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<TData, TVariables, TContext, TCache> & {
 	mutation: (DocumentNode | TypedDocumentNode<TData, TVariables>)?,
 }
@@ -263,7 +270,7 @@ export type MutationDataOptions<TData, TVariables, TContext, TCache> = BaseMutat
 	mutation: DocumentNode | TypedDocumentNode<TData, TVariables>,
 }
 
---[[ 
+--[[
 	ROBLOX deviation: no way to type a tuple in Luau. Using Tuple helper type in case it becomes possible in later versions of Luau
 	original type:
  export type MutationTuple<TData, TVariables, TContext, TCache extends ApolloCache<any>> = [

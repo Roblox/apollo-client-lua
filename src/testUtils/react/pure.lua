@@ -4,6 +4,7 @@ local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
+local Error = LuauPolyfill.Error
 local Object = LuauPolyfill.Object
 
 local Shared = require(rootWorkspace.Shared)
@@ -47,14 +48,14 @@ type GenericObject = { [string]: any }
 -- ROBLOX deviation: instead of importing getQueriesForElement, we are defining it here
 local function getQueriesForElement(rootInstance: Instance)
 	return {
-		getByText = function(text): any
+		getByText = function(text: string): any
 			local descendants = rootInstance:GetDescendants()
-			for index, descendant in ipairs(descendants) do
+			for _index, descendant in ipairs(descendants) do
 				if descendant.Text == text then
 					return descendant
 				end
 			end
-			return nil
+			error(Error.new(("Unable to find an element with the text: %s"):format(text)))
 		end,
 		getFirstChild = function()
 			return rootInstance:GetChildren()[1]

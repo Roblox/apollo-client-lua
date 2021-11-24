@@ -6,6 +6,9 @@ local rootWorkspace = srcWorkspace.Parent
 local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
 local jestExpect = JestGlobals.expect
 
+-- ROBLOX FIXME: remove if better solution is found
+type FIX_ANALYZE = any
+
 local React = require(rootWorkspace.React)
 
 local ReactRoblox = require(rootWorkspace.ReactRoblox)
@@ -110,7 +113,7 @@ return function()
 				local ref = render(
 					-- ROBLOX deviation: can't pass datatest-id to TextLabel
 					React.createElement("TextLabel", { Text = "Inner" }),
-					{ wrapper = WrapperComponent }
+					{ wrapper = WrapperComponent :: FIX_ANALYZE }
 				)
 				getFirstChild = ref.getFirstChild
 			end

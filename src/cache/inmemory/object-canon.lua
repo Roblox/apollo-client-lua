@@ -36,6 +36,9 @@ local canUseWeakMap = utilitiesModule.canUseWeakMap
 -- local canUseWeakSet = utilitiesModule.canUseWeakSet
 local isObjectOrArray = utilitiesModule.isNonNullObject
 
+-- ROBLOX deviation: canonical will not be encoded the same in Lua, because keys order is not respected
+local sortedEncode = require(srcWorkspace.luaUtils.sortedEncode).sortedEncode
+
 -- ROBLOX deviation: predeclare variables
 local stringifyCanon
 local stringifyCache
@@ -270,17 +273,6 @@ end
 exports.ObjectCanon = ObjectCanon
 
 type SortedKeysInfo = { sorted: Array<string>, json: string }
-
--- ROBLOX deviation: canonical will not be encoded the same in Lua, because keys order is not respected
-function sortedEncode(toEncode: any)
-	if not Array.isArray(toEncode) and typeof(toEncode) == "table" then
-		local encodedKeyValues = Array.map(Array.sort(Object.keys(toEncode)), function(key)
-			return HttpService:JSONEncode(key) .. ":" .. sortedEncode(toEncode[key])
-		end)
-		return "{" .. Array.join(encodedKeyValues, ",") .. "}"
-	end
-	return HttpService:JSONEncode(toEncode)
-end
 
 -- Since the keys of canonical objects are always created in lexicographically
 -- sorted order, we can use the ObjectCanon to implement a fast and stable

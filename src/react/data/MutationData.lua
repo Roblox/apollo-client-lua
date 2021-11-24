@@ -60,6 +60,35 @@ type MutationDataConstructorArgs<TData, TVariables, TContext, TCache> = {
 
 function MutationData.new(ref: MutationDataConstructorArgs<any, any, any, any>): MutationData<any, any, any, any>
 	local self: any = OperationData.new(ref.options, ref.context)
+	self.runMutation = function(mutationFunctionOptions: Object?)
+		if mutationFunctionOptions == nil then
+			mutationFunctionOptions = {}
+		end
+		self:onMutationStart()
+		local mutationId = self:generateNewMutationId()
+
+		return self
+			:mutate(mutationFunctionOptions)
+			:andThen(function(response)
+				self:onMutationCompleted(response, mutationId)
+				return response
+			end)
+			:catch(function(error_: ApolloError)
+				local ref_ = self:getOptions()
+				local onError = ref_.onError
+				self:onMutationError(error_, mutationId)
+				if Boolean.toJSBoolean(onError) then
+					onError(ref_, error_)
+					return {
+						data = nil,
+						errors = error_,
+					}
+				else
+					error(error_)
+				end
+			end)
+	end
+
 	self:verifyDocumentType(ref.options.mutation, DocumentType.Mutation)
 	self.result = ref.result
 	self.setResult = ref.setResult
@@ -70,7 +99,7 @@ end
 function MutationData:execute(result: any): MutationTuple<any, any, any, any>
 	self.isMounted = true
 	self:verifyDocumentType(self:getOptions().mutation, DocumentType.Mutation)
-	return { self.runMutation, Object.assign(result, { client = self:refreshClient().client }) }
+	return { self.runMutation, Object.assign({}, result, { client = self:refreshClient().client }) }
 end
 
 function MutationData:afterExecute()
@@ -82,34 +111,6 @@ end
 
 function MutationData:cleanup()
 	-- // No cleanup required.
-end
-
-function MutationData:runMutation(mutationFunctionOptions: Object?)
-	if mutationFunctionOptions == nil then
-		mutationFunctionOptions = {}
-	end
-	self:onMutationStart()
-	local mutationId = self:generateNewMutationId()
-
-	return self
-		:mutate(mutationFunctionOptions)
-		:andThen(function(response)
-			self:onMutationCompleted(response, mutationId)
-			return response
-		end)
-		:catch(function(error_: ApolloError)
-			local onError = self:getOptions().onError
-			self:onMutationError(error_, mutationId)
-			if Boolean.toJSBoolean(onError) then
-				onError(error_)
-				return {
-					data = nil,
-					errors = error_,
-				}
-			else
-				error(error_)
-			end
-		end)
 end
 
 function MutationData:mutate(options: MutationFunctionOptions<any, any, any, any>)

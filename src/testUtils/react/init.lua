@@ -1,18 +1,10 @@
 -- ROBLOX upstream: https://github.com/testing-library/react-testing-library/blob/v9.4.1/src/index.js
 
-local srcWorkspace = script.Parent.Parent
-local rootWorkspace = srcWorkspace.Parent
-
-local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
-local Object = LuauPolyfill.Object
-
 -- ROBLOX deviation: we may not need flush functionality. need to verify.
 -- local flush = require(script["flush-microtasks"]).default
 
 -- ROBLOX deviation: this is not needed, already importing cleanup from pure below
 -- local cleanup = require(script.pure).cleanup
-
-local exports: { [string]: any } = {}
 
 -- ROBLOX deviation: we may not need to auto insert cleanup, we're already inserting them in our jest tests. need to verify.
 --[[
@@ -39,6 +31,4 @@ or set the RTL_SKIP_AUTO_CLEANUP env variable to 'true'.
 -- 	end)
 -- end
 
-Object.assign(exports, require(script.pure))
-
-return exports
+return require(script.pure)

@@ -9,8 +9,7 @@ Object.assign(
 	exports,
 	require(script.useApolloClient),
 	require(script.useLazyQuery),
-	-- ROBLOX TODO: uncomment these exports as we implement them
-	-- require(script.useMutation),
+	require(script.useMutation),
 	require(script.useQuery)
 	-- ROBLOX TODO: uncomment these exports as we implement them
 	-- require(script.useSubscription),
