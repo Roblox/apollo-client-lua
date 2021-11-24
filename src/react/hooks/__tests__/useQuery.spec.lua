@@ -15,6 +15,9 @@ return function()
 	type Array<T> = LuauPolyfill.Array<T>
 	type Function = (...any) -> ...any
 
+	-- ROBLOX deviation: setTimeout currently operates at minimum 30Hz rate. Any lower number seems to be treated as 0
+	local TICK = 1000 / 30
+
 	local Promise = require(rootWorkspace.Promise)
 	local RegExp = require(rootWorkspace.LuauRegExp)
 
@@ -55,7 +58,7 @@ return function()
 	local utilitiesModule = require(srcWorkspace.utilities)
 	local Observable = utilitiesModule.Observable
 	type Reference = utilitiesModule.Reference
-	local concatPagination = utilitiesModule.concatPagination
+	local concatPagination = require(srcWorkspace.utilities.policies.pagination).concatPagination
 	local ApolloLink = require(script.Parent.Parent.Parent.Parent.link.core).ApolloLink
 
 	local testingModule = require(srcWorkspace.testing)
@@ -67,14 +70,16 @@ return function()
 
 	local useQuery = require(script.Parent.Parent.useQuery).useQuery
 
-	-- ROBLOX TODO: use when ported
-	-- local useMutation = require(script.Parent.Parent.useMutation).useMutation
-	local useMutation = function(...)
-		return {} :: any
-	end
+	local useMutation = require(script.Parent.Parent.useMutation).useMutation
 
 	local reactModule = require(script.Parent.Parent.Parent)
 	type QueryFunctionOptions<TData, TVariables> = reactModule.QueryFunctionOptions<TData, TVariables>
+
+	local typesModule = require(script.Parent.Parent.Parent.types.types)
+	type MutationTupleFirst<TData, TVariables, TContext, TCache> =
+		typesModule.MutationTupleFirst<TData, TVariables, TContext, TCache>
+	type MutationTupleSecond<TData, TVariables, TContext, TCache> =
+		typesModule.MutationTupleSecond<TData, TVariables, TContext, TCache>
 
 	-- ROBLOX deviation: replaces Jasmine's fail global
 	local function fail(message: string)
@@ -311,7 +316,7 @@ return function()
 				resolve()
 			end)
 
-			itAsync(itFIXME)("should return result when result is equivalent", function(resolve, reject)
+			itAsync(it)("should return result when result is equivalent", function(resolve, reject)
 				local CAR_QUERY_BY_ID = gql([[
 
 						query($id: Int) {
@@ -332,7 +337,7 @@ return function()
 						result = { data = CAR_DATA_A4 },
 					},
 				}
-				local hookResponse = jest.fn():mockReturnValue(nil)
+				local hookResponse = jest.fn().mockReturnValue(nil)
 
 				local function Component(ref)
 					local id, children, skip =
@@ -578,19 +583,18 @@ return function()
 			)
 		end)
 		describe("Polling", function()
-			itAsync(itFIXME)("should support polling", function(resolve, reject)
+			itAsync(it)("should support polling", function(resolve, reject)
 				local renderCount = 0
 
 				local function Component()
 					local queryResult = useQuery(CAR_QUERY, {
-						pollInterval = 10,
+						-- ROBLOX deviation: using tick multiplier
+						pollInterval = 10 * TICK,
 					})
 
 					rejectOnComponentThrow(reject, function()
 						local data, loading, networkStatus, stopPolling =
 							queryResult.data, queryResult.loading, queryResult.networkStatus, queryResult.stopPolling
-
-						--[[ ROBLOX comment: switch statement conversion ]]
 						renderCount += 1
 						local condition_ = renderCount
 						if condition_ == 1 then
@@ -617,18 +621,18 @@ return function()
 				end):andThen(resolve, reject)
 			end)
 
-			itAsync(itFIXME)("should stop polling when skip is true", function(resolve, reject)
+			itAsync(it)("should stop polling when skip is true", function(resolve, reject)
 				local renderCount = 0
 
 				local function Component()
 					local shouldSkip, setShouldSkip = useState(false)
 					local queryResult = useQuery(CAR_QUERY, {
-						pollInterval = 100,
+						-- ROBLOX deviation: using tick multiplier
+						pollInterval = 100 * TICK / 10,
 						skip = shouldSkip,
 					})
 					rejectOnComponentThrow(reject, function()
 						local data, loading = queryResult.data, queryResult.loading
-						--[[ ROBLOX comment: switch statement conversion ]]
 						renderCount += 1
 						local condition_ = renderCount
 						if condition_ == 1 then
@@ -658,7 +662,7 @@ return function()
 				end):andThen(resolve, reject)
 			end)
 
-			itAsync(itFIXME)("should start polling when skip goes from true to false", function(resolve, reject)
+			itAsync(it)("should start polling when skip goes from true to false", function(resolve, reject)
 				local query = gql([[
 
 					query car {
@@ -679,7 +683,8 @@ return function()
 				local function Component()
 					local shouldSkip, setShouldSkip = useState(false)
 					local queryResult = useQuery(query, {
-						pollInterval = 100,
+						-- ROBLOX deviation: using tick multiplier
+						pollInterval = 100 * TICK / 10,
 						skip = shouldSkip,
 					})
 
@@ -687,7 +692,6 @@ return function()
 						local data, loading, stopPolling =
 							queryResult.data, queryResult.loading, queryResult.stopPolling
 
-						--[[ ROBLOX comment: switch statement conversion ]]
 						renderCount += 1
 						local condition_ = renderCount
 						if condition_ == 1 then
@@ -736,7 +740,7 @@ return function()
 				end, {})
 				return {
 					mounted = queryMounted,
-					unmount = function(self)
+					unmount = function(_self)
 						if Boolean.toJSBoolean(mounted) then
 							setQueryMounted((function()
 								mounted = false
@@ -747,24 +751,25 @@ return function()
 				}
 			end
 
-			itAsync(itFIXME)("should stop polling when the component is unmounted", function(resolve, reject)
+			itAsync(it)("should stop polling when the component is unmounted", function(resolve, reject)
 				local mocks = Array.concat({}, CAR_MOCKS, CAR_MOCKS, CAR_MOCKS, CAR_MOCKS)
 				local mockLink = MockLink.new(mocks):setOnError(reject)
 
-				local linkRequestSpy: any = jest.fn()
-				mockLink.request = function(_self, ...)
-					return linkRequestSpy(...)
-				end
+				-- ROBLOX deviation: using jest.fn instead of spyOn (not available)
+				local linkRequestSpy: any = jest.fn(mockLink.request)
+				mockLink.request = linkRequestSpy
 
 				local renderCount = 0
 
 				local function QueryComponent(ref)
 					local unmount = ref.unmount
-					local queryResult = useQuery(CAR_QUERY, { pollInterval = 10 })
+					local queryResult = useQuery(CAR_QUERY, {
+						-- ROBLOX deviation: using tick multiplier
+						pollInterval = 10 * TICK,
+					})
 					rejectOnComponentThrow(reject, function()
 						local data, loading = queryResult.data, queryResult.loading
 
-						--[[ ROBLOX comment: switch statement conversion ]]
 						renderCount += 1
 						local condition_ = renderCount
 
@@ -776,7 +781,8 @@ return function()
 							jestExpect(linkRequestSpy).toHaveBeenCalledTimes(1)
 							setTimeout(function()
 								unmount(ref)
-							end, 10)
+								-- ROBLOX deviation: using tick multiplier
+							end, 10 * TICK)
 						else
 							reject("unreached")
 						end
@@ -812,58 +818,43 @@ return function()
 				end):andThen(resolve, reject)
 			end)
 
-			itAsync(itFIXME)(
+			itAsync(it)(
 				"should stop polling when the component is unmounted when using StrictMode",
 				function(resolve, reject)
 					local mocks = Array.concat({}, CAR_MOCKS, CAR_MOCKS, CAR_MOCKS, CAR_MOCKS)
 					local mockLink = MockLink.new(mocks):setOnError(reject)
-					-- ROBLOX TODO: spyon not available. replace with jest.fn?
-					local linkRequestSpy: any = function(...) end
-					-- local linkRequestSpy = jest:spyOn(mockLink, "request")
+
+					-- ROBLOX deviation: using jest.fn instead of spyOn (not available)
+					local linkRequestSpy: any = jest.fn(mockLink.request)
+					mockLink.request = linkRequestSpy
+
 					local renderCount = 0
 
 					local function QueryComponent(ref)
 						local unmount = ref.unmount
-						local queryResult = useQuery(CAR_QUERY, { pollInterval = 10 })
+						local queryResult = useQuery(CAR_QUERY, {
+							-- ROBLOX deviation: using tick multiplier
+							pollInterval = 10 * TICK,
+						})
 						local data, loading = queryResult.data, queryResult.loading
 
-						repeat --[[ ROBLOX comment: switch statement conversion ]]
-							local entered_, break_ = false, false
-							renderCount += 1
-							local condition_ = renderCount
-							for _, v in ipairs({ 1, 2, 3, 4 }) do
-								if condition_ == v then
-									if v == 1 then
-										entered_ = true
-									end
-									if v == 2 or entered_ then
-										entered_ = true
-										jestExpect(loading).toBeTruthy()
-										break_ = true
-										break
-									end
-									if v == 3 or entered_ then
-										entered_ = true
-									end
-									if v == 4 or entered_ then
-										entered_ = true
-										jestExpect(loading).toBeFalsy()
-										jestExpect(data).toEqual(CAR_RESULT_DATA)
-										jestExpect(linkRequestSpy).toHaveBeenCalledTimes(1)
-										if renderCount == 3 then
-											setTimeout(function()
-												unmount(ref)
-											end, 10)
-										end
-										break_ = true
-										break
-									end
-								end
+						renderCount += 1
+						local condition_ = renderCount
+						if condition_ == 1 or condition_ == 2 then
+							jestExpect(loading).toBeTruthy()
+						elseif condition_ == 3 or condition_ == 4 then
+							jestExpect(loading).toBeFalsy()
+							jestExpect(data).toEqual(CAR_RESULT_DATA)
+							jestExpect(linkRequestSpy).toHaveBeenCalledTimes(1)
+							if renderCount == 3 then
+								setTimeout(function()
+									unmount(ref)
+									-- ROBLOX deviation: using tick multiplier
+								end, 10 * TICK)
 							end
-							if not break_ then
-								reject("unreached")
-							end
-						until true
+						else
+							reject("unreached")
+						end
 						return nil
 					end
 
@@ -900,7 +891,7 @@ return function()
 				end
 			)
 
-			itAsync(itFIXME)(
+			itAsync(it)(
 				"should not throw an error if `stopPolling` is called manually after "
 					.. "a component has unmounted (even though polling has already been "
 					.. "stopped automatically)",
@@ -910,7 +901,7 @@ return function()
 
 					local function Component()
 						local queryResult = useQuery(CAR_QUERY, {
-							pollInterval = 10,
+							pollInterval = 10 * TICK,
 						})
 						rejectOnComponentThrow(reject, function()
 							local data, loading, stopPolling =
@@ -948,7 +939,7 @@ return function()
 				end
 			)
 
-			itAsync(itFIXME)("stop polling and start polling should work with StrictMode", function(resolve, reject)
+			itAsync(it)("stop polling and start polling should work with StrictMode", function(resolve, reject)
 				local query = gql([[
 
 					query car {
@@ -964,7 +955,7 @@ return function()
 
 				local function Component()
 					local queryResult = useQuery(query, {
-						pollInterval = 100,
+						pollInterval = 100 * TICK / 10,
 					})
 					rejectOnComponentThrow(reject, function()
 						local data, loading, stopPolling =
@@ -1187,6 +1178,7 @@ return function()
 				end):andThen(resolve, reject)
 			end)
 
+			-- ROBLOX FIXME: unhandled equality check for function
 			itAsync(itFIXME)(
 				"should persist errors on re-render when inlining onError and/or " .. "onCompleted callbacks",
 				function(resolve, reject)
@@ -1479,23 +1471,26 @@ return function()
 			)
 		end)
 
-		xdescribe("Pagination", function()
+		describe("Pagination", function()
 			-- Because fetchMore with updateQuery is deprecated, this setup/teardown
 			-- code is used to squash deprecation notices.
 			-- TODO: delete me after fetchMore with updateQuery is removed.
 			local spy: any
 			local warned = false
+			local originalFn
 			beforeEach(function()
-				if not Boolean.toJSBoolean(warned) then
-					-- ROBLOX TODO: spyon not available. replace with jest.fn?
-					-- spy = jest:spyOn(console, "warn"):mockImplementation(function()
-					-- 	warned = true
-					-- end)
+				if not warned then
+					originalFn = console.warn
+					-- ROBLOX deviation: using jest.fn instead of spyOn (not available)
+					spy = jest.fn(function()
+						warned = true
+					end)
+					console.warn = spy
 				end
 			end)
 			afterEach(function()
-				if Boolean.toJSBoolean(spy) then
-					spy:mockRestore()
+				if spy then
+					console.warn = originalFn
 					spy = nil
 				end
 			end)
@@ -1549,66 +1544,63 @@ return function()
 					}
 					itAsync(it)("updateQuery", function(resolve, reject)
 						local renderCount = 0
+
 						local function App()
-							local loading, networkStatus, data, fetchMore
-							do
-								local ref = useQuery(
-									carQuery,
-									{ variables = { limit = 1 }, notifyOnNetworkStatusChange = true }
-								)
-								loading, networkStatus, data, fetchMore =
+							local ref = useQuery(
+								carQuery,
+								{ variables = { limit = 1 }, notifyOnNetworkStatusChange = true }
+							)
+							rejectOnComponentThrow(reject, function()
+								local loading, networkStatus, data, fetchMore =
 									ref.loading, ref.networkStatus, ref.data, ref.fetchMore
-							end
-							--[[ ROBLOX comment: switch statement conversion ]]
-							renderCount += 1
-							local condition_ = renderCount
-							if condition_ == 1 then
-								jestExpect(loading).toBeTruthy()
-								jestExpect(networkStatus).toBe(NetworkStatus.loading)
-								jestExpect(data).toBeUndefined()
-							elseif condition_ == 2 then
-								jestExpect(loading).toBeFalsy()
-								jestExpect(networkStatus).toBe(NetworkStatus.ready)
-								jestExpect(data).toEqual(carResults)
-								fetchMore({
-									variables = { limit = 1 },
-									updateQuery = function(prev, ref)
-										local fetchMoreResult = ref.fetchMoreResult
-										return {
-											cars = Array.concat(
-												{},
-												table.unpack(prev.cars),
-												table.unpack(fetchMoreResult.cars)
-											),
-										}
-									end,
-								})
-							elseif condition_ == 3 then
-								jestExpect(loading).toBeTruthy()
-								jestExpect(networkStatus).toBe(NetworkStatus.fetchMore)
-								jestExpect(data).toEqual(carResults)
-							elseif condition_ == 4 then
-								jestExpect(loading).toBeFalsy()
-								jestExpect(networkStatus).toBe(NetworkStatus.ready)
-								jestExpect(data).toEqual({
-									cars = {
-										carResults.cars[1],
-										moreCarResults.cars[1],
-									},
-								})
-							else
-								reject("too many updates")
-							end
+
+								renderCount += 1
+								local condition_ = renderCount
+								if condition_ == 1 then
+									jestExpect(loading).toBeTruthy()
+									jestExpect(networkStatus).toBe(NetworkStatus.loading)
+									jestExpect(data).toBeUndefined()
+								elseif condition_ == 2 then
+									jestExpect(loading).toBeFalsy()
+									jestExpect(networkStatus).toBe(NetworkStatus.ready)
+									jestExpect(data).toEqual(carResults)
+									fetchMore(ref, {
+										variables = { limit = 1 },
+										updateQuery = function(_self, prev, ref_)
+											local fetchMoreResult = ref_.fetchMoreResult
+											return {
+												cars = Array.concat({}, prev.cars, fetchMoreResult.cars),
+											}
+										end,
+									})
+								elseif condition_ == 3 then
+									jestExpect(loading).toBeTruthy()
+									jestExpect(networkStatus).toBe(NetworkStatus.fetchMore)
+									jestExpect(data).toEqual(carResults)
+								elseif condition_ == 4 then
+									jestExpect(loading).toBeFalsy()
+									jestExpect(networkStatus).toBe(NetworkStatus.ready)
+									jestExpect(data).toEqual({
+										cars = {
+											carResults.cars[1],
+											moreCarResults.cars[1],
+										},
+									})
+								else
+									reject("too many updates")
+								end
+							end)
 							return nil
 						end
+
 						render(React.createElement(MockedProvider, { mocks = mocks }, React.createElement(App, nil)))
+
 						return wait_(function()
 							jestExpect(renderCount).toBe(4)
 							-- TODO: delete me after fetchMore with updateQuery is removed.
-
-							if Boolean.toJSBoolean(spy) then
+							if spy then
 								jestExpect(spy).toHaveBeenCalledTimes(1)
-								spy:mockRestore()
+								console.warn = originalFn
 							end
 						end):andThen(resolve, reject)
 					end)
@@ -1616,15 +1608,12 @@ return function()
 					itAsync(it)("field policy", function(resolve, reject)
 						local renderCount = 0
 						local function App()
-							local loading, networkStatus, data, fetchMore
-							do
-								local ref = useQuery(
-									carQuery,
-									{ variables = { limit = 1 }, notifyOnNetworkStatusChange = true }
-								)
-								loading, networkStatus, data, fetchMore =
-									ref.loading, ref.networkStatus, ref.data, ref.fetchMore
-							end
+							local ref = useQuery(
+								carQuery,
+								{ variables = { limit = 1 }, notifyOnNetworkStatusChange = true }
+							)
+							local loading, networkStatus, data, fetchMore =
+								ref.loading, ref.networkStatus, ref.data, ref.fetchMore
 							renderCount += 1
 							local condition_ = renderCount
 							if condition_ == 1 then
@@ -1635,7 +1624,7 @@ return function()
 								jestExpect(loading).toBeFalsy()
 								jestExpect(networkStatus).toBe(NetworkStatus.ready)
 								jestExpect(data).toEqual(carResults)
-								fetchMore({ variables = { limit = 1 } })
+								fetchMore(ref, { variables = { limit = 1 } })
 							elseif condition_ == 3 then
 								jestExpect(loading).toBeTruthy()
 								jestExpect(networkStatus).toBe(NetworkStatus.fetchMore)
@@ -1657,6 +1646,7 @@ return function()
 						local cache = InMemoryCache.new({
 							typePolicies = { Query = { fields = { cars = concatPagination() } } },
 						} :: any)
+
 						render(
 							React.createElement(
 								MockedProvider,
@@ -1664,17 +1654,19 @@ return function()
 								React.createElement(App, nil)
 							)
 						)
+
 						return wait_(function()
 							jestExpect(renderCount).toBe(4)
 							-- TODO: delete me after fetchMore with updateQuery is removed.
-							if Boolean.toJSBoolean(spy) then
+							if spy then
 								jestExpect(spy).toHaveBeenCalledTimes(1)
-								spy:mockRestore()
+								console.warn = originalFn
 							end
 						end):andThen(resolve, reject)
 					end)
 				end
 			)
+
 			describe(
 				"should render fetchMore-updated results with no loading status, when `notifyOnNetworkStatusChange` is false",
 				function()
@@ -1690,6 +1682,7 @@ return function()
 					  }
 					}
 				]])
+
 					local carResults = {
 						cars = {
 							{
@@ -1701,6 +1694,7 @@ return function()
 							},
 						},
 					}
+
 					local moreCarResults = {
 						cars = {
 							{
@@ -1712,6 +1706,7 @@ return function()
 							},
 						},
 					}
+
 					local mocks = {
 						{
 							request = { query = carQuery, variables = { limit = 1 } },
@@ -1726,31 +1721,24 @@ return function()
 					itAsync(it)("updateQuery_", function(resolve, reject)
 						local renderCount = 0
 						local function App()
-							local loading, data, fetchMore
-							do
-								local ref = useQuery(
-									carQuery,
-									{ variables = { limit = 1 }, notifyOnNetworkStatusChange = false }
-								)
-								loading, data, fetchMore = ref.loading, ref.data, ref.fetchMore
-							end
-							--[[ ROBLOX comment: switch statement conversion ]]
+							local ref = useQuery(
+								carQuery,
+								{ variables = { limit = 1 }, notifyOnNetworkStatusChange = false }
+							)
+							local loading, data, fetchMore = ref.loading, ref.data, ref.fetchMore
+
 							local condition_ = renderCount
 							if condition_ == 0 then
 								jestExpect(loading).toBeTruthy()
 							elseif condition_ == 1 then
 								jestExpect(loading).toBeFalsy()
 								jestExpect(data).toEqual(carResults)
-								fetchMore({
+								fetchMore(ref, {
 									variables = { limit = 1 },
-									updateQuery = function(prev, ref)
-										local fetchMoreResult = ref.fetchMoreResult
+									updateQuery = function(_self, prev, ref_)
+										local fetchMoreResult = ref_.fetchMoreResult
 										return {
-											cars = Array.concat(
-												{},
-												table.unpack(prev.cars),
-												table.unpack(fetchMoreResult.cars)
-											),
+											cars = Array.concat({}, prev.cars, fetchMoreResult.cars),
 										}
 									end,
 								})
@@ -1766,29 +1754,28 @@ return function()
 							renderCount += 1
 							return nil
 						end
+
 						render(React.createElement(MockedProvider, { mocks = mocks }, React.createElement(App, nil)))
+
 						return wait_(function()
 							jestExpect(renderCount).toBe(3)
 						end):andThen(resolve, reject)
 					end)
 
-					itAsync(it)("field policy", function(resolve, reject)
+					itAsync(it)("field policy_", function(resolve, reject)
 						local renderCount = 0
 						local function App()
-							local loading, data, fetchMore
-							do
-								local ref = useQuery(
-									carQuery,
-									{ variables = { limit = 1 }, notifyOnNetworkStatusChange = false }
-								)
-								loading, data, fetchMore = ref.loading, ref.data, ref.fetchMore
-							end
+							local ref = useQuery(
+								carQuery,
+								{ variables = { limit = 1 }, notifyOnNetworkStatusChange = false }
+							)
+							local loading, data, fetchMore = ref.loading, ref.data, ref.fetchMore
 							if renderCount == 0 then
 								jestExpect(loading).toBeTruthy()
 							elseif renderCount == 1 then
 								jestExpect(loading).toBeFalsy()
 								jestExpect(data).toEqual(carResults)
-								fetchMore({ variables = { limit = 1 } })
+								fetchMore(ref, { variables = { limit = 1 } })
 							elseif renderCount == 2 then
 								jestExpect(loading).toBeFalsy()
 								jestExpect(data).toEqual({
@@ -1801,9 +1788,11 @@ return function()
 							renderCount += 1
 							return nil
 						end
+
 						local cache = InMemoryCache.new({
 							typePolicies = { Query = { fields = { cars = concatPagination() } } },
 						} :: any)
+
 						render(
 							React.createElement(
 								MockedProvider,
@@ -1811,6 +1800,7 @@ return function()
 								React.createElement(App, nil)
 							)
 						)
+
 						return wait_(function()
 							jestExpect(renderCount).toBe(3)
 						end):andThen(resolve, reject)
@@ -2351,6 +2341,7 @@ return function()
 				end):andThen(resolve, reject)
 			end)
 
+			-- ROBLOX FIXME: unhandled equality check for function
 			itAsync(itFIXME)("should not repeatedly call onCompleted if it alters state", function(resolve, reject)
 				local query = gql([[
 
@@ -2472,7 +2463,7 @@ return function()
 		end)
 
 		describe("Optimistic data", function()
-			-- ROBLOX TODO: needs useMutation
+			-- ROBLOX TODO: fragments are not supported yet
 			itAsync(itSKIP)("should display rolled back optimistic data when an error occurs", function(resolve, reject)
 				local query = gql([[
 
@@ -2518,7 +2509,7 @@ return function()
 								local data = ref.data
 								cache:modify({
 									fields = {
-										cars = function(self, existing, ref)
+										cars = function(_self, existing, ref)
 											local readField = ref.readField
 											local newCarRef = cache:writeFragment({
 												data = data.addCar,
@@ -2537,7 +2528,7 @@ return function()
 											then
 												return existing
 											end
-											return Array.concat({}, table.unpack(existing), { newCarRef })
+											return Array.concat({}, existing, { newCarRef })
 										end,
 									},
 								})
@@ -2546,15 +2537,13 @@ return function()
 								-- Swallow error
 							end,
 						})
-						mutate, mutationLoading = ref[1], ref[2].loading
+						mutate, mutationLoading =
+							ref[1] :: MutationTupleFirst<any, any, any, any>,
+							(ref[2] :: MutationTupleSecond<any, any, any, any>).loading
 					end
 
-					local data, queryLoading
-					do
-						local ref = useQuery(query)
-						data, queryLoading = ref.data, ref.loading
-					end
-					--[[ ROBLOX comment: switch statement conversion ]]
+					local ref = useQuery(query)
+					local data, queryLoading = ref.data, ref.loading
 					renderCount += 1
 					local condition_ = renderCount
 					if condition_ == 1 then
@@ -2971,6 +2960,7 @@ return function()
 				end):andThen(resolve, reject)
 			end)
 
+			-- ROBLOX FIXME: timing issue
 			itAsync(itFIXME)("should persist result.previousData across multiple results", function(resolve, reject)
 				local query: TypedDocumentNode<{ car: { id: string, make: string } }, { vin: string }> = gql([[
 
@@ -3000,7 +2990,7 @@ return function()
 					rejectOnComponentThrow(reject, function()
 						local loading, data, previousData, refetch =
 							ref.loading, ref.data, ref.previousData, ref.refetch
-						--[[ ROBLOX comment: switch statement conversion ]]
+
 						renderCount += 1
 						local condition_ = renderCount
 						if condition_ == 1 then

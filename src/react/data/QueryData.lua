@@ -98,9 +98,10 @@ function QueryData.new(
 		return nil
 	end
 
-	self.obsFetchmore = function(fetchMoreOptions: FetchMoreQueryOptions<any, any> & FetchMoreOptions<any, any>)
-		return self.currentObservable:fetchMore(fetchMoreOptions)
-	end
+	self.obsFetchMore =
+		function(_self: QueryData<any, any>, fetchMoreOptions: FetchMoreQueryOptions<any, any> & FetchMoreOptions<any, any>)
+			return self.currentObservable:fetchMore(fetchMoreOptions)
+		end
 
 	-- ROBLOX deviation: there are no default generic params in Luau:
 	-- <TVars = TVariables>(

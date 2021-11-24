@@ -741,8 +741,7 @@ function Policies:fragmentMatches(
 			if supertypeSet:has(supertype) then
 				if not typenameSupertypeSet:has(supertype) then
 					if checkingFuzzySubtypes then
-						-- ROBLOX FIXME: no invariant.warn available
-						-- invariant.warn(("Inferring subtype %s of supertype %s"):format(typename, supertype))
+						invariant.warn(("Inferring subtype %s of supertype %s"):format(typename :: string, supertype))
 					end
 					-- Record positive results for faster future lookup.
 					-- Unfortunately, we cannot safely cache negative results,
