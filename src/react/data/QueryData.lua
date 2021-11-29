@@ -110,18 +110,18 @@ function QueryData.new(
 	--       options: UpdateQueryOptions<TVars>
 	--     ) => TData
 	--   )
-	self.obsUpdateQuery = function(mapFn: any)
+	self.obsUpdateQuery = function(_self: QueryData<any, any>, mapFn: any)
 		return self.currentObservable:updateQuery(mapFn)
 	end
 
-	self.obsStartPolling = function(pollInterval: number)
+	self.obsStartPolling = function(_self: QueryData<any, any>, pollInterval: number)
 		if Boolean.toJSBoolean(self.currentObservable) then
 			return self.currentObservable:startPolling(pollInterval)
 		end
 		return nil
 	end
 
-	self.obsStopPolling = function()
+	self.obsStopPolling = function(_self: QueryData<any, any>)
 		if Boolean.toJSBoolean(self.currentObservable) then
 			return self.currentObservable:stopPolling()
 		end
