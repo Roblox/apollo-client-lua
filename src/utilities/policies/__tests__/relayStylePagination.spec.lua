@@ -152,7 +152,7 @@ return function()
 				canRead = function(_self)
 					return false
 				end,
-				mergeObjects = function(_self, existing, _incoming)
+				mergeObjects = function(_self, existing: any, _incoming: any)
 					return existing
 				end,
 			}

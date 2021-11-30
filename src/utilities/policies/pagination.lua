@@ -66,13 +66,13 @@ local function offsetLimitPagination(keyArgs: KeyArgs?): FieldPolicy<Array<T_>, 
 		merge = function(_self, existing, incoming, ref)
 			local args = ref.args
 			local merged
-			if Boolean.toJSBoolean(existing) then
+			if existing ~= nil then
 				merged = Array.slice(existing, 1)
 			else
 				merged = {}
 			end
 
-			if Boolean.toJSBoolean(args) then
+			if args ~= nil then
 				-- Assume an offset of 0 if args.offset omitted.
 				local offset
 				if args.offset == nil then
@@ -129,17 +129,20 @@ export type RelayFieldPolicy<TNode> = FieldPolicy<TExistingRelay<TNode>, TIncomi
 -- As proof of the flexibility of field policies, this function generates
 -- one that handles Relay-style pagination, without Apollo Client knowing
 -- anything about connections, edges, cursors, or pageInfo objects.
-local function relayStylePagination(keyArgs: KeyArgs?): RelayFieldPolicy<TNode_>
+local function relayStylePagination<TNode>(keyArgs: KeyArgs?): RelayFieldPolicy<TNode>
 	if keyArgs == nil then
 		keyArgs = false
 	end
 
 	return {
 		keyArgs = keyArgs,
-		read = function(_self, existing, ref)
-			if not Boolean.toJSBoolean(existing) then
+		read = function(_self, existing_, ref)
+			if not Boolean.toJSBoolean(existing_) then
 				return
 			end
+
+			-- ROBLOX deviation: help analyze tool
+			local existing = existing_ :: TExistingRelay<TNode>
 
 			local edges: Array<TRelayEdge<TNode_>> = {}
 			local firstEdgeCursor = ""
@@ -164,11 +167,8 @@ local function relayStylePagination(keyArgs: KeyArgs?): RelayFieldPolicy<TNode_>
 				end
 			end)
 
-			local startCursor, endCursor
-			do
-				local ref_ = Boolean.toJSBoolean(existing.pageInfo) and existing.pageInfo or {}
-				startCursor, endCursor = ref_.startCursor, ref_.endCursor
-			end
+			local ref_ = Boolean.toJSBoolean(existing.pageInfo) and existing.pageInfo or {} :: Object
+			local startCursor, endCursor = ref_.startCursor, ref_.endCursor
 
 			return Object.assign(
 				{},
@@ -192,10 +192,13 @@ local function relayStylePagination(keyArgs: KeyArgs?): RelayFieldPolicy<TNode_>
 			)
 		end,
 
-		merge = function(_self, existing, incoming, ref)
-			if existing == nil then
-				existing = makeEmptyData()
+		merge = function(_self, existing_, incoming, ref)
+			if existing_ == nil then
+				existing_ = makeEmptyData()
 			end
+			-- ROBLOX deviation: help analyze tool
+			local existing = existing_ :: TExistingRelay<any>
+
 			local args = ref.args
 
 			local incomingEdges
@@ -254,7 +257,7 @@ local function relayStylePagination(keyArgs: KeyArgs?): RelayFieldPolicy<TNode_>
 			local prefix = existing.edges
 			local suffix: typeof(prefix) = {}
 
-			if Boolean.toJSBoolean(args) and Boolean.toJSBoolean(args.after) then
+			if args ~= nil and Boolean.toJSBoolean(args.after) then
 				-- This comparison does not need to use readField("cursor", edge),
 				-- because we stored the cursor field of any Reference edges as an
 				-- extra property of the Reference object.
@@ -268,7 +271,7 @@ local function relayStylePagination(keyArgs: KeyArgs?): RelayFieldPolicy<TNode_>
 					prefix = Array.slice(prefix, 1, index + 1)
 					-- suffix = []; // already true
 				end
-			elseif Boolean.toJSBoolean(args) and Boolean.toJSBoolean(args.before) then
+			elseif args ~= nil and Boolean.toJSBoolean(args.before) then
 				local index = Array.findIndex(prefix, function(edge)
 					return edge.cursor == args.before
 				end)

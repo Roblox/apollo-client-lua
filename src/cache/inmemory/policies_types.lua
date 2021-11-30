@@ -141,6 +141,8 @@ export type FieldPolicy<TExisting, TIncoming, TReadResult> = {
 
 export type StorageType = Record<string, any>
 
+export type FieldFunctionOptions_<TArgs> = FieldFunctionOptions<TArgs, Record<string, any>>
+export type FieldFunctionOptions__ = FieldFunctionOptions<Record<string, any>, Record<string, any>>
 export type FieldFunctionOptions<TArgs, TVars> = {
 	args: TArgs | nil,
 
@@ -193,21 +195,29 @@ export type FieldFunctionOptions<TArgs, TVars> = {
 	mergeObjects: MergeObjectsFunction,
 }
 
-export type MergeObjectsFunction = any --[[ ROBLOX TODO: Unhandled node for type: TSFunctionType ]]
---[[ <T extends StoreObject | Reference>(existing: T, incoming: T) => T ]]
-export type FieldReadFunction<T, V> = any --[[ ROBLOX TODO: Unhandled node for type: TSFunctionType ]]
---[[ ( // When reading a field, one often needs to know about any existing
-// value stored for that field. If the field is read before any value
-// has been written to the cache, this existing parameter will be
-// undefined, which makes it easy to use a default parameter expression
-// to supply the initial value. This parameter is positional (rather
-// than one of the named options) because that makes it possible for the
-// developer to annotate it with a type, without also having to provide
-// a whole new type for the options object.
-existing: SafeReadonly<TExisting> | undefined, options: FieldFunctionOptions) => TReadResult | undefined ]]
-export type FieldMergeFunction<T, V> = any --[[ ROBLOX TODO: Unhandled node for type: TSFunctionType ]]
---[[ (existing: SafeReadonly<TExisting> | undefined, // The incoming parameter needs to be positional as well, for the same
-// reasons discussed in FieldReadFunction above.
-incoming: SafeReadonly<TIncoming>, options: FieldFunctionOptions) => SafeReadonly<TExisting> ]]
+export type MergeObjectsFunction = <T>(self: any, existing: T, incoming: T) -> T
+export type FieldReadFunction<TExisting, TReadResult> = (
+	self: any,
+	-- When reading a field, one often needs to know about any existing
+	-- value stored for that field. If the field is read before any value
+	-- has been written to the cache, this existing parameter will be
+	-- undefined, which makes it easy to use a default parameter expression
+	-- to supply the initial value. This parameter is positional (rather
+	-- than one of the named options) because that makes it possible for the
+	-- developer to annotate it with a type, without also having to provide
+	-- a whole new type for the options object.
+	existing: SafeReadonly<TExisting> | nil,
+	options: FieldFunctionOptions__
+) -> TReadResult | nil
+export type FieldMergeFunction_<TExisting> = FieldMergeFunction<TExisting, TExisting>
+export type FieldMergeFunction__ = FieldMergeFunction<any, any>
+export type FieldMergeFunction<TExisting, TIncoming> = (
+	self: any,
+	existing: SafeReadonly<TExisting> | nil,
+	-- The incoming parameter needs to be positional as well, for the same
+	-- reasons discussed in FieldReadFunction above.
+	incoming: SafeReadonly<TIncoming>,
+	options: FieldFunctionOptions__
+) -> SafeReadonly<TExisting>
 
 return {}

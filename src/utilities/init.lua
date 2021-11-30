@@ -23,7 +23,7 @@ export type InclusionDirectives = directivesModule.InclusionDirectives
 -- ROBLOX TODO: implement fragment module
 -- local fragmentsModule = require(script.graphql.fragments)
 -- exports.FragmentMap = fragmentsModule.FragmentMap
-export type FragmentMap = any
+export type FragmentMap = { [string]: any }
 -- exports.createFragmentMap = fragmentsModule.createFragmentMap
 exports.createFragmentMap = function(...)
 	warn("fragments are not supported yet")

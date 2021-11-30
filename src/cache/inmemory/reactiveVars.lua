@@ -125,7 +125,7 @@ local function makeVar(value: T_): ReactiveVar<T_>
 						local cache = cacheSlot:getValue()
 						if Boolean.toJSBoolean(cache) then
 							attach(cache)
-							getCacheInfo(cache):dep(rv)
+							getCacheInfo(cache).dep(rv)
 						end
 					end
 

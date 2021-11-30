@@ -12,7 +12,6 @@ local Object = LuauPolyfill.Object
 local Set = LuauPolyfill.Set
 local Map = LuauPolyfill.Map
 type Array<T> = LuauPolyfill.Array<T>
-type Object = LuauPolyfill.Object
 type Set<T> = LuauPolyfill.Set<T>
 type Map<K, V> = LuauPolyfill.Map<K, V>
 type Function = (...any) -> ...any
@@ -20,6 +19,9 @@ type Record<T, U> = { [T]: U }
 type ReturnType<T> = any
 type Exclude<T, V> = T
 type Readonly<T> = T
+
+-- ROBLOX FIXME: remove if better solution is found
+type FIX_ANALYZE = any
 
 local isCallable = require(srcWorkspace.luaUtils.isCallable)
 
@@ -48,8 +50,7 @@ local invariant = invariantModule.invariant
 local InvariantError = invariantModule.InvariantError
 
 local utilitiesModule = require(script.Parent.Parent.Parent.utilities)
--- ROBLOX TODO: fragments not currently implemented, so stub type
-type FragmentMap = Object -- utilitiesModule.FragmentMap
+type FragmentMap = utilitiesModule.FragmentMap
 local getFragmentFromSelection = utilitiesModule.getFragmentFromSelection
 local isField = utilitiesModule.isField
 local getTypenameFromResult = utilitiesModule.getTypenameFromResult
@@ -81,24 +82,15 @@ local cacheSlot = require(script.Parent.reactiveVars).cacheSlot
 -- local inMemoryCacheModule = require(script.Parent.inMemoryCache)
 -- type InMemoryCache = inMemoryCacheModule.InMemoryCache
 type InMemoryCache = any
--- ROBLOX TODO: use real dependency when implemented
--- local commonModule = require(script.Parent.Parent.core.types.common)
--- ROBLOX TODO: use real dependency when implemented
-type SafeReadonly<T> = T -- commonModule.SafeReadonly
--- ROBLOX TODO: use real dependency when implemented
-type FieldSpecifier = { [string]: any } -- commonModule.FieldSpecifier
--- ROBLOX TODO: use real dependency when implemented
-type ToReferenceFunction = Function -- commonModule.ToReferenceFunction
--- ROBLOX TODO: use real dependency when implemented
-type ReadFieldFunction = Function -- commonModule.ReadFieldFunction
--- ROBLOX TODO: use real dependency when implemented
-type ReadFieldOptions = Object -- commonModule.ReadFieldOptions
--- ROBLOX TODO: use real dependency when implemented
-type CanReadFunction = Function -- commonModule.CanReadFunction
--- ROBLOX TODO: use real dependency when implemented
--- local writeToStoreModule = require(script.Parent.writeToStore)
--- ROBLOX TODO: use real dependency when implemented
-type WriteContext = { [string]: any } -- writeToStoreModule.WriteContext
+local commonModule = require(script.Parent.Parent.core.types.common)
+type SafeReadonly<T> = commonModule.SafeReadonly<T>
+type FieldSpecifier = commonModule.FieldSpecifier
+type ToReferenceFunction = commonModule.ToReferenceFunction
+type ReadFieldFunction = commonModule.ReadFieldFunction
+type ReadFieldOptions = commonModule.ReadFieldOptions
+type CanReadFunction = commonModule.CanReadFunction
+local writeToStoreModule = require(script.Parent.writeToStore_types)
+type WriteContext = writeToStoreModule.WriteContext
 
 -- Upgrade to a faster version of the default stable JSON.stringify function
 -- used by getStoreKeyName. This function is used when computing storeFieldName
@@ -159,9 +151,9 @@ end
 export type FieldFunctionOptions<TArgs, TVars> = policiesTypesModule.FieldFunctionOptions<TArgs, TVars>
 
 type MergeObjectsFunction = policiesTypesModule.MergeObjectsFunction
--- --[[ <T extends StoreObject | Reference>(existing: T, incoming: T) => T ]]
-export type FieldReadFunction<T, V> = policiesTypesModule.FieldReadFunction<T, V>
-export type FieldMergeFunction<T, V> = policiesTypesModule.FieldMergeFunction<T, V>
+export type FieldReadFunction<TExisting, TIncoming> = policiesTypesModule.FieldReadFunction<TExisting, TIncoming>
+export type FieldMergeFunction<TExisting, TIncoming> = policiesTypesModule.FieldMergeFunction<TExisting, TIncoming>
+type FieldMergeFunction_<TExisting> = policiesTypesModule.FieldMergeFunction_<TExisting>
 
 local function defaultDataIdFromObject(_self, ref, context: KeyFieldsContext?): string | nil
 	local __typename, id, _id = ref.__typename, ref.id, ref._id
@@ -205,10 +197,15 @@ end
 local function simpleKeyArgsFn(_args, context) -- : KeyArgsFunction
 	return context.fieldName
 end
-local function mergeTrueFn(_self, existing, incoming, ref) -- : FieldMergeFunction<any>
+
+-- These merge functions can be selected by specifying merge:true or
+-- merge:false in a field policy.
+local mergeTrueFn: FieldMergeFunction_<any>
+function mergeTrueFn(_self, existing, incoming, ref)
 	return ref:mergeObjects(existing, incoming)
 end
-local function mergeFalseFn(_self, _, incoming) -- : FieldMergeFunction<any>
+local mergeFalseFn: FieldMergeFunction_<any>
+function mergeFalseFn(_self, _, incoming)
 	return incoming
 end
 export type PossibleTypesMap = { [string]: Array<string> }
@@ -605,7 +602,8 @@ function Policies:getTypePolicy(
 ): TypePoliciesStringIndex --[[ ROBLOX TODO: Policies["typePolicies"][string] ]]
 	if not hasOwn(self.typePolicies, typename) then
 		self.typePolicies[typename] = {}
-		local policy: any --[[ ROBLOX TODO: Policies["typePolicies"][string] ]] = self.typePolicies[typename]
+		local policy: TypePoliciesStringIndex --[[ ROBLOX TODO: Policies["typePolicies"][string] ]] =
+			self.typePolicies[typename]
 		policy.fields = {}
 
 		-- When the TypePolicy for typename is first accessed, instead of
@@ -631,12 +629,13 @@ function Policies:getTypePolicy(
 		-- this policy, because this code runs at most once per typename.
 		local supertypes = self.supertypeMap:get(typename)
 		if Boolean.toJSBoolean(supertypes) and Boolean.toJSBoolean(supertypes.size) then
-			Array.forEach(supertypes, function(supertype)
+			-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
+			for _, supertype in supertypes:ipairs() do
 				local ref = self:getTypePolicy(supertype)
 				local fields, rest = ref.fields, Object.assign({}, ref, { fields = Object.None })
 				Object.assign(policy, rest)
 				Object.assign(policy.fields, fields)
-			end)
+			end
 		end
 	end
 
@@ -893,10 +892,10 @@ function Policies:readField--[[<V = StoreValue>]](options: ReadFieldOptions, con
 				(function()
 					if isReference(objectOrReference) then
 						-- ROBLOX deviation: Luau narrowing, doesn't understand guard clause above
-						return (objectOrReference :: Reference).__ref
+						return ((objectOrReference :: FIX_ANALYZE) :: Reference).__ref
 					else
 						-- ROBLOX TODO: change cast to :: StoreObject once crash is fixed CLI-47051
-						return objectOrReference :: any
+						return objectOrReference :: FIX_ANALYZE
 					end
 				end)(),
 				storeFieldName
@@ -949,7 +948,7 @@ function Policies:runMergeFunction(
 		-- Instead of going to the trouble of creating a full
 		-- FieldFunctionOptions object and calling mergeTrueFn, we can
 		-- simply call mergeObjects, as mergeTrueFn would.
-		return makeMergeObjectsFunction(context.store)(existing :: StoreObject, incoming :: StoreObject)
+		return makeMergeObjectsFunction(context.store)(ref, existing :: StoreObject, incoming :: StoreObject)
 	end
 
 	if merge == mergeFalseFn then
@@ -1020,7 +1019,7 @@ function makeFieldFunctionOptions(
 					and { fieldName = fieldNameOrOptions, from = from }
 				or Object.assign({}, fieldNameOrOptions)
 			if nil == options.from then
-				options.from = objectOrReference
+				options.from = objectOrReference :: FIX_ANALYZE
 			end
 			if nil == options.variables then
 				options.variables = variables
@@ -1032,84 +1031,38 @@ function makeFieldFunctionOptions(
 end
 function makeMergeObjectsFunction(store: NormalizedCache): MergeObjectsFunction
 	return function(self, existing, incoming)
-		if
-			Boolean.toJSBoolean(
-				Boolean.toJSBoolean(Array.isArray(existing)) and Array.isArray(existing) or Array.isArray(incoming)
-			)
-		then
+		if Array.isArray(existing) or Array.isArray(incoming) then
 			error(InvariantError.new("Cannot automatically merge arrays"))
 		end
-		if
-			Boolean.toJSBoolean((function()
-				if Boolean.toJSBoolean(isNonNullObject(existing)) then
-					return isNonNullObject(incoming)
-				else
-					return isNonNullObject(existing)
-				end
-			end)())
-		then
+
+		-- These dynamic checks are necessary because the parameters of a
+		-- custom merge function can easily have the any type, so the type
+		-- system cannot always enforce the StoreObject | Reference parameter
+		-- types of options.mergeObjects.
+		if isNonNullObject(existing) and isNonNullObject(incoming) then
 			local eType = store:getFieldValue(existing, "__typename")
 			local iType = store:getFieldValue(incoming, "__typename")
-			local typesDiffer = (function()
-				if
-					Boolean.toJSBoolean((function()
-						if Boolean.toJSBoolean(eType) then
-							return iType
-						else
-							return eType
-						end
-					end)())
-				then
-					return eType ~= iType
-				else
-					return (function()
-						if Boolean.toJSBoolean(eType) then
-							return iType
-						else
-							return eType
-						end
-					end)()
-				end
-			end)()
-			if Boolean.toJSBoolean(typesDiffer) then
+			local typesDiffer = Boolean.toJSBoolean(eType) and Boolean.toJSBoolean(iType) and eType ~= iType
+
+			if typesDiffer then
 				return incoming
 			end
-			if
-				Boolean.toJSBoolean((function()
-					if Boolean.toJSBoolean(isReference(existing)) then
-						return storeValueIsStoreObject(incoming)
-					else
-						return isReference(existing)
-					end
-				end)())
-			then
+
+			if isReference(existing) and storeValueIsStoreObject(incoming) then
 				store:merge(existing.__ref, incoming)
 				return existing
 			end
-			if
-				Boolean.toJSBoolean((function()
-					if Boolean.toJSBoolean(storeValueIsStoreObject(existing)) then
-						return isReference(incoming)
-					else
-						return storeValueIsStoreObject(existing)
-					end
-				end)())
-			then
+
+			if storeValueIsStoreObject(existing) and isReference(incoming) then
 				store:merge(existing, incoming.__ref)
 				return incoming
 			end
-			if
-				Boolean.toJSBoolean((function()
-					if storeValueIsStoreObject(existing) then
-						return storeValueIsStoreObject(incoming)
-					else
-						return storeValueIsStoreObject(existing)
-					end
-				end)())
-			then
+
+			if storeValueIsStoreObject(existing) and storeValueIsStoreObject(incoming) then
 				return Object.assign({}, existing, incoming)
 			end
 		end
+
 		return incoming
 	end
 end
@@ -1194,7 +1147,7 @@ function makeAliasMap(selectionSet: SelectionSetNode, fragmentMap: FragmentMap):
 	local workQueue = Set.new({ selectionSet })
 	for _, selectionSet in workQueue:ipairs() do
 		Array.forEach(selectionSet.selections, function(selection)
-			if Boolean.toJSBoolean(isField(selection)) then
+			if isField(selection) then
 				if Boolean.toJSBoolean(selection.alias) then
 					local responseKey = selection.alias.value
 					local storeKey = selection.name.value

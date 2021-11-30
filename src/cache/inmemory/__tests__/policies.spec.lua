@@ -1099,8 +1099,7 @@ return function()
 				jestExpect(cache:extract(true)).toEqual(expectedExtraction)
 			end)
 
-			-- ROBLOX FIXME: missing not returned
-			withErrorSpy(itFIXME, "read and merge can cooperate through options.storage", function()
+			withErrorSpy(it, "read and merge can cooperate through options.storage", function()
 				local cache = InMemoryCache.new({
 					typePolicies = {
 						Query = {
@@ -1178,12 +1177,16 @@ return function()
 				jestExpect(cache:extract()).toEqual(snapshot1)
 
 				local function makeMissingError(jobNumber: number)
-					return MissingFieldError.new(
+					local err = MissingFieldError.new(
 						('Can\'t find field \'result\' on Job:{"name":"Job #%s"} object'):format(tostring(jobNumber)),
-						{ "jobs", (jobNumber - 1) :: any, "result" },
+						-- ROBLOX deviation: indexing in Lua starts from 1
+						{ "jobs" :: any, jobNumber, "result" },
 						jestExpect.anything(),
 						jestExpect.anything()
 					)
+					-- ROBLOX deviation: assign jestExpect.anything() to avoid comparing stacks
+					err.stack = jestExpect.anything()
+					return err
 				end
 
 				jestExpect(cache:diff({ query = query, optimistic = false, returnPartialData = true })).toEqual({
@@ -1198,95 +1201,96 @@ return function()
 					missing = { makeMissingError(1), makeMissingError(2), makeMissingError(3) },
 				})
 
-				local function setResult(jobNum: number)
-					cache:writeFragment({
-						id = cache:identify({ __typename = "Job", name = ("Job #%s"):format(tostring(jobNum)) }) :: any,
-						fragment = gql([[
-		
-					fragment JobResult on Job {
-					  result
-					}
-				  ]]),
-						data = {
-							__typename = "Job",
-							name = ("Job #%s"):format(tostring(jobNum)),
-							result = ("result for job %s"):format(tostring(jobNum)),
-						},
-					})
-				end
+				-- ROBLOX TODO: fragments are not supported yet
+				-- local function setResult(jobNum: number)
+				-- 	cache:writeFragment({
+				-- 		id = cache:identify({ __typename = "Job", name = ("Job #%s"):format(tostring(jobNum)) }) :: any,
+				-- 		fragment = gql([[
 
-				setResult(2)
+				-- 	fragment JobResult on Job {
+				-- 	  result
+				-- 	}
+				--   ]]),
+				-- 		data = {
+				-- 			__typename = "Job",
+				-- 			name = ("Job #%s"):format(tostring(jobNum)),
+				-- 			result = ("result for job %s"):format(tostring(jobNum)),
+				-- 		},
+				-- 	})
+				-- end
 
-				jestExpect(cache:extract()).toEqual(
-					Object.assign({}, snapshot1, { __META = { extraRootIds = { 'Job:{"name":"Job #2"}' } } })
-				)
+				-- setResult(2)
 
-				jestExpect(cache:diff({ query = query, optimistic = false, returnPartialData = true })).toEqual({
+				-- jestExpect(cache:extract()).toEqual(
+				-- 	Object.assign({}, snapshot1, { __META = { extraRootIds = { 'Job:{"name":"Job #2"}' } } })
+				-- )
 
-					result = {
-						jobs = {
-							{ __typename = "Job", name = "Job #1" },
-							{ __typename = "Job", name = "Job #2", result = "result for job 2" },
-							{ __typename = "Job", name = "Job #3" },
-						},
-					},
-					complete = false,
-					missing = { makeMissingError(1), makeMissingError(3) },
-				})
+				-- jestExpect(cache:diff({ query = query, optimistic = false, returnPartialData = true })).toEqual({
 
-				cache:writeQuery({
-					query = query,
-					data = { jobs = { { __typename = "Job", name = "Job #4", result = "result for job 4" } } },
-				})
+				-- 	result = {
+				-- 		jobs = {
+				-- 			{ __typename = "Job", name = "Job #1" },
+				-- 			{ __typename = "Job", name = "Job #2", result = "result for job 2" },
+				-- 			{ __typename = "Job", name = "Job #3" },
+				-- 		},
+				-- 	},
+				-- 	complete = false,
+				-- 	missing = { makeMissingError(1), makeMissingError(3) },
+				-- })
 
-				local snapshot2 = Object.assign({}, snapshot1, {
-					ROOT_QUERY = Object.assign({}, snapshot1.ROOT_QUERY, {
-						jobs = Array.concat({}, snapshot1.ROOT_QUERY.jobs, { { __ref = 'Job:{"name":"Job #4"}' } }),
-					}),
-					['Job:{"name":"Job #4"}'] = { __typename = "Job", name = "Job #4" },
-				})
+				-- cache:writeQuery({
+				-- 	query = query,
+				-- 	data = { jobs = { { __typename = "Job", name = "Job #4", result = "result for job 4" } } },
+				-- })
 
-				jestExpect(cache:extract()).toEqual(
-					Object.assign({}, snapshot2, { __META = { extraRootIds = { 'Job:{"name":"Job #2"}' } } })
-				)
+				-- local snapshot2 = Object.assign({}, snapshot1, {
+				-- 	ROOT_QUERY = Object.assign({}, snapshot1.ROOT_QUERY, {
+				-- 		jobs = Array.concat({}, snapshot1.ROOT_QUERY.jobs, { { __ref = 'Job:{"name":"Job #4"}' } }),
+				-- 	}),
+				-- 	['Job:{"name":"Job #4"}'] = { __typename = "Job", name = "Job #4" },
+				-- })
 
-				jestExpect(cache:diff({ query = query, optimistic = false, returnPartialData = true })).toEqual({
-					result = {
-						jobs = {
-							{ __typename = "Job", name = "Job #1" },
-							{ __typename = "Job", name = "Job #2", result = "result for job 2" },
-							{ __typename = "Job", name = "Job #3" },
-							{ __typename = "Job", name = "Job #4", result = "result for job 4" },
-						},
-					},
-					complete = false,
-					missing = { makeMissingError(1), makeMissingError(3) },
-				})
+				-- jestExpect(cache:extract()).toEqual(
+				-- 	Object.assign({}, snapshot2, { __META = { extraRootIds = { 'Job:{"name":"Job #2"}' } } })
+				-- )
 
-				setResult(1)
+				-- jestExpect(cache:diff({ query = query, optimistic = false, returnPartialData = true })).toEqual({
+				-- 	result = {
+				-- 		jobs = {
+				-- 			{ __typename = "Job", name = "Job #1" },
+				-- 			{ __typename = "Job", name = "Job #2", result = "result for job 2" },
+				-- 			{ __typename = "Job", name = "Job #3" },
+				-- 			{ __typename = "Job", name = "Job #4", result = "result for job 4" },
+				-- 		},
+				-- 	},
+				-- 	complete = false,
+				-- 	missing = { makeMissingError(1), makeMissingError(3) },
+				-- })
 
-				setResult(3)
+				-- setResult(1)
 
-				jestExpect(cache:diff({ query = query, optimistic = false, returnPartialData = true })).toEqual({
-					result = {
-						jobs = {
-							{ __typename = "Job", name = "Job #1", result = "result for job 1" },
-							{ __typename = "Job", name = "Job #2", result = "result for job 2" },
-							{ __typename = "Job", name = "Job #3", result = "result for job 3" },
-							{ __typename = "Job", name = "Job #4", result = "result for job 4" },
-						},
-					},
-					complete = true,
-				})
+				-- setResult(3)
 
-				jestExpect(cache:readQuery({ query = query })).toEqual({
-					jobs = {
-						{ __typename = "Job", name = "Job #1", result = "result for job 1" },
-						{ __typename = "Job", name = "Job #2", result = "result for job 2" },
-						{ __typename = "Job", name = "Job #3", result = "result for job 3" },
-						{ __typename = "Job", name = "Job #4", result = "result for job 4" },
-					},
-				})
+				-- jestExpect(cache:diff({ query = query, optimistic = false, returnPartialData = true })).toEqual({
+				-- 	result = {
+				-- 		jobs = {
+				-- 			{ __typename = "Job", name = "Job #1", result = "result for job 1" },
+				-- 			{ __typename = "Job", name = "Job #2", result = "result for job 2" },
+				-- 			{ __typename = "Job", name = "Job #3", result = "result for job 3" },
+				-- 			{ __typename = "Job", name = "Job #4", result = "result for job 4" },
+				-- 		},
+				-- 	},
+				-- 	complete = true,
+				-- })
+
+				-- jestExpect(cache:readQuery({ query = query })).toEqual({
+				-- 	jobs = {
+				-- 		{ __typename = "Job", name = "Job #1", result = "result for job 1" },
+				-- 		{ __typename = "Job", name = "Job #2", result = "result for job 2" },
+				-- 		{ __typename = "Job", name = "Job #3", result = "result for job 3" },
+				-- 		{ __typename = "Job", name = "Job #4", result = "result for job 4" },
+				-- 	},
+				-- })
 			end)
 
 			it("read, merge, and modify functions can access options.storage", function()
@@ -1597,8 +1601,7 @@ return function()
 				})
 			end)
 
-			-- ROBLOX FIXME: extra table
-			withErrorSpy(itFIXME, "readField helper function calls custom read functions", function()
+			withErrorSpy(it, "readField helper function calls custom read functions", function()
 				local ownTimes: Record<string, ReactiveVar<number>> = {
 					["parent task"] = makeVar(2),
 					["child task 1"] = makeVar(3),
@@ -1611,17 +1614,21 @@ return function()
 					typePolicies = {
 						Agenda = {
 							fields = {
-								taskCount = function(_, ref)
+								taskCount = function(_self, _, ref)
 									return #(ref:readField("tasks") :: any)
 								end,
 								tasks = {
-									read = function(self, existing: Array<any>?)
+									-- Thanks to this read function, the readField("tasks")
+									-- call above will always return an array, so we don't
+									-- have to guard against the possibility that the tasks
+									-- data is undefined above.
+									read = function(_self, existing: Array<any>?)
 										if existing == nil then
 											existing = {}
 										end
 										return existing
 									end,
-									merge = function(self, existing: Array<Reference>, incoming: Array<Reference>)
+									merge = function(_self, existing: Array<Reference>, incoming: Array<Reference>)
 										local merged = (function()
 											if Boolean.toJSBoolean(existing) then
 												return Array.slice(existing, 1)
@@ -1629,7 +1636,9 @@ return function()
 												return {}
 											end
 										end)()
-										table.insert(merged, table.pack(table.unpack(incoming)))
+										for _, ref in ipairs(incoming) do
+											table.insert(merged, ref)
+										end
 										return merged
 									end,
 								},
@@ -1637,12 +1646,12 @@ return function()
 						},
 						Task = {
 							fields = {
-								ownTime = function(_, ref)
+								ownTime = function(_self, _, ref)
 									local description: string = ref:readField("description")
-									local ref_ = (ownTimes[description] :: any)(ownTimes[description])
+									local ref_ = (ownTimes[description] :: any)()
 									return Boolean.toJSBoolean(ref_) and ref_ or 0
 								end,
-								totalTime = function(_, ref)
+								totalTime = function(_self, _, ref)
 									local function total(
 										blockers: Array<Reference>? --[[Readonly]],
 										seen: any?
@@ -1808,7 +1817,7 @@ return function()
 
 				jestExpect(read()).toBe(firstResult);
 
-				(ownTimes["child task 2"] :: any)(ownTimes["child task 2"], 6)
+				(ownTimes["child task 2"] :: any)(6)
 
 				local secondResult = read()
 
@@ -1832,31 +1841,15 @@ return function()
 					},
 				})
 
-				jestExpect((secondResult :: any).agenda.tasks[
-					1 --[[ ROBLOX adaptation: added 1 to array index ]]
-				]).never.toBe((firstResult :: any).agenda.tasks[
-					1 --[[ ROBLOX adaptation: added 1 to array index ]]
-				])
+				jestExpect((secondResult :: any).agenda.tasks[1]).never.toBe((firstResult :: any).agenda.tasks[1])
 
-				jestExpect((secondResult :: any).agenda.tasks[
-					2 --[[ ROBLOX adaptation: added 1 to array index ]]
-				]).toBe((firstResult :: any).agenda.tasks[
-					2 --[[ ROBLOX adaptation: added 1 to array index ]]
-				])
+				jestExpect((secondResult :: any).agenda.tasks[2]).toBe((firstResult :: any).agenda.tasks[2])
 
-				jestExpect((secondResult :: any).agenda.tasks[
-					3 --[[ ROBLOX adaptation: added 1 to array index ]]
-				]).never.toBe((firstResult :: any).agenda.tasks[
-					3 --[[ ROBLOX adaptation: added 1 to array index ]]
-				])
+				jestExpect((secondResult :: any).agenda.tasks[3]).never.toBe((firstResult :: any).agenda.tasks[3])
 
-				jestExpect((secondResult :: any).agenda.tasks[
-					4 --[[ ROBLOX adaptation: added 1 to array index ]]
-				]).toBe((firstResult :: any).agenda.tasks[
-					4 --[[ ROBLOX adaptation: added 1 to array index ]]
-				]);
+				jestExpect((secondResult :: any).agenda.tasks[4]).toBe((firstResult :: any).agenda.tasks[4]);
 
-				(ownTimes["grandchild task"] :: any)(ownTimes["grandchild task"], 7)
+				(ownTimes["grandchild task"] :: any)(7)
 
 				local thirdResult = read()
 
@@ -1983,18 +1976,10 @@ return function()
 						__typename = "Agenda",
 						taskCount = 5,
 						tasks = {
-							(fourthResult :: any).agenda.tasks[
-								1 --[[ ROBLOX adaptation: added 1 to array index ]]
-							],
-							(fourthResult :: any).agenda.tasks[
-								2 --[[ ROBLOX adaptation: added 1 to array index ]]
-							],
-							(fourthResult :: any).agenda.tasks[
-								3 --[[ ROBLOX adaptation: added 1 to array index ]]
-							],
-							(fourthResult :: any).agenda.tasks[
-								4 --[[ ROBLOX adaptation: added 1 to array index ]]
-							],
+							(fourthResult :: any).agenda.tasks[1],
+							(fourthResult :: any).agenda.tasks[2],
+							(fourthResult :: any).agenda.tasks[3],
+							(fourthResult :: any).agenda.tasks[4],
 							{ __typename = "Task", description = "independent task", ownTime = 12, totalTime = 12 },
 						},
 					},
@@ -2060,32 +2045,38 @@ return function()
 				jestExpect(secretReadAttempted).toBe(true)
 			end)
 
-			-- ROBLOX FIXME: wrong key, missing table
-			itFIXME("can define custom merge functions", function()
+			it("can define custom merge functions", function()
 				local cache = InMemoryCache.new({
 					typePolicies = {
 						Person = {
+							-- Disables normalization for the Person type, which means the
+							-- todos field will be nested inside a non-normalized object
+							-- (with __typename "Person") directly under the ROOT_QUERY.me
+							-- field, which exercises what happens when mergeOverrides
+							-- becomes nested (see writeToStore.ts).
 							keyFields = false,
 							fields = {
 								todos = {
 									keyArgs = {},
-									read = function(_self, existing: Array<any>, ref)
-										local args = ref.args
+									read = function(_self, existing: Array<any>, ref_)
+										local args = ref_.args
 										jestExpect(not Boolean.toJSBoolean(existing) or Object.isFrozen(existing)).toBe(
 											true
 										)
-										jestExpect(typeof(ref.toReference)).toBe("function")
+										jestExpect(typeof(ref_.toReference)).toBe("function")
 										local slice = Array.slice(
 											existing,
-											(args :: any).offset,
-											(args :: any).offset + (args :: any).limit
+											-- ROBLOX deviation START: adjust indexes to work with Lua indexing
+											(args :: any).offset + 1,
+											(args :: any).offset + (args :: any).limit + 1
+											-- ROBLOX deviation END
 										)
 										Array.forEach(slice, function(ref)
-											return jestExpect(ref:isReference(ref)).toBe(true)
+											return jestExpect(ref_:isReference(ref)).toBe(true)
 										end)
 										return slice
 									end,
-									merge = function(self, existing: Array<any>, incoming: Array<any>, ref)
+									merge = function(_self, existing: Array<any>, incoming: Array<any>, ref)
 										local args = ref.args
 										jestExpect(not Boolean.toJSBoolean(existing) or Object.isFrozen(existing)).toBe(
 											true
@@ -2099,11 +2090,18 @@ return function()
 											end
 										end)()
 										local limit = (args :: any).offset + (args :: any).limit
-										for i = args.offset, limit - 1, 1 do
+										-- ROBLOX deviation: adjust indexes to work with Lua indexing
+										for i = args.offset + 1, limit do
 											copy[i] = incoming[i - args.offset]
 										end
+										-- ROBLOX deviation START: fill in missing elements so that sparse arrays work
+										for i = #copy + 1, args.offset do
+											copy[i] = nil
+										end
+										-- ROBLOX deviation END
 										Array.forEach(copy, function(todo)
-											return jestExpect(ref:isReference(todo)).toBe(true)
+											-- ROBLOX deviation: since an array may be sparse we allow for `nil` values. In JS they would be omitted.
+											return jestExpect(todo == nil or ref:isReference(todo)).toBe(true)
 										end)
 										return copy
 									end,
@@ -2145,7 +2143,8 @@ return function()
 						__typename = "Query",
 						me = {
 							__typename = "Person",
-							["todos:{}"] = { { __ref = 'Todo:{"id":1}' }, { __ref = 'Todo:{"id":2}' } },
+							-- ROBLOX deviation: empty object is stringified to `[]`
+							["todos:[]"] = { { __ref = 'Todo:{"id":1}' }, { __ref = 'Todo:{"id":2}' } },
 						},
 					},
 					['Todo:{"id":1}'] = { __typename = "Todo", id = 1, text = "Write more merge tests" },
@@ -2171,7 +2170,8 @@ return function()
 						__typename = "Query",
 						me = {
 							__typename = "Person",
-							["todos:{}"] = {
+							-- ROBLOX deviation: empty object is stringified to `[]`
+							["todos:[]"] = {
 								{ __ref = 'Todo:{"id":1}' },
 								{ __ref = 'Todo:{"id":2}' },
 								nil,
@@ -2206,7 +2206,8 @@ return function()
 						__typename = "Query",
 						me = {
 							__typename = "Person",
-							["todos:{}"] = {
+							-- ROBLOX deviation: empty object is stringified to `[]`
+							["todos:[]"] = {
 								{ __ref = 'Todo:{"id":1}' },
 								{ __ref = 'Todo:{"id":2}' },
 								{ __ref = 'Todo:{"id":3}' },
@@ -2839,8 +2840,7 @@ return function()
 				end)
 			end)
 
-			-- ROBLOX FIXME: wrong counts
-			withErrorSpy(itFIXME, "runs nested merge functions as well as ancestors", function()
+			withErrorSpy(it, "runs nested merge functions as well as ancestors", function()
 				local eventMergeCount = 0
 
 				local attendeeMergeCount = 0
@@ -3195,7 +3195,7 @@ return function()
 			local testForceMerges
 			local booksMergePolicy
 
-			itFIXME("can force merging of unidentified non-normalized data", function()
+			it("can force merging of unidentified non-normalized data", function()
 				local cache = InMemoryCache.new({
 					typePolicies = {
 						Book = {
@@ -3228,7 +3228,6 @@ return function()
 			function booksMergePolicy(): FieldPolicy<Array<any>, any, any>
 				return {
 					merge = function(self, existing, incoming, ref)
-						local isReference = ref.isReference
 						local merged = (function()
 							if Boolean.toJSBoolean(existing) then
 								return Array.slice(existing, 1)
@@ -3239,13 +3238,13 @@ return function()
 						local seen = Set.new()
 						if Boolean.toJSBoolean(existing) then
 							Array.forEach(existing, function(book)
-								if Boolean.toJSBoolean(isReference(book)) then
+								if ref:isReference(book) then
 									seen:add(book.__ref)
 								end
 							end)
 						end
 						Array.forEach(incoming, function(book)
-							if Boolean.toJSBoolean(isReference(book)) then
+							if ref:isReference(book) then
 								if not seen:has(book.__ref) then
 									table.insert(merged, book)
 									seen:add(book.__ref)
@@ -3413,7 +3412,8 @@ return function()
 				})
 			end
 
-			itFIXME("can force merging with merge:true field policy", function()
+			-- Same as previous test, except with merge:true for Book.author.
+			it("can force merging with merge:true field policy", function()
 				local cache = InMemoryCache.new({
 					typePolicies = {
 						Book = { keyFields = { "isbn" }, fields = { author = { merge = true } } },
@@ -3424,7 +3424,9 @@ return function()
 				testForceMerges(cache)
 			end)
 
-			itFIXME("can force merging with merge:true type policy", function()
+			-- Same as previous test, except configuring merge:true for the Author
+			-- type instead of for the Book.author field.
+			it("can force merging with merge:true type policy", function()
 				local cache = InMemoryCache.new({
 					typePolicies = {
 						Book = { keyFields = { "isbn" } },
@@ -3435,7 +3437,7 @@ return function()
 				testForceMerges(cache)
 			end)
 
-			itFIXME("can force merging with inherited merge:true field policy", function()
+			it("can force merging with inherited merge:true field policy", function()
 				local cache = InMemoryCache.new({
 					typePolicies = {
 						Authored = { fields = { author = { merge = true } } },
@@ -3448,7 +3450,7 @@ return function()
 				testForceMerges(cache)
 			end)
 
-			itFIXME("can force merging with inherited merge:true type policy", function()
+			it("can force merging with inherited merge:true type policy", function()
 				local cache = InMemoryCache.new({
 					typePolicies = {
 						Book = { keyFields = { "isbn" } },
@@ -3467,13 +3469,13 @@ return function()
 				end
 				if Boolean.toJSBoolean(data) or not canBeUndefined then
 					jestExpect(data).toBeTruthy()
-					jestExpect(typeof(data)).toBe("object")
+					jestExpect(typeof(data)).toBe("table")
 					jestExpect((data :: any).__typename).toBe("Author")
 				end
 				return data
 			end
 
-			itFIXME("can force merging with inherited type policy merge function", function()
+			it("can force merging with inherited type policy merge function", function()
 				local personMergeCount = 0
 				local cache = InMemoryCache.new({
 					typePolicies = {
@@ -3497,7 +3499,7 @@ return function()
 				jestExpect(personMergeCount).toBe(3)
 			end)
 
-			itFIXME("can force merging references with non-normalized objects", function()
+			it("can force merging references with non-normalized objects", function()
 				-- ROBLOX deviation: predefine function
 				local check
 
@@ -3520,10 +3522,7 @@ return function()
 				}
 			  ]])
 
-				check(InMemoryCache.new({ typePolicies = { Query = { fields = { viewer = { merge = true } } } } }))
-
-				check(InMemoryCache.new({ typePolicies = { User = { merge = true } } }))
-
+				-- ROBLOX deviation: hoist function declaration
 				function check(cache: InMemoryCache)
 					cache:writeQuery({
 						query = nameQuery,
@@ -3594,9 +3593,13 @@ return function()
 						viewer = { __typename = "User", id = 12345, email = "alice@example.com" },
 					})
 				end
+
+				check(InMemoryCache.new({ typePolicies = { Query = { fields = { viewer = { merge = true } } } } }))
+
+				check(InMemoryCache.new({ typePolicies = { User = { merge = true } } }))
 			end)
 
-			itFIXME("can force merging with inherited field merge function", function()
+			it("can force merging with inherited field merge function", function()
 				local authorMergeCount = 0
 				local cache = InMemoryCache.new({
 					typePolicies = {

@@ -2423,8 +2423,7 @@ return function()
 			return { cache = cache, nameVar = nameVar, query = query }
 		end
 
-		-- ROBLOX FIXME: result2 is not correct after changing nameVar to "Hugh"
-		itFIXME("should work with resultCaching enabled (default)", function()
+		it("should work with resultCaching enabled (default)", function()
 			local ref = makeCacheAndVar(true)
 			local cache, nameVar, query = ref.cache, ref.nameVar, ref.query
 
@@ -2684,8 +2683,7 @@ return function()
 			nameVar.forgetCache = originalForgetCache
 		end)
 
-		-- ROBLOX FIXME: doesn't call the watch callback for the second time
-		itFIXME("should broadcast only once for multiple reads of same variable", function()
+		it("should broadcast only once for multiple reads of same variable", function()
 			local nameVar = makeVar("Ben")
 			local cache = InMemoryCache.new({
 				typePolicies = {

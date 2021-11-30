@@ -82,16 +82,8 @@ local CacheModule = require(script.Parent.Parent.core.types.Cache)
 type Cache_WriteOptions<TResult, TVariables> = CacheModule.Cache_WriteOptions<TResult, TVariables>
 local canonicalStringify = require(script.Parent["object-canon"]).canonicalStringify
 
-export type WriteContext = ReadMergeModifyContext & {
-	written: { [string]: Array<SelectionSetNode> },
-	fragmentMap: FragmentMap?,
-	-- General-purpose deep-merge function for use during writes.
-	merge: (existing: T_, incoming: T_) -> T_,
-	-- General-purpose deep-merge function for use during writes.
-	overwrite: boolean,
-	incomingById: Map<string, { fields: StoreObject, mergeTree: MergeTree, selections: Set<SelectionNode> }>,
-	clientOnly: boolean,
-}
+local writeToStoreTypesModule = require(script.Parent.writeToStore_types)
+export type WriteContext = writeToStoreTypesModule.WriteContext
 
 type ProcessSelectionSetOptions = {
 	dataId: string?,
@@ -628,11 +620,11 @@ function getChildMergeTree(ref: MergeTree, name: string | number): MergeTree
 end
 
 function mergeMergeTrees(left: MergeTree | nil, right: MergeTree | nil): MergeTree
-	if left == right or not right ~= nil or mergeTreeIsEmpty(right) then
+	if left == right or not (right ~= nil) or mergeTreeIsEmpty(right) then
 		return (left :: MergeTree)
 	end
 
-	if not left ~= nil or mergeTreeIsEmpty(left) then
+	if not (left ~= nil) or mergeTreeIsEmpty(left) then
 		return (right :: MergeTree)
 	end
 
@@ -666,7 +658,9 @@ function mergeMergeTrees(left: MergeTree | nil, right: MergeTree | nil): MergeTr
 	if Boolean.toJSBoolean(needToMergeMaps) then
 		local remainingRightKeys = Set.new((right :: MergeTree).map:keys())
 
-		for key, leftTree in (left :: MergeTree).map:ipairs() do
+		-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
+		for _, ref in (left :: MergeTree).map:ipairs() do
+			local key, leftTree = table.unpack(ref, 1, 2)
 			merged.map:set(key, mergeMergeTrees(leftTree, (right :: MergeTree).map:get(key)))
 			remainingRightKeys:delete(key)
 		end
