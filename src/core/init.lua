@@ -26,6 +26,8 @@ export type ObservableQuery<TData, TVariables> = ObservableQueryTypesModule.Obse
 
 local watchQueryOptionsModule = require(script.watchQueryOptions)
 export type QueryOptions<TVariables, TData> = watchQueryOptionsModule.QueryOptions<TVariables, TData>
+export type WatchQueryOptions_<TVariables> = watchQueryOptionsModule.WatchQueryOptions_<TVariables>
+export type WatchQueryOptions__ = watchQueryOptionsModule.WatchQueryOptions__
 export type WatchQueryOptions<TVariables, TData> = watchQueryOptionsModule.WatchQueryOptions<TVariables, TData>
 export type FetchPolicy = watchQueryOptionsModule.FetchPolicy
 export type WatchQueryFetchPolicy = watchQueryOptionsModule.WatchQueryFetchPolicy

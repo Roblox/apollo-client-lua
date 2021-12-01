@@ -39,6 +39,8 @@ export type QueryOptions<TVariables, TData> = watchQueryOptionsTypesModule.Query
 type QueryOptions_omit_fetchPolicy<TVariables, TData> =
 	watchQueryOptionsTypesModule.QueryOptions_omit_fetchPolicy<TVariables, TData>
 -- ROBLOX comment: moved to different file to solve circular dependency issue
+export type WatchQueryOptions_<TVariables> = watchQueryOptionsTypesModule.WatchQueryOptions_<TVariables>
+export type WatchQueryOptions__ = watchQueryOptionsTypesModule.WatchQueryOptions__
 export type WatchQueryOptions<TVariables, TData> = watchQueryOptionsTypesModule.WatchQueryOptions<TVariables, TData>
 -- ROBLOX comment: moved to different file to solve circular dependency issue
 export type FetchMoreQueryOptions<TVariables, TData> =

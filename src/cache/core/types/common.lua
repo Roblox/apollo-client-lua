@@ -7,6 +7,7 @@ local rootWorkspace = srcWorkspace.Parent
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Error = LuauPolyfill.Error
 type Array<T> = LuauPolyfill.Array<T>
+type Object = LuauPolyfill.Object
 
 -- ROBLOX deviation: defining Record type from TypeScript
 type Record<T, U> = { [T]: U }
@@ -104,7 +105,7 @@ type ModifierDetails = {
 	storage: StorageType,
 }
 
-export type Modifier<T> = (self: any, value: T, details: ModifierDetails) -> T
+export type Modifier<T> = (self: Object | nil, value: T, details: ModifierDetails) -> T
 
 export type Modifiers = { [string]: Modifier<any> }
 
