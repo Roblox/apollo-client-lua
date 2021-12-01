@@ -121,7 +121,7 @@ function MutationData:onMutationStart()
 	if not self.result.loading and not self:getOptions().ignoreResults then
 		self:updateResult({
 			loading = true,
-			error_ = nil,
+			error = nil,
 			data = nil,
 			called = true,
 		})
@@ -163,7 +163,7 @@ function MutationData:onMutationCompleted(response: FetchResult<any>, mutationId
 			called = true,
 			loading = false,
 			data = data,
-			error_ = error_,
+			error = error_,
 		})
 	end
 	callOncomplete()
@@ -173,7 +173,7 @@ function MutationData:onMutationError(error_: ApolloError, mutationId: number)
 	if self:isMostRecentMutation(mutationId) then
 		self:updateResult({
 			loading = false,
-			error_ = error_,
+			error = error_,
 			data = nil,
 			called = true,
 		})
