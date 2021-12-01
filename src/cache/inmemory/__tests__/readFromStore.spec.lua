@@ -994,8 +994,7 @@ return function()
 			jestExpect(cache:extract()).toEqual({})
 		end)
 
-		-- ROBLOX FIXME
-		itFIXME("custom read functions can map/filter dangling references", function()
+		it("custom read functions can map/filter dangling references", function()
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					Query = {
@@ -1012,7 +1011,7 @@ return function()
 									end
 								end)
 							end,
-							chickens = function(self, existing: Array<Reference>?, ref)
+							chickens = function(_self, existing: Array<Reference>?, ref)
 								if existing == nil then
 									existing = {}
 								end
@@ -1024,7 +1023,7 @@ return function()
 									end
 								end)
 							end,
-							oxen = function(self, existing: Array<Reference>?, ref)
+							oxen = function(_self, existing: Array<Reference>?, ref)
 								if existing == nil then
 									existing = {}
 								end

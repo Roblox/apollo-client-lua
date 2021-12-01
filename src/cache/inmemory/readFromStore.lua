@@ -532,7 +532,8 @@ function StoreReader:execSubSelectedArrayImpl(ref: ExecSubSelectedArrayOptions):
 		table.insert(context.path, i)
 
 		-- This is a nested array, recurse
-		if Array.isArray(item) then
+		-- ROBLOX deviation: empty object shouldn't be treated as an array
+		if Array.isArray(item) and #item > 0 then
 			return handleMissing(
 				self:executeSubSelectedArray({
 					field = field,

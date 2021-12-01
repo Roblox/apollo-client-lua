@@ -270,7 +270,7 @@ return function()
 					)
 				end
 				render(React.createElement(MockedProvider, { mocks = mocks }, React.createElement(Component, nil)))
-			end)
+			end):expect()
 		end)
 
 		it("returns a resolved promise when calling the mutation function", function()
