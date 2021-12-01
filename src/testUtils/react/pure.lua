@@ -57,6 +57,19 @@ local function getQueriesForElement(rootInstance: Instance)
 			end
 			error(Error.new(("Unable to find an element with the text: %s"):format(text)))
 		end,
+		getAllByText = function(text: string): any
+			local results = {}
+			local descendants = rootInstance:GetDescendants()
+			for _index, descendant in ipairs(descendants) do
+				if descendant.Text == text then
+					table.insert(results, descendant)
+				end
+			end
+			if #results == 0 then
+				error(Error.new(("Unable to find an element with the text: %s"):format(text)))
+			end
+			return results
+		end,
 		getFirstChild = function()
 			return rootInstance:GetChildren()[1]
 		end,
