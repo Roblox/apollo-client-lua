@@ -195,7 +195,7 @@ function ApolloClient.new(options: ApolloClientOptions<TCacheShape_>): ApolloCli
 		options.name,
 		options.version
 
-	local ssrMode, ssrForceFetchDelay, _connectToDevTools, queryDeduplication, assumeImmutableResults
+	local ssrMode, ssrForceFetchDelay, connectToDevTools, queryDeduplication, assumeImmutableResults
 	if options.ssrMode == nil then
 		ssrMode = false
 	else
@@ -207,17 +207,17 @@ function ApolloClient.new(options: ApolloClientOptions<TCacheShape_>): ApolloCli
 		ssrForceFetchDelay = options.ssrForceFetchDelay
 	end
 
-	-- if options.connectToDevTools == nil then
-	-- 	-- Expose the client instance as window.__APOLLO_CLIENT__ and call
-	-- 	-- onBroadcast in queryManager.broadcastQueries to enable browser
-	-- 	-- devtools, but disable them by default in production.
-	-- 	-- ROBLOX deviation: using _G instead of window
-	-- 	connectToDevTools = typeof(_G) == "table"
-	-- 		and not Boolean.toJSBoolean((_G :: any).__APOLLO_CLIENT__)
-	-- 		and Boolean.toJSBoolean(_G.__DEV__)
-	-- else
-	-- 	connectToDevTools = options.connectToDevTools
-	-- end
+	if options.connectToDevTools == nil then
+		-- Expose the client instance as window.__APOLLO_CLIENT__ and call
+		-- onBroadcast in queryManager.broadcastQueries to enable browser
+		-- devtools, but disable them by default in production.
+		-- ROBLOX deviation: using _G instead of window
+		connectToDevTools = typeof(_G) == "table"
+			and not Boolean.toJSBoolean((_G :: any).__APOLLO_CLIENT__)
+			and Boolean.toJSBoolean(_G.__DEV__)
+	else
+		connectToDevTools = options.connectToDevTools
+	end
 
 	if options.queryDeduplication == nil then
 		queryDeduplication = true
@@ -392,7 +392,7 @@ function ApolloClient.new(options: ApolloClientOptions<TCacheShape_>): ApolloCli
 		},
 		localState = self.localState,
 		assumeImmutableResults = assumeImmutableResults,
-		onBroadcast = (function()
+		onBroadcast = (function(): (() -> ())?
 			-- ROBLOX TODO: Devtools not implemented
 			-- if Boolean.toJSBoolean(connectToDevTools) then
 			-- return function()
@@ -412,7 +412,11 @@ function ApolloClient.new(options: ApolloClientOptions<TCacheShape_>): ApolloCli
 			-- else
 			-- 	return nil
 			-- end
-			return nil
+			if connectToDevTools then
+				return function() end
+			else
+				return nil
+			end
 		end)(),
 	})
 	return (self :: any) :: ApolloClient<TCacheShape_>

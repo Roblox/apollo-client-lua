@@ -755,11 +755,12 @@ function QueryManager:markMutationOptimistic(
 	end
 
 	return self.cache:recordOptimisticTransaction(function(cache)
-		xpcall(function()
+		local ok, error_ = pcall(function()
 			self:markMutationResult(Object.assign({}, mutation, { result = { data = data } }), cache)
-		end, function(error_)
-			invariant.error(error_)
 		end)
+		if not ok then
+			invariant.error(error_)
+		end
 	end, mutation.mutationId)
 end
 
