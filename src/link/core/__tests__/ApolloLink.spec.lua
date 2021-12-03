@@ -18,7 +18,7 @@ return function()
 	local jestExpect = JestGlobals.expect
 	local jest = JestGlobals.jest
 
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 	local graphQLModule = require(rootWorkspace.GraphQL)
 	local print_ = graphQLModule.print
 	local observableModule = require(srcWorkspace.utilities.observables.Observable)

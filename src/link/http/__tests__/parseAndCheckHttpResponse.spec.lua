@@ -19,7 +19,7 @@ return function()
 		jestExpect(false).toBe(true)
 	end
 
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 	-- ROBLOX deviation: custom mock function instead of fetch-mock library
 	local function fetchResponse(response: number | { status: number?, body: any? } | Object)
 		local status: number, res: any?

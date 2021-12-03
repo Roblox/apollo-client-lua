@@ -5,15 +5,15 @@ local rootWorkspace = srcWorkspace.Parent
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Object = LuauPolyfill.Object
 
+-- ROBLOX TODO: uncomment these exports as we implement them
 Object.assign(
 	exports,
 	require(script.useApolloClient),
 	require(script.useLazyQuery),
 	require(script.useMutation),
-	require(script.useQuery)
-	-- ROBLOX TODO: uncomment these exports as we implement them
+	require(script.useQuery),
 	-- require(script.useSubscription),
-	-- require(script.useReactiveVar)
+	require(script.useReactiveVar)
 )
 
 return exports

@@ -68,8 +68,8 @@ local queryInfoModule = require(script.Parent.QueryInfo)
 type QueryInfo = queryInfoModule.QueryInfo
 
 local observableQueryTypesModule = require(script.Parent.ObservableQuery_types)
-type ObservableQuery<TData, TVariables> = observableQueryTypesModule.ObservableQuery<TData, TVariables>
-type FetchMoreOptions<TData, TVariables> = observableQueryTypesModule.FetchMoreOptions<TData, TVariables>
+export type ObservableQuery<TData, TVariables> = observableQueryTypesModule.ObservableQuery<TData, TVariables>
+export type FetchMoreOptions<TData, TVariables> = observableQueryTypesModule.FetchMoreOptions<TData, TVariables>
 -- ROBLOX deviation: predefined variables
 local defaultSubscriptionObserverErrorCallback
 

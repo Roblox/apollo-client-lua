@@ -35,7 +35,7 @@ return function()
 
 	local NULL = require(srcWorkspace.utilities).NULL
 
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 
 	local inMemoryCacheModule = require(script.Parent.Parent.inMemoryCache)
 	local InMemoryCache = inMemoryCacheModule.InMemoryCache

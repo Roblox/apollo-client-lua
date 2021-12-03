@@ -31,7 +31,7 @@ return function()
 	local useEffect = React.useEffect
 	local GraphQLError = require(rootWorkspace.GraphQL).GraphQLError
 
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 	local testUtilsModule = require(srcWorkspace.testUtils.react)
 	local render = testUtilsModule.render
 	local cleanup = testUtilsModule.cleanup

@@ -46,7 +46,7 @@ return function()
 
 	local React = require(rootWorkspace.React)
 
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 
 	local graphQLModule = require(rootWorkspace.GraphQL)
 	type DocumentNode = graphQLModule.DocumentNode

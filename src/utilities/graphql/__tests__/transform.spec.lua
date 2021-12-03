@@ -11,8 +11,8 @@ return function()
 	type Array<T> = LuauPolyfill.Array<T>
 
 	local print_ = require(rootWorkspace.GraphQL).print
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
-	local disableFragmentWarnings = require(rootWorkspace.Dev.GraphQLTag).disableFragmentWarnings
+	local gql = require(rootWorkspace.GraphQLTag).default
+	local disableFragmentWarnings = require(rootWorkspace.GraphQLTag).disableFragmentWarnings
 
 	-- Turn off warnings for repeated fragment names
 	disableFragmentWarnings()

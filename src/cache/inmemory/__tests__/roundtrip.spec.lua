@@ -23,7 +23,7 @@ return function()
 	local graphQLModule = require(rootWorkspace.GraphQL)
 	type DocumentNode = graphQLModule.DocumentNode
 
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 
 	local EntityStore = require(script.Parent.Parent.entityStore).EntityStore
 	local StoreReader = require(script.Parent.Parent.readFromStore).StoreReader

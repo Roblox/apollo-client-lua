@@ -12,7 +12,7 @@ return function()
 	type Array<T> = LuauPolyfill.Array<T>
 
 	local print = require(rootWorkspace.GraphQL).print
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 	local graphqlModule = require(rootWorkspace.GraphQL)
 	type FragmentDefinitionNode = graphqlModule.FragmentDefinitionNode
 	type OperationDefinitionNode = graphqlModule.OperationDefinitionNode

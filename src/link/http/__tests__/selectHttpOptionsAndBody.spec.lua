@@ -6,7 +6,7 @@ return function()
 	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
 	local jestExpect = JestGlobals.expect
 
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 
 	local createOperation = require(script.Parent.Parent.Parent.utils.createOperation).createOperation
 	local selectHttpOptionsAndBodyModule = require(script.Parent.Parent.selectHttpOptionsAndBody)

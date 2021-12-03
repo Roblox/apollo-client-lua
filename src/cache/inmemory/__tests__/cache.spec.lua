@@ -37,7 +37,7 @@ return function()
 	type Watcher_ = any
 	type E_ = any
 
-	local graphqlTagModule = require(rootWorkspace.Dev.GraphQLTag)
+	local graphqlTagModule = require(rootWorkspace.GraphQLTag)
 	local gql = graphqlTagModule.default
 	local disableFragmentWarnings = graphqlTagModule.disableFragmentWarnings
 

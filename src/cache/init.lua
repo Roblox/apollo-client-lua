@@ -13,6 +13,7 @@ invariant("boolean" == typeof(DEV), DEV)
 local cacheModule = require(script.core.cache)
 export type Transaction<T> = cacheModule.Transaction<T>
 export type ApolloCache<TSerialized> = cacheModule.ApolloCache<TSerialized>
+exports.ApolloCache = cacheModule.ApolloCache
 
 local cacheTypesModule = require(script.core.types.Cache)
 export type Cache_DiffResult<T> = cacheTypesModule.Cache_DiffResult<T>
@@ -48,10 +49,11 @@ exports.MissingFieldError = commonModule.MissingFieldError
 export type MissingFieldError = commonModule.MissingFieldError
 export type ReadFieldOptions = commonModule.ReadFieldOptions
 
-local utilitiesModule = require(script.Parent.utilities)
-export type Reference = utilitiesModule.Reference
-exports.isReference = utilitiesModule.isReference
-exports.makeReference = utilitiesModule.makeReference
+-- ROBLOX deviation: import directly from source to avoid circular dep
+local storeUtils = require(script.Parent.utilities.graphql.storeUtils)
+export type Reference = storeUtils.Reference
+exports.isReference = storeUtils.isReference
+exports.makeReference = storeUtils.makeReference
 
 local entityStoreModule = require(script.inmemory.entityStore)
 export type EntityStore = entityStoreModule.EntityStore

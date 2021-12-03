@@ -35,7 +35,7 @@ return function()
 	-- ROBLOX deviation: keep original fetch to restore it later
 	local fetch = _G.fetch
 
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 
 	-- ROBLOX deviation: using own implementation
 	-- local fetchMock = require(rootWorkspace["fetch-mock"]).default

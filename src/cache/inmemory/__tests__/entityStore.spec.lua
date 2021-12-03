@@ -21,7 +21,7 @@ return function()
 
 	local RegExp = require(rootWorkspace.LuauRegExp)
 
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 	local entityStoreModule = require(script.Parent.Parent.entityStore)
 	local EntityStore_Root = entityStoreModule.EntityStore_Root
 	local supportsResultCaching = entityStoreModule.supportsResultCaching

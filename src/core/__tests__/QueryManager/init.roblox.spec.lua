@@ -46,7 +46,7 @@ return function()
 	-- local from = require(Packages.rxjs).from
 	-- local map = require(Packages.rxjs.operators).map
 	local assign = Object.assign
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 	local graphqlModule = require(rootWorkspace.GraphQL)
 	type DocumentNode = graphqlModule.DocumentNode
 	local GraphQLError = graphqlModule.GraphQLError

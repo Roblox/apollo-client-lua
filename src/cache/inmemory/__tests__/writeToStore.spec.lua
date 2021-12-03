@@ -53,7 +53,7 @@ return function()
 	type OperationDefinitionNode = graphqlModule.OperationDefinitionNode
 	type ASTNode = graphqlModule.ASTNode
 	type DocumentNode = graphqlModule.DocumentNode
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 
 	local storeUtilsModule = require(script.Parent.Parent.Parent.Parent.utilities.graphql.storeUtils)
 	local storeKeyNameFromField = storeUtilsModule.storeKeyNameFromField

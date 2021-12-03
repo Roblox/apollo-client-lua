@@ -22,7 +22,7 @@ return function()
 	type Promise<T> = PromiseTypeModule.Promise<T>
 
 	local cloneDeep = require(srcWorkspace.utilities.common.cloneDeep).cloneDeep
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 	local GraphQLError = require(rootWorkspace.GraphQL).GraphQLError
 
 	local ApolloClient = require(script.Parent.Parent.core).ApolloClient

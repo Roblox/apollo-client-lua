@@ -29,7 +29,7 @@ return function()
 	-- ROBLOX TODO: replace when function generics are available
 	type T_ = any
 
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 	local GraphQLError = require(rootWorkspace.GraphQL).GraphQLError
 	local typedDocumentNodeModule = require(srcWorkspace.jsutils.typedDocumentNode)
 	type TypedDocumentNode_<Result> = typedDocumentNodeModule.TypedDocumentNode_<Result>

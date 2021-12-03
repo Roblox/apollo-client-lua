@@ -21,9 +21,8 @@ local DocumentType = {
 	Mutation = 2,
 	Subscription = 3,
 }
-export type DocumentType = number
-
 exports.DocumentType = DocumentType
+export type DocumentType = number
 
 export type IDocumentDefinition = { type: number, name: string, variables: Array<VariableDefinitionNode> }
 

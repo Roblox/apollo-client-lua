@@ -23,7 +23,7 @@ return function()
 	local jestExpect = JestGlobals.expect
 	local jest = JestGlobals.jest
 
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 	local apolloCacheModule = require(script.Parent.Parent.cache)
 	local ApolloCache = apolloCacheModule.ApolloCache
 	type ApolloCache<TSerialized> = apolloCacheModule.ApolloCache<TSerialized>

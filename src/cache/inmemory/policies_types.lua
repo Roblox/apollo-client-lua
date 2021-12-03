@@ -21,7 +21,8 @@ type FragmentDefinitionNode = graphqlModule.FragmentDefinitionNode
 type SelectionSetNode = graphqlModule.SelectionSetNode
 type FieldNode = graphqlModule.FieldNode
 
-local utilitiesModule = require(script.Parent.Parent.Parent.utilities)
+-- ROBLOX deviation: avoid circular dep issue
+local utilitiesModule = require(script.Parent.Parent.Parent.utilities.graphql.storeUtils)
 -- ROBLOX TODO: fragments not currently implemented, so stub type
 type FragmentMap = Object -- utilitiesModule.FragmentMap
 type StoreValue = utilitiesModule.StoreValue

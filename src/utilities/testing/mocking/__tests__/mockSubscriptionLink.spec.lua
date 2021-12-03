@@ -14,7 +14,7 @@ return function()
 	local reactTestingModule = require(srcWorkspace.testUtils.react)
 	local render = reactTestingModule.render
 	local wait = reactTestingModule.wait
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 
 	local MockSubscriptionLink = require(script.Parent.Parent.mockSubscriptionLink).MockSubscriptionLink
 	local ApolloClient = require(script.Parent.Parent.Parent.Parent.Parent.core).ApolloClient

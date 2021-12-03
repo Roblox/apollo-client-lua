@@ -17,7 +17,7 @@ return function()
 	local utilitiesModule = require(srcWorkspace.utilities)
 	type Observable<T> = utilitiesModule.Observable<T>
 
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 
 	local coreModule = require(srcWorkspace.core)
 	local ApolloClient = coreModule.ApolloClient

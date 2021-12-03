@@ -4,7 +4,7 @@ return function()
 	local rootWorkspace = srcWorkspace.Parent
 	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
 	local jestExpect = JestGlobals.expect
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 	local RegExp = require(rootWorkspace.LuauRegExp)
 	local ParentModule = require(script.Parent.Parent)
 	local parser = ParentModule.parser

@@ -3,11 +3,9 @@
 local rootWorkspace = script.Parent.Parent.Parent
 local Object = require(rootWorkspace.LuauPolyfill).Object
 
-local exports = Object.assign(
-	{},
-	require(script.ApolloContext),
-	require(script.ApolloConsumer),
-	require(script.ApolloProvider)
-)
+local ApolloContextModule = require(script.ApolloContext)
+local exports = Object.assign({}, ApolloContextModule, require(script.ApolloConsumer), require(script.ApolloProvider))
+
+export type ApolloContextValue = ApolloContextModule.ApolloContextValue
 
 return exports

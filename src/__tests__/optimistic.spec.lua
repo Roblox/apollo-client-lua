@@ -47,7 +47,7 @@ return function()
 	local assign = Object.assign
 	local cloneDeep = require(srcWorkspace.utilities.common.cloneDeep).cloneDeep
 	-- ROBLOX deviation END
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 
 	local coreModule = require(script.Parent.Parent.core)
 	local ApolloClient = coreModule.ApolloClient

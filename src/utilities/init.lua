@@ -85,10 +85,10 @@ exports.removeArgumentsFromDocument = transformModule.removeArgumentsFromDocumen
 exports.removeFragmentSpreadFromDocument = transformModule.removeFragmentSpreadFromDocument
 exports.removeClientSetsFromDocument = transformModule.removeClientSetsFromDocument
 
--- local paginationModule = require(script.policies.pagination)
--- exports.concatPagination = paginationModule.concatPagination
--- exports.offsetLimitPagination = paginationModule.offsetLimitPagination
--- exports.relayStylePagination = paginationModule.relayStylePagination
+local paginationModule = require(script.policies.pagination)
+exports.concatPagination = paginationModule.concatPagination
+exports.offsetLimitPagination = paginationModule.offsetLimitPagination
+exports.relayStylePagination = paginationModule.relayStylePagination
 
 local ObservableModule = require(script.observables.Observable)
 exports.Observable = ObservableModule.Observable

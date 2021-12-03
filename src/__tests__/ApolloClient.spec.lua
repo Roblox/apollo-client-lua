@@ -25,7 +25,7 @@ local Promise = require(rootWorkspace.Promise)
 local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
 local jestExpect = JestGlobals.expect
 
-local gql = require(rootWorkspace.Dev.GraphQLTag).default
+local gql = require(rootWorkspace.GraphQLTag).default
 
 local coreModule = require(script.Parent.Parent.core)
 local ApolloClient = coreModule.ApolloClient

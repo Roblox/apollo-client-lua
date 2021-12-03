@@ -17,7 +17,7 @@ return function()
 	local reactTestUtilsModule = require(srcWorkspace.testUtils.react)
 	local render = reactTestUtilsModule.render
 	local wait_ = reactTestUtilsModule.wait
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 
 	local itAsync = require(script.Parent.Parent.Parent.itAsync)
 	local MockedProvider = require(script.Parent.Parent.MockedProvider).MockedProvider

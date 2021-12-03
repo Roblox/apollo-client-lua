@@ -19,7 +19,7 @@ return function()
 	local jestExpect = JestGlobals.expect
 
 	-- externals
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 
 	local observableModule = require(script.Parent.Parent.Parent.Parent.utilities.observables.Observable)
 	local Observable = observableModule.Observable

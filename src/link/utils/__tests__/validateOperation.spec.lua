@@ -6,7 +6,7 @@ return function()
 	local jestExpect = JestGlobals.expect
 
 	local validateOperation = require(script.Parent.Parent.validateOperation).validateOperation
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 	describe("validateOperation", function()
 		it("should throw when invalid field in operation", function()
 			jestExpect(function()

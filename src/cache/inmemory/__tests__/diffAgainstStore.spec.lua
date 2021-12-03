@@ -16,7 +16,7 @@ return function()
 
 	local HttpService = game:GetService("HttpService")
 
-	local graphQLTagModule = require(rootWorkspace.Dev.GraphQLTag)
+	local graphQLTagModule = require(rootWorkspace.GraphQLTag)
 	local gql = graphQLTagModule.default
 	local disableFragmentWarnings = graphQLTagModule.disableFragmentWarnings
 

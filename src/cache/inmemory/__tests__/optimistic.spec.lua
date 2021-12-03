@@ -14,7 +14,7 @@ return function()
 
 	type ReturnType<T> = any
 
-	local gql = require(rootWorkspace.Dev.GraphQLTag).default
+	local gql = require(rootWorkspace.GraphQLTag).default
 	local inMemoryCacheModule = require(script.Parent.Parent.inMemoryCache)
 	local InMemoryCache = inMemoryCacheModule.InMemoryCache
 	type InMemoryCache = inMemoryCacheModule.InMemoryCache

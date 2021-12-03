@@ -20,10 +20,12 @@ local function __rest(obj, props)
 	return Object.assign({}, obj, removed)
 end
 
-local cacheModule = require(script.Parent.Parent.Parent.cache)
-
+local cacheModule = require(script.Parent.Parent.Parent.cache.inmemory.policies_types)
 type FieldPolicy<TExisting, TIncoming, TReadResult> = cacheModule.FieldPolicy<TExisting, TIncoming, TReadResult>
-type Reference = cacheModule.Reference
+
+-- ROBLOX deviation: import directly from source to avoid circular dep
+local storeUtilsModule = require(script.Parent.Parent.graphql.storeUtils)
+type Reference = storeUtilsModule.Reference
 
 local mergeDeep = require(script.Parent.Parent.common.mergeDeep).mergeDeep
 type KeyArgs = typeof((({} :: any) :: FieldPolicy<any, any, any>).keyArgs)

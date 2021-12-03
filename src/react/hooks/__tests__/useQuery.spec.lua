@@ -38,7 +38,7 @@ return function()
 	local GraphQLError = GraphQL.GraphQLError
 	type GraphQLError = GraphQL.GraphQLError
 
-	local gql = require(rootWorkspace.Dev.GraphQLTag).gql
+	local gql = require(rootWorkspace.GraphQLTag).gql
 
 	local reactTestingModule = require(srcWorkspace.testUtils.react)
 	local render = reactTestingModule.render

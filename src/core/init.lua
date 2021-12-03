@@ -7,7 +7,7 @@ local rootWorkspace = srcWorkspace.Parent
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Object = LuauPolyfill.Object
 
--- local DEV = require(srcWorkspace.utilities).DEV
+local DEV = require(srcWorkspace.utilities).DEV
 
 local ApolloClientModule = require(script.ApolloClient)
 export type ApolloClient<TCacheShape> = ApolloClientModule.ApolloClient<TCacheShape>
@@ -17,12 +17,11 @@ export type DefaultOptions = ApolloClientModule.DefaultOptions
 exports.mergeOptions = ApolloClientModule.mergeOptions
 
 local ObservableQueryModule = require(script.ObservableQuery)
--- exports.ObservableQuery = ObservableQueryModule.ObservableQuery
--- exports.FetchMoreOptions = ObservableQueryModule.FetchMoreOptions
--- exports.UpdateQueryOptions = ObservableQueryModule.UpdateQueryOptions
 exports.applyNextFetchPolicy = ObservableQueryModule.applyNextFetchPolicy
-local ObservableQueryTypesModule = require(script.ObservableQuery_types)
-export type ObservableQuery<TData, TVariables> = ObservableQueryTypesModule.ObservableQuery<TData, TVariables>
+exports.ObservableQuery = ObservableQueryModule.ObservableQuery
+export type FetchMoreOptions<TData, TVariables> = ObservableQueryModule.FetchMoreOptions<TData, TVariables>
+export type ObservableQuery<TData, TVariables> = ObservableQueryModule.ObservableQuery<TData, TVariables>
+export type UpdateQueryOptions<TVariables> = ObservableQueryModule.UpdateQueryOptions<TVariables>
 
 local watchQueryOptionsModule = require(script.watchQueryOptions)
 export type QueryOptions<TVariables, TData> = watchQueryOptionsModule.QueryOptions<TVariables, TData>
@@ -33,11 +32,12 @@ export type FetchPolicy = watchQueryOptionsModule.FetchPolicy
 export type WatchQueryFetchPolicy = watchQueryOptionsModule.WatchQueryFetchPolicy
 export type ErrorPolicy = watchQueryOptionsModule.ErrorPolicy
 export type FetchMoreQueryOptions<TVariables, TData> = watchQueryOptionsModule.FetchMoreQueryOptions<TVariables, TData>
---[[ export {
-  MutationOptions,
-  SubscriptionOptions,
-  SubscribeToMoreOptions,
-} from './watchQueryOptions'; ]]
+export type MutationOptions<TData, TVariables, TContext, TCache> =
+	watchQueryOptionsModule.MutationOptions<TData, TVariables, TContext, TCache>
+export type SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData> =
+	watchQueryOptionsModule.SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData>
+export type SubscriptionOptions<TVariables, TData> = watchQueryOptionsModule.SubscriptionOptions<TVariables, TData>
+
 local networkStatusModule = require(script.networkStatus)
 exports.NetworkStatus = networkStatusModule.NetworkStatus
 export type NetworkStatus = networkStatusModule.NetworkStatus
@@ -68,42 +68,96 @@ export type Resolvers = typesModule.Resolvers
 local localStateModule = require(script.LocalState)
 export type Resolver = localStateModule.Resolver
 export type FragmentMatcher = localStateModule.FragmentMatcher
---[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
---[[ export { isApolloError, ApolloError } from '../errors'; ]]
---[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
---[[ export {
-  // All the exports (types and values) from ../cache, minus cacheSlot,
-  // which we want to keep semi-private.
-  Cache,
-  ApolloCache,
-  Transaction,
-  DataProxy,
-  InMemoryCache,
-  InMemoryCacheConfig,
-  MissingFieldError,
-  defaultDataIdFromObject,
-  ReactiveVar,
-  makeVar,
-  TypePolicies,
-  TypePolicy,
-  FieldPolicy,
-  FieldReadFunction,
-  FieldMergeFunction,
-  FieldFunctionOptions,
-  PossibleTypesMap,
-} from '../cache'; ]]
---[[ ROBLOX TODO: Unhandled node for type: ExportAllDeclaration ]]
---[[ export * from '../cache/inmemory/types'; ]]
-Object.assign(exports, require(script.Parent.link.core))
-Object.assign(exports, require(script.Parent.link.http))
---[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
---[[ export {
-  fromError,
-  toPromise,
-  fromPromise,
-  ServerError,
-  throwServerError,
-} from '../link/utils'; ]]
+
+local errorsModule = require(script.Parent.errors)
+exports.isApolloError = errorsModule.isApolloError
+exports.ApolloError = errorsModule.ApolloError
+export type ApolloError = errorsModule.ApolloError
+
+local cacheModule = require(script.Parent.cache)
+exports.ApolloCache = cacheModule.ApolloCache
+exports.defaultDataIdFromObject = cacheModule.defaultDataIdFromObject
+exports.InMemoryCache = cacheModule.InMemoryCache
+exports.MissingFieldError = cacheModule.MissingFieldError
+exports.makeVar = cacheModule.makeVar
+export type ApolloCache<TSerialized> = cacheModule.ApolloCache<TSerialized>
+export type Cache_DiffResult<T> = cacheModule.Cache_DiffResult<T>
+export type Cache_WatchCallback = cacheModule.Cache_WatchCallback
+export type Cache_ReadOptions<TVariables, TData> = cacheModule.Cache_ReadOptions<TVariables, TData>
+export type Cache_WriteOptions<TResult, TVariables> = cacheModule.Cache_WriteOptions<TResult, TVariables>
+export type Cache_DiffOptions<TVariables, TData> = cacheModule.Cache_DiffOptions<TVariables, TData>
+export type Cache_WatchOptions<Watcher> = cacheModule.Cache_WatchOptions<Watcher>
+export type Cache_EvictOptions = cacheModule.Cache_EvictOptions
+export type Cache_ModifyOptions = cacheModule.Cache_ModifyOptions
+export type Cache_BatchOptions<C> = cacheModule.Cache_BatchOptions<C>
+export type Cache_ReadQueryOptions<TData, TVariables> = cacheModule.Cache_ReadQueryOptions<TData, TVariables>
+export type Cache_ReadFragmentOptions<TData, TVariables> = cacheModule.Cache_ReadFragmentOptions<TData, TVariables>
+export type Cache_WriteQueryOptions<TData, TVariables> = cacheModule.Cache_WriteQueryOptions<TData, TVariables>
+export type Cache_WriteFragmentOptions<TData, TVariables> = cacheModule.Cache_WriteFragmentOptions<TData, TVariables>
+export type Cache_Fragment<TData, TVariables> = cacheModule.Cache_Fragment<TData, TVariables>
+export type DataProxy = cacheModule.DataProxy
+export type DataProxy_Query<TVariables, TData> = cacheModule.DataProxy_Query<TVariables, TData>
+export type DataProxy_Fragment<TVariables, TData> = cacheModule.DataProxy_Fragment<TVariables, TData>
+export type DataProxy_ReadQueryOptions<TData, TVariables> = cacheModule.DataProxy_ReadQueryOptions<TData, TVariables>
+export type DataProxy_ReadFragmentOptions<TData, TVariables> = cacheModule.DataProxy_ReadFragmentOptions<TData, TVariables>
+export type DataProxy_WriteOptions<TData> = cacheModule.DataProxy_WriteOptions<TData>
+export type DataProxy_WriteQueryOptions<TData, TVariables> = cacheModule.DataProxy_WriteQueryOptions<TData, TVariables>
+export type DataProxy_WriteFragmentOptions<TData, TVariables> =
+	cacheModule.DataProxy_WriteFragmentOptions<TData, TVariables>
+export type DataProxy_DiffResult<T> = cacheModule.DataProxy_DiffResult<T>
+export type FieldFunctionOptions<TArgs, TVars> = cacheModule.FieldFunctionOptions<TArgs, TVars>
+export type FieldMergeFunction<T, V> = cacheModule.FieldMergeFunction<T, V>
+export type FieldPolicy<TExisting, TIncoming, TReadResult> = cacheModule.FieldPolicy<TExisting, TIncoming, TReadResult>
+export type FieldReadFunction<T, V> = cacheModule.FieldReadFunction<T, V>
+export type InMemoryCache = cacheModule.InMemoryCache
+export type InMemoryCacheConfig = cacheModule.InMemoryCacheConfig
+export type MissingFieldError = cacheModule.MissingFieldError
+export type PossibleTypesMap = cacheModule.PossibleTypesMap
+export type ReactiveVar<T> = cacheModule.ReactiveVar<T>
+export type Transaction<T> = cacheModule.Transaction<T>
+export type TypePolicies = cacheModule.TypePolicies
+export type TypePolicy = cacheModule.TypePolicy
+
+local inMemoryTypesModule = require(script.Parent.cache.inmemory.types)
+Object.assign(exports, inMemoryTypesModule)
+export type ApolloReducerConfig = inMemoryTypesModule.ApolloReducerConfig
+export type DiffQueryAgainstStoreOptions = inMemoryTypesModule.DiffQueryAgainstStoreOptions
+export type IdGetterObj = inMemoryTypesModule.IdGetterObj
+export type IdGetter = inMemoryTypesModule.IdGetter
+export type NormalizedCache = inMemoryTypesModule.NormalizedCache
+export type NormalizedCacheObject = inMemoryTypesModule.NormalizedCacheObject
+export type OptimisticStoreItem = inMemoryTypesModule.OptimisticStoreItem
+export type ReadQueryOptions = inMemoryTypesModule.ReadQueryOptions
+export type MergeInfo = inMemoryTypesModule.MergeInfo
+export type MergeTree = inMemoryTypesModule.MergeTree
+export type ReadMergeModifyContext = inMemoryTypesModule.ReadMergeModifyContext
+export type StoreValue = inMemoryTypesModule.StoreValue
+
+local linkCoreModule = require(script.Parent.link.core)
+Object.assign(exports, linkCoreModule)
+export type ApolloLink = linkCoreModule.ApolloLink
+export type DocumentNode = linkCoreModule.DocumentNode
+export type FetchResult<TData, C, E> = linkCoreModule.FetchResult<TData, C, E>
+export type GraphQLRequest = linkCoreModule.GraphQLRequest
+export type NextLink = linkCoreModule.NextLink
+export type Operation = linkCoreModule.Operation
+export type RequestHandler = linkCoreModule.RequestHandler
+
+local linkHttpModule = require(script.Parent.link.http)
+Object.assign(exports, linkHttpModule)
+export type ClientParseError = linkHttpModule.ClientParseError
+export type HttpLink = linkHttpModule.HttpLink
+export type HttpOptions = linkHttpModule.HttpOptions
+export type UriFunction = linkHttpModule.UriFunction
+export type ServerParseError = linkHttpModule.ServerParseError
+
+local linkUtilsModule = require(script.Parent.link.utils)
+exports.fromError = linkUtilsModule.fromError
+exports.toPromise = linkUtilsModule.toPromise
+exports.fromPromise = linkUtilsModule.fromPromise
+exports.throwServerError = linkUtilsModule.throwServerError
+export type ServerError = linkUtilsModule.ServerError
+
 local utilitiesModule = require(script.Parent.utilities)
 exports.Observable = utilitiesModule.Observable
 export type Observable<T> = utilitiesModule.Observable<T>
@@ -112,21 +166,19 @@ export type ObservableSubscription = utilitiesModule.ObservableSubscription
 export type Reference = utilitiesModule.Reference
 exports.isReference = utilitiesModule.isReference
 exports.makeReference = utilitiesModule.makeReference
+exports.NULL = utilitiesModule.NULL
 export type StoreObject = utilitiesModule.StoreObject
---[[ ROBLOX TODO: Unhandled node for type: ImportDeclaration ]]
---[[ import { setVerbosity } from "ts-invariant"; ]]
---[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
---[[ export { setVerbosity as setLogVerbosity } ]]
 
--- setVerbosity(DEV ? "log" : "silent")
+local setVerbosity = require(srcWorkspace.jsutils.invariant).setVerbosity
+exports.setLogVerbosity = setVerbosity
 
---[[ ROBLOX TODO: Unhandled node for type: ExportNamedDeclaration ]]
---[[ export {
-  gql,
-  resetCaches,
-  disableFragmentWarnings,
-  enableExperimentalFragmentVariables,
-  disableExperimentalFragmentVariables,
-} from 'graphql-tag'; ]]
+setVerbosity(if DEV then "log" else "silent")
+
+local gqlTagModule = require(rootWorkspace.GraphQLTag)
+exports.gql = gqlTagModule.default
+exports.resetCaches = gqlTagModule.resetCaches
+exports.disableFragmentWarnings = gqlTagModule.disableFragmentWarnings
+exports.enableExperimentalFragmentVariables = gqlTagModule.enableExperimentalFragmentVariables
+exports.disableExperimentalFragmentVariables = gqlTagModule.disableExperimentalFragmentVariables
 
 return exports
