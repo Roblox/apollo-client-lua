@@ -518,7 +518,7 @@ function Policies:updateTypePolicy(typename: string, incoming: TypePolicy): ()
 				else
 					-- Pass an array of strings to use named arguments to
 					-- compute a composite identity for the field.
-					if Boolean.toJSBoolean(Array.isArray(keyArgs)) then
+					if Array.isArray(keyArgs) then
 						existing.keyFn = keyArgsFnFromSpecifier(keyArgs) :: any
 					else
 						-- Pass a function to take full control over field identity.
@@ -793,7 +793,7 @@ end
 
 function Policies:hasKeyArgs(typename: string | nil, fieldName: string): boolean
 	local policy = (self :: PoliciesPrivate):getFieldPolicy(typename, fieldName, false)
-	return not not (Boolean.toJSBoolean(policy) and Boolean.toJSBoolean((policy :: any).keyfn))
+	return Boolean.toJSBoolean(policy) and policy ~= nil and Boolean.toJSBoolean(policy.keyFn)
 end
 
 function Policies:getStoreFieldName(fieldSpec: FieldSpecifier): string

@@ -2419,7 +2419,7 @@ return function()
 			})
 		end)
 
-		itFIXME("should not over-invalidate fields with keyArgs", function()
+		it("should not over-invalidate fields with keyArgs", function()
 			local isbnsWeHaveRead: Array<string> = {}
 
 			local cache = InMemoryCache.new({
