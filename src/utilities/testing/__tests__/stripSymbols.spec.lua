@@ -12,11 +12,43 @@ return function()
 
 	local stripSymbols = require(script.Parent.Parent.stripSymbols).stripSymbols
 	describe("stripSymbols", function()
-		-- ROBLOX FIXME: stripping symbols is not supported yet
-		itFIXME("should strip symbols (only)", function()
+		it("should strip symbols (only)", function()
 			local sym = Symbol("id")
 			local data = { foo = "bar", [sym] = "ROOT_QUERY" }
-			jestExpect(stripSymbols(data)).toEqual({ foo = "bar", [sym] = "ROOT_QUERY" })
+			jestExpect(stripSymbols(data)).toEqual({ foo = "bar" })
+		end)
+
+		-- ROBLOX comment: no upstream equivalent
+		it("should strip symbols (only) in nested objects", function()
+			local sym = Symbol("id")
+			local data = {
+				foo = "bar",
+				[sym] = "ROOT_QUERY",
+				nested = {
+					foo = "bar",
+					[sym] = "ROOT_QUERY",
+					deeplyNested = {
+						foo = "bar",
+						[sym] = "ROOT_QUERY",
+					},
+				},
+			}
+			jestExpect(stripSymbols(data)).toEqual({
+				foo = "bar",
+				nested = { foo = "bar", deeplyNested = { foo = "bar" } },
+			})
+		end)
+
+		-- ROBLOX comment: no upstream equivalent
+		it("original object is not modified", function()
+			local sym = Symbol("id")
+			local data = {
+				foo = "bar",
+				[sym] = "ROOT_QUERY",
+			}
+			local stripped = stripSymbols(data)
+			jestExpect(stripped[sym]).toBeUndefined()
+			jestExpect(data[sym]).toBe("ROOT_QUERY")
 		end)
 	end)
 end
