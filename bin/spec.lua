@@ -1,5 +1,5 @@
 local ProcessService = game:GetService("ProcessService")
-local Root = script.Parent.ApolloClientTestModel
+local Root = game:GetService("ReplicatedStorage")
 
 local Packages = Root.Packages
 -- Load JestGlobals source into Packages folder so it's next to Roact as expected

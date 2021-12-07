@@ -1,11 +1,21 @@
 {
   "name": "ApolloClientTestModel",
   "tree": {
-    "$className": "Folder",
-    "Packages": {
-      "$path": "Packages",
-      "ApolloClient": {
-        "$path": "src"
+    "$className": "DataModel",
+
+    "HttpService": {
+      "$className": "HttpService",
+      "$properties": {
+        "HttpEnabled": true
+      }
+    },
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Packages": {
+        "$path": "Packages",
+        "ApolloClient": {
+          "$path": "src"
+        }
       }
     }
   }

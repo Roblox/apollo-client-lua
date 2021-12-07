@@ -1,0 +1,12 @@
+{
+    "name": "ApolloClientAnalyzeModel",
+    "tree": {
+      "$className": "Folder",
+      "Packages": {
+        "$path": "Packages",
+        "ApolloClient": {
+          "$path": "src"
+        }
+      }
+    }
+  }
