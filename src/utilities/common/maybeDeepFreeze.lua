@@ -6,27 +6,23 @@ local rootWorkspace = srcWorkspace.Parent
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Object = LuauPolyfill.Object
+-- ROBLOX TODO: remove when freeze and isFrozen are available from LuauPolyfill
+Object.freeze = (table :: any).freeze
+Object.isFrozen = (table :: any).isfrozen
+
 local Set = LuauPolyfill.Set
 local Boolean = LuauPolyfill.Boolean
 local Array = LuauPolyfill.Array
--- Roblox TODO: Replace undefined generics
-type T_ = any
 
 require(script.Parent.Parent.globals) -- For __DEV__
 
 local isNonNullObject = require(script.Parent.objects).isNonNullObject
 
--- ROBLOX deviation: no real way to check for this currently.
--- This is executed only if _DEV_ is true and it will do nothing
-local function isFrozen(obj): boolean
-	return true
-end
-
 local function deepFreeze(value: any)
 	local workSet = Set.new({ value })
 	for _, obj in workSet:ipairs() do
 		if isNonNullObject(obj) then
-			if not isFrozen(obj) then
+			if not Object.isFrozen(obj) then
 				Object.freeze(obj)
 			end
 			Array.forEach(Object.keys(obj), function(name)
@@ -39,7 +35,7 @@ local function deepFreeze(value: any)
 	return value
 end
 
-local function maybeDeepFreeze(obj: T_): T_
+local function maybeDeepFreeze<T>(obj: T): T
 	if Boolean.toJSBoolean(_G.__DEV__) then
 		deepFreeze(obj)
 	end

@@ -1,9 +1,9 @@
 return function()
 	local srcWorkspace = script.Parent.Parent.Parent
-	local Packages = srcWorkspace.Parent
-	local JestGlobals = require(Packages.Dev.JestGlobals)
+	local rootWorkspace = srcWorkspace.Parent
+	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
 	local jestExpect = JestGlobals.expect
-	local RegExp = require(Packages.LuauRegExp)
+	local RegExp = require(rootWorkspace.LuauRegExp)
 	local equal = require(script.Parent.Parent.equal)
 	describe("equal", function()
 		it("should return false if types don't match", function()
@@ -12,6 +12,7 @@ return function()
 			jestExpect(equal({}, "table")).toEqual(false)
 			jestExpect(equal(1, nil)).toEqual(false)
 		end)
+
 		it("should return true when compared to itself", function()
 			local a = { "foo" }
 			local b = 1
@@ -45,10 +46,18 @@ return function()
 			jestExpect(equal(a, c)).toEqual(false)
 		end)
 
-		it("should fail if type is not supported and using '==' is not enough", function()
+		it("should compare functions", function()
 			local function a() end
 			local b = a
 			local function c() end
+			jestExpect(equal(a, b)).toBe(true)
+			jestExpect(equal(a, c)).toBe(false)
+		end)
+
+		it("should fail if type is not supported and using '==' is not enough", function()
+			local a = newproxy(false)
+			local b = a
+			local c = newproxy()
 			jestExpect(equal(a, b)).toEqual(true)
 			jestExpect(function()
 				equal(a, c)

@@ -34,7 +34,11 @@ local function equal(a: any, b: any): boolean
 	elseif typeof(a) == "string" or typeof(a) == "number" or typeof(a) == "boolean" then
 		return a == b
 	elseif typeof(a) == "function" then
-		error("unhandled equality check for type 'function'")
+		-- ROBLOX FIXME: best results so far for function comparison
+		return debug.info(a, "n") == debug.info(b, "n")
+			and debug.info(a, "s") == debug.info(b, "s")
+			and debug.info(a, "l") == debug.info(b, "l")
+			and debug.info(a, "a") == debug.info(b, "a")
 	elseif typeof(a) == "thread" then
 		error("unhandled equality check for type 'thread'")
 	elseif typeof(a) == "userdata" then

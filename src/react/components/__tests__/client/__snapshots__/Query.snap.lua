@@ -2,6 +2,23 @@
 
 local snapshots = {}
 
+snapshots["Query component Partial refetching should attempt a refetch when the query result was marked as being partial, the returned data was reset to an empty Object by the Apollo Client QueryManager (due to a cache miss), and the `partialRefetch` prop is `true` 1"] =
+	[[
+
+[MockFunction] {
+  "calls": Table {
+    Table {
+      "Missing field 'allPeople' while writing result {}",
+    },
+  },
+  "results": Table {
+    Table {
+      "type": "return",
+    },
+  },
+}
+]]
+
 snapshots["Query component calls the children prop: result in render prop 1"] = [[
 
 Table {

@@ -15,7 +15,7 @@ type WindowOrWorkerGlobalScope_fetch = (...any) -> Promise<any>
 
 local exports = {}
 
-local print = require(rootWorkspace.GraphQL).print
+local print_ = require(rootWorkspace.GraphQL).print
 
 -- ROBLOX deviation: using types module directly to avoid circular dependencies
 local coreTypesModule = require(script.Parent.Parent.core.types)
@@ -147,7 +147,7 @@ local function selectHttpOptionsAndBody(operation: Operation, fallbackConfig: Ht
 
 	-- not sending the query (i.e persisted queries)
 	if http.includeQuery then
-		(body :: any).query = print(query)
+		(body :: any).query = print_(query)
 	end
 
 	return { options = options, body = body }

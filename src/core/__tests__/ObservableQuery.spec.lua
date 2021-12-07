@@ -26,9 +26,6 @@ return function()
 	-- ROBLOX FIXME: remove if better solution is found
 	type FIX_ANALYZE = any
 
-	-- ROBLOX TODO: replace when function generics are available
-	type T_ = any
-
 	local gql = require(rootWorkspace.GraphQLTag).default
 	local GraphQLError = require(rootWorkspace.GraphQL).GraphQLError
 	local typedDocumentNodeModule = require(srcWorkspace.jsutils.typedDocumentNode)
@@ -1150,7 +1147,7 @@ return function()
 				end)
 			end)
 
-			itAsync(itFIXME)(
+			itAsync(it)(
 				"cache-and-network refetch should run @client(always: true) resolvers when network request fails",
 				function(resolve, reject)
 					local query = gql([[
@@ -1174,13 +1171,13 @@ return function()
 					end)
 
 					local client = ApolloClient.new({
-						link = ApolloLink.new(function(request)
+						link = ApolloLink.new(function(_request)
 							return linkObservable
 						end),
 						cache = InMemoryCache.new(),
 						resolvers = {
 							Query = {
-								counter = function(self)
+								counter = function(_self)
 									count += 1
 									return count
 								end,
@@ -1265,7 +1262,7 @@ return function()
 
 		describe("currentResult", function()
 			-- ROBLOX TODO: doesn't support fragments yet
-			itAsync(itFIXME)("returns the same value as observableQuery.next got", function(resolve, reject)
+			itAsync(itSKIP)("returns the same value as observableQuery.next got", function(resolve, reject)
 				local queryWithFragment = gql([[
 
         fragment CatInfo on Cat {
@@ -1642,7 +1639,7 @@ return function()
 					result = { data = superDataOne },
 				})
 
-				queryManager:query({ query = query, variables = variables }):andThen(function(result)
+				queryManager:query({ query = query, variables = variables }):andThen(function(_result)
 					local observable = queryManager:watchQuery({
 						query = superQuery,
 						variables = variables,
@@ -1865,7 +1862,7 @@ return function()
 		end)
 
 		describe("assumeImmutableResults", function()
-			itAsync(itFIXME)("should prevent costly (but safe) cloneDeep calls", function(resolve, reject)
+			itAsync(it)("should prevent costly (but safe) cloneDeep calls", function(resolve, reject)
 				local queryOptions = {
 					query = gql([[
 
@@ -1897,7 +1894,7 @@ return function()
 							{ request = queryOptions, result = { data = { value = 1 } } },
 							{ request = queryOptions, result = { data = { value = 2 } } },
 							{ request = queryOptions, result = { data = { value = 3 } } }
-						):setOnError(function(error_)
+						):setOnError(function(_self, error_)
 							error(error_)
 						end),
 						assumeImmutableResults = assumeImmutableResults,
@@ -1945,9 +1942,10 @@ return function()
 						end)
 
 						if not ok then
-							-- ROBLOX deviation: no TypeError in Luau
-							jestExpect(error_).toBeInstanceOf(Error)
-							jestExpect(error_.message).toMatch("Cannot assign to read only property 'value'")
+							-- ROBLOX deviation: table freeze error is not an instance of Error
+							-- jestExpect(error_).toBeInstanceOf(Error)
+							-- ROBLOX deviation: error message is different than the JS version
+							jestExpect(error_).toMatch("Attempt to modify a readonly table")
 						end
 						resolve_()
 					end)
@@ -2092,13 +2090,13 @@ return function()
 			end)
 		end)
 
-		-- ROBLOX FIXME: instanceof doesn't work correctly because of getters in ObservableQuery
-		itAsync(itFIXME)("ObservableQuery#map respects Symbol.species", function(resolve, reject)
+		itAsync(it)("ObservableQuery#map respects Symbol.species", function(resolve, reject)
 			local observable = mockWatchQuery(reject, {
 				request = { query = query, variables = variables },
 				result = { data = dataOne },
 			})
-			jestExpect(instanceof(observable, Observable)).toBe(true)
+			-- ROBLOX FIXME: instanceof doesn't work correctly because of getters in ObservableQuery
+			-- jestExpect(instanceof(observable, Observable)).toBe(true)
 			jestExpect(instanceof(observable, ObservableQuery)).toBe(true)
 
 			local mapped = observable:map(function(result)

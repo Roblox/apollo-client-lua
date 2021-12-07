@@ -448,16 +448,16 @@ return function()
 				local subscriptionHandle: Subscription
 
 				local queryTodos = gql([[
-
-      query todos {
-        todos {
-          id
-          name
-          description
-          __typename
-        }
-      }
-    ]])
+	
+		  query todos {
+			todos {
+			  id
+			  name
+			  description
+			  __typename
+			}
+		  }
+		]])
 
 				local queryTodosResult = {
 					data = {
@@ -473,16 +473,16 @@ return function()
 				}
 
 				local mutationTodo = gql([[
-
-      mutation createTodo {
-        createTodo {
-          id
-          name
-          # missing field: description
-          __typename
-        }
-      }
-    ]])
+	
+		  mutation createTodo {
+			createTodo {
+			  id
+			  name
+			  # missing field: description
+			  __typename
+			}
+		  }
+		]])
 
 				local mutationTodoResult = {
 					data = {
@@ -531,9 +531,9 @@ return function()
 							},
 						}) :: Promise<any>
 					end) --[[
-						ROBLOX deviation START: finally implementation is different than in JS.
-						using separate andThen and catch to perform the same logic and not swallow the error
-					]]
+							ROBLOX deviation START: finally implementation is different than in JS.
+							using separate andThen and catch to perform the same logic and not swallow the error
+						]]
 
 					:andThen(function(result)
 						subscriptionHandle:unsubscribe()

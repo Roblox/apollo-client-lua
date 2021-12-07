@@ -11,6 +11,8 @@ local WeakMap = LuauPolyfill.WeakMap
 local Map = LuauPolyfill.Map
 
 local Object = require(srcWorkspace.luaUtils.Object)
+-- ROBLOX TODO: remove when implemented in LuauPolyfill
+Object.freeze = (table :: any).freeze
 
 type Array<T> = LuauPolyfill.Array<T>
 type Set<T> = LuauPolyfill.Set<T>

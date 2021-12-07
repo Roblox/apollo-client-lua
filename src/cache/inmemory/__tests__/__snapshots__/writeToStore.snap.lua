@@ -236,16 +236,12 @@ snapshots["writing to the store writeResultToStore shape checking should warn wh
 [MockFunction] {
   "calls": Table {
     Table {
-      "Missing field 'description' while writing result {
-  \"id\": \"1\",
-  \"name\": \"Todo 1\"
-}",
+      "Missing field 'description' while writing result {\"name\":\"Todo 1\",\"id\":\"1\"}",
     },
   },
   "results": Table {
     Table {
       "type": "return",
-      "value": undefined,
     },
   },
 }
@@ -257,16 +253,12 @@ snapshots["writing to the store writeResultToStore shape checking should write t
 [MockFunction] {
   "calls": Table {
     Table {
-      "Missing field 'description' while writing result {
-  \"id\": \"1\",
-  \"name\": \"Todo 1\"
-}",
+      "Missing field 'description' while writing result {\"name\":\"Todo 1\",\"id\":\"1\"}",
     },
   },
   "results": Table {
     Table {
       "type": "return",
-      "value": undefined,
     },
   },
 }

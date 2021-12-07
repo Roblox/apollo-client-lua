@@ -5,11 +5,13 @@ return function()
 
 	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
 	local jestExpect = JestGlobals.expect
-	local _jest = JestGlobals.jest
 
 	local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 	local Array = LuauPolyfill.Array
-	local Object_ = LuauPolyfill.Object
+	local Object = LuauPolyfill.Object
+	-- ROBLOX TODO: remove when available in LuauPolyfill
+	Object.isFrozen = (table :: any).isfrozen
+
 	local Boolean = LuauPolyfill.Boolean
 	local Set = LuauPolyfill.Set
 	local Map = LuauPolyfill.Map
@@ -19,17 +21,6 @@ return function()
 	type Record<T, U> = { [T]: U }
 
 	type ReturnType<T> = any
-
-	-- ROBLOX TODO: replace when fn generic types are avaliable
-	type TData_ = any
-	type TVars_ = any
-
-	-- No way to check if isFrozen
-	local Object = Object_.assign(Object_, {
-		isFrozen = function(...)
-			return true
-		end,
-	})
 
 	local RegExp = require(rootWorkspace.LuauRegExp)
 
@@ -60,9 +51,7 @@ return function()
 		require(script.Parent.Parent.Parent.Parent.utilities.policies.pagination).relayStylePagination
 
 	local MockLink = require(script.Parent.Parent.Parent.Parent.utilities.testing.mocking.mockLink).MockLink
-	-- ROBLOX TODO: use real dependency when implemented
-	-- local subscribeAndCount = require(script.Parent.Parent.Parent.Parent.utilities.testing.subscribeAndCount).default
-	local subscribeAndCount = function(...) end
+	local subscribeAndCount = require(script.Parent.Parent.Parent.Parent.utilities.testing.subscribeAndCount).default
 	local itAsync = require(script.Parent.Parent.Parent.Parent.utilities.testing).itAsync
 
 	local policiesModule = require(script.Parent.Parent.policies)
@@ -204,7 +193,7 @@ return function()
 		end)
 
 		-- ROBLOX TODO: fragments are not supported yet
-		xit("works with fragments that contain aliased key fields", function()
+		itSKIP("works with fragments that contain aliased key fields", function()
 			local cache = InMemoryCache.new({ typePolicies = { Book = { keyFields = { "ISBN", "title" } } } })
 
 			cache:writeQuery({
@@ -312,7 +301,7 @@ return function()
 		end)
 
 		-- ROBLOX TODO: fragments are not supported yet
-		xit("support inheritance", function()
+		itSKIP("support inheritance", function()
 			local cache = InMemoryCache.new({
 				possibleTypes = {
 					Reptile = { "Snake", "Turtle" },
@@ -497,7 +486,7 @@ return function()
 			end)
 
 			-- ROBLOX TODO: fragments are not supported yet
-			withErrorSpy(xit, "assumes keyArgs:false when read and merge function present", function()
+			withErrorSpy(itSKIP, "assumes keyArgs:false when read and merge function present", function()
 				local cache = InMemoryCache.new({
 					typePolicies = {
 						TypeA = { fields = {
@@ -631,7 +620,7 @@ return function()
 			end)
 
 			-- ROBLOX TODO: fragments are not supported yet
-			xit("can include optional arguments in keyArgs", function()
+			itSKIP("can include optional arguments in keyArgs", function()
 				local cache = InMemoryCache.new({
 					typePolicies = {
 						Author = {
@@ -655,7 +644,10 @@ return function()
 					},
 				}
 
-				local function check(query: DocumentNode | TypedDocumentNode<TData_, TVars_>, variables: TVars_?)
+				local function check<TData, TVars>(
+					query: DocumentNode | TypedDocumentNode<TData, TVars>,
+					variables: TVars?
+				)
 					cache:writeQuery({ query = query, variables = variables, data = data })
 					jestExpect(cache:readQuery({ query = query, variables = variables })).toEqual(data)
 				end
@@ -2240,8 +2232,7 @@ return function()
 				})
 			end)
 
-			-- ROBLOX TODO: requires ApolloClient
-			itAsync(xit)("can handle Relay-style pagination without args", function(resolve, reject)
+			itAsync(it)("can handle Relay-style pagination without args", function(resolve, reject)
 				local cache = InMemoryCache.new({
 					addTypename = false,
 					typePolicies = { Query = { fields = { todos = relayStylePagination() } } },
@@ -2364,8 +2355,8 @@ return function()
 				end)
 			end)
 
-			-- ROBLOX TODO: requires ApolloClient, subscribeAndCount
-			itAsync(xit)("can handle Relay-style pagination", function(resolve, reject)
+			-- ROBLOX TODO: fragments are not supported yet
+			itAsync(itSKIP)("can handle Relay-style pagination", function(resolve, reject)
 				local cache = InMemoryCache.new({
 					addTypename = false,
 					typePolicies = {
@@ -3463,7 +3454,7 @@ return function()
 				testForceMerges(cache)
 			end)
 
-			local function checkAuthor(data: TData_, canBeUndefined: boolean?)
+			local function checkAuthor<TData>(data: TData, canBeUndefined: boolean?)
 				if canBeUndefined == nil then
 					canBeUndefined = false
 				end
@@ -4132,7 +4123,7 @@ return function()
 		end)
 
 		-- ROBLOX TODO: fragments are not supported yet
-		xit("can configure {query,mutation,subscription}Type:true", function()
+		itSKIP("can configure {query,mutation,subscription}Type:true", function()
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					RootQuery = { queryType = true },

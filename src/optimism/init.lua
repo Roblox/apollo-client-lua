@@ -7,6 +7,9 @@ local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Array = LuauPolyfill.Array
 local Set = LuauPolyfill.Set
 local Boolean = LuauPolyfill.Boolean
+local Object = LuauPolyfill.Object
+-- ROBLOX TODO: remove when implemented in LuauPolyfill
+Object.freeze = (table :: any).freeze
 
 type Function = (...any) -> ...any
 
@@ -249,8 +252,8 @@ local function wrap(
 		-- ROBLOX deviation: needs modified signature when used as method
 		optimistic.getKey = makeCacheKey :: ((...any) -> TCacheKey_)
 	end
-	-- ROBLOX FIX: Object.freeze replaces the existing metatable and therefore the __call propertie seizes to exist
-	return optimistic -- Object.freeze(optimistic)
+
+	return Object.freeze(optimistic)
 end
 exports.wrap = wrap
 return exports

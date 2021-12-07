@@ -12,15 +12,10 @@ return function()
 
 	local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 	local Array = LuauPolyfill.Array
-	local Object_ = LuauPolyfill.Object
-	local Object: typeof(Object_) & { isFrozen: (any) -> boolean } = setmetatable({
-		-- ROBLOX deviation: no real way to check for this currently.
-		isFrozen = function(_obj: any)
-			return true
-		end,
-	}, {
-		__index = Object_,
-	}) :: any
+	local Object = LuauPolyfill.Object
+	-- ROBLOX TODO: remove when availble in LuauPolyfill
+	Object.isFrozen = (table :: any).isfrozen
+
 	local Boolean = LuauPolyfill.Boolean
 	local console = LuauPolyfill.console
 	local function fail(message: string)
@@ -1393,7 +1388,7 @@ return function()
 		end)
 
 		-- ROBLOX TODO: fragments are not supported yet
-		xit("correctly merges fragment fields along multiple paths", function()
+		itSKIP("correctly merges fragment fields along multiple paths", function()
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					Container = {
@@ -1475,7 +1470,7 @@ return function()
 		end)
 
 		-- ROBLOX TODO: fragments are not supported yet
-		xit("should respect id fields added by fragments", function()
+		itSKIP("should respect id fields added by fragments", function()
 			local query = gql([[
 
       query ABCQuery {
@@ -1536,7 +1531,7 @@ return function()
 		end)
 
 		-- ROBLOX TODO: fragments are not supported yet
-		xit(
+		itSKIP(
 			"should allow a union of objects of a different type, when overwriting a generated id with a real id",
 			function()
 				local dataWithPlaceholder = {
@@ -1663,7 +1658,7 @@ return function()
 		)
 
 		-- ROBLOX TODO: fragments are not supported yet
-		xit("does not swallow errors other than field errors", function()
+		itSKIP("does not swallow errors other than field errors", function()
 			local query = gql([[
 
       query {
@@ -1860,7 +1855,7 @@ return function()
 			end)
 
 			-- ROBLOX TODO: fragments are not supported yet
-			xit("should warn when it receives the wrong data inside a fragment", function()
+			itSKIP("should warn when it receives the wrong data inside a fragment", function()
 				local queryWithInterface = gql([[
 
         query {
@@ -2120,14 +2115,14 @@ return function()
 
 			local query = gql([[
 
-      query {
-        animals {
-          species {
-            name
-          }
-        }
-      }
-    ]])
+    	  query {
+    	    animals {
+    	      species {
+    	        name
+    	      }
+    	    }
+    	  }
+    	]])
 
 			writeQueryToStore({
 				writer = writer,
@@ -2194,23 +2189,24 @@ return function()
 			})
 		end)
 
+		-- ROBLOX FIXME: this test is affected by previous tests.
 		withErrorSpy(
-			it,
+			itFIXME,
 			"should not keep reference when type of mixed inlined field changes to non-inlined field",
 			function()
 				local store = defaultNormalizedCacheFactory()
 
 				local query = gql([[
 
-      query {
-        animals {
-          species {
-            id
-            name
-          }
-        }
-      }
-    ]])
+    			  query {
+    			    animals {
+    			      species {
+    			        id
+    			        name
+    			      }
+    			    }
+    			  }
+    			]])
 
 				writeQueryToStore({
 					writer = writer,
@@ -2281,8 +2277,7 @@ return function()
 			end
 		)
 
-		-- ROBLOX TODO: no way to check if an object is frozen
-		xit("should not deep-freeze scalar objects", function()
+		it("should not deep-freeze scalar objects", function()
 			local query = gql([[
 
       query {
@@ -2551,7 +2546,7 @@ return function()
 		end)
 
 		-- ROBLOX TODO: fragments are not supported yet
-		xit("writeFragment should be able to infer ROOT_QUERY", function()
+		itSKIP("writeFragment should be able to infer ROOT_QUERY", function()
 			local cache = InMemoryCache.new()
 
 			local ref = cache:writeFragment({
@@ -2574,7 +2569,7 @@ return function()
 		end)
 
 		-- ROBLOX TODO: fragments are not supported yet
-		xit("should warn if it cannot identify the result object", function()
+		itSKIP("should warn if it cannot identify the result object", function()
 			local cache = InMemoryCache.new()
 
 			jestExpect(function()
@@ -2588,7 +2583,7 @@ return function()
 		end)
 
 		-- ROBLOX TODO: subscriptions are not supported yet
-		xit('user objects should be able to have { __typename: "Subscription" }', function()
+		itSKIP('user objects should be able to have { __typename: "Subscription" }', function()
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					Subscription = {

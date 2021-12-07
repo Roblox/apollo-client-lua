@@ -12,6 +12,8 @@ return function()
 	local Boolean = LuauPolyfill.Boolean
 	local Error = LuauPolyfill.Error
 	local Object = LuauPolyfill.Object
+	-- ROBLOX TODO: remove when available in LuauPolyfill
+	Object.isFrozen = (table :: any).isfrozen
 
 	type Array<T> = LuauPolyfill.Array<T>
 	type Object = LuauPolyfill.Object
@@ -44,9 +46,9 @@ return function()
 		end
 
 		if value ~= nil and typeof(value) == "table" and Array.indexOf(stack, value) < 0 then
-			-- ROBLOX FIXME: can't check isExtensible, isFrozen
+			-- ROBLOX FIXME: can't check isExtensible
 			-- jestExpect(Object.isExtensible(value)).toBe(false)
-			-- jestExpect(Object.isFrozen(value)).toBe(true)
+			jestExpect(Object.isFrozen(value)).toBe(true)
 			table.insert(stack, value)
 			Array.forEach(Object.keys(value), function(key)
 				assertDeeplyFrozen(value[key], stack)
@@ -87,16 +89,17 @@ return function()
 
 		if Boolean.toJSBoolean(_G.__DEV__) then
 			local ok, res = pcall(function()
-				-- ROBLOX deviation: Objects are not currently frozen, so we must throw to satisfy the test
-				error(Error.new("Can't modify frozen object"))
-				-- (immutableResult :: any).illegal = "this should not work"
-				-- error(Error.new("unreached"))
+				(immutableResult :: any).illegal = "this should not work"
+				error(Error.new("unreached"))
 			end)
 
 			if not ok then
-				jestExpect(res.message).never.toMatch(RegExp("unreached"))
-				-- ROBLOX deviation: TypeError not available
-				jestExpect(res).toBeInstanceOf(Error)
+				-- ROBLOX deviation: freeze error is not of type Error, we need to check before assertion
+				jestExpect(typeof(res) == "table" and res.message or res).never.toMatch(RegExp("unreached"))
+
+				-- ROBLOX deviation: freeze error is not an instance of Error, adding a test to verify expected message
+				-- jestExpect(res).toBeInstanceOf(Error)
+				jestExpect(res).toMatch("Attempt to modify a readonly table")
 			end
 
 			assertDeeplyFrozen(immutableResult)
@@ -255,9 +258,9 @@ return function()
 
 			-- Reading immutable results from the store does not mean the original
 			-- data should get frozen.
-			-- ROBLOX FIXME: can't check isExtensible, isFrozen
+			-- ROBLOX FIXME: can't check isExtensible
 			-- jestExpect(Object.isExtensible(updateClub)).toBe(true)
-			-- jestExpect(Object.isFrozen(updateClub)).toBe(false)
+			jestExpect(Object.isFrozen(updateClub)).toBe(false)
 		end)
 
 		describe("directives", function()

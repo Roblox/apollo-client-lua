@@ -11,7 +11,7 @@ return function()
 	local Array = LuauPolyfill.Array
 	type Array<T> = LuauPolyfill.Array<T>
 
-	local print = require(rootWorkspace.GraphQL).print
+	local print_ = require(rootWorkspace.GraphQL).print
 	local gql = require(rootWorkspace.GraphQLTag).default
 	local graphqlModule = require(rootWorkspace.GraphQL)
 	type FragmentDefinitionNode = graphqlModule.FragmentDefinitionNode
@@ -89,7 +89,7 @@ return function()
 			}
 			local actualResult = getFragmentDefinitions(singleFragmentDefinition)
 			jestExpect(#actualResult).toEqual(#expectedResult)
-			jestExpect(print(actualResult[1])).toBe(print(expectedResult[1]))
+			jestExpect(print_(actualResult[1])).toBe(print_(expectedResult[1]))
 		end)
 
 		it("should get fragment definitions from a document containing a multiple fragments", function()
@@ -127,7 +127,7 @@ return function()
 				expectedDoc.definitions[2] :: FragmentDefinitionNode,
 			}
 			local actualResult = getFragmentDefinitions(multipleFragmentDefinitions)
-			jestExpect(Array.map(actualResult, print)).toEqual(Array.map(expectedResult, print))
+			jestExpect(Array.map(actualResult, print_)).toEqual(Array.map(expectedResult, print_))
 		end)
 
 		it("should get the correct query definition out of a query containing multiple fragments", function()
@@ -161,7 +161,7 @@ return function()
 			local expectedResult: OperationDefinitionNode = expectedDoc.definitions[1] :: OperationDefinitionNode
 			local actualResult = getQueryDefinition(queryWithFragments)
 
-			jestExpect(print(actualResult)).toEqual(print(expectedResult))
+			jestExpect(print_(actualResult)).toEqual(print_(expectedResult))
 		end)
 
 		it("should throw if we try to get the query definition of a document with no query", function()

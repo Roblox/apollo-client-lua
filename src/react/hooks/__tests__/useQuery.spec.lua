@@ -1178,8 +1178,7 @@ return function()
 				end):andThen(resolve, reject)
 			end)
 
-			-- ROBLOX FIXME: unhandled equality check for function
-			itAsync(itFIXME)(
+			itAsync(it)(
 				"should persist errors on re-render when inlining onError and/or " .. "onCompleted callbacks",
 				function(resolve, reject)
 					local query = gql([[
@@ -2341,7 +2340,7 @@ return function()
 				end):andThen(resolve, reject)
 			end)
 
-			-- ROBLOX FIXME: unhandled equality check for function
+			-- ROBLOX FIXME: calls repeatedly
 			itAsync(itFIXME)("should not repeatedly call onCompleted if it alters state", function(resolve, reject)
 				local query = gql([[
 
@@ -2419,8 +2418,7 @@ return function()
 				return wait_():andThen(resolve, reject)
 			end)
 
-			-- ROBLOX FIXME: unhandled equality check for function
-			itAsync(itFIXME)(
+			itAsync(it)(
 				"should not make extra network requests when `onCompleted` is "
 					.. "defined with a `network-only` fetch policy",
 				function(resolve, reject)

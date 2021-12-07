@@ -2,25 +2,10 @@
 
 local snapshots = {}
 
-snapshots["reading from the store propagates eviction signals to parent queries 1"] = [[
-
-[MockFunction] {
-  "calls": Table {
-    Table {
-      "Missing field 'children' while writing result {
-  \"__typename\": \"Deity\",
-  \"name\": \"Zeus\"
-}",
-    },
-  },
-  "results": Table {
-    Table {
-      "type": "return",
-      "value": undefined,
-    },
-  },
-}
-]]
+-- ROBLOX deviation: this test is skipping the parts where it uses fragments
+-- Snapshot has been edited to reflect what would happen upstream.
+snapshots["reading from the store propagates eviction signals to parent queries 1"] = [=[
+[MockFunction]]=]
 
 snapshots["reading from the store returns === results for different queries 1"] = [[
 

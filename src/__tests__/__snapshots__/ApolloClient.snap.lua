@@ -80,6 +80,22 @@ Table {
 }
 ]]
 
+snapshots["ApolloClient writeQuery should warn when the data provided does not match the query shape 1"] = [[
+
+[MockFunction] {
+  "calls": Table {
+    Table {
+      "Missing field 'description' while writing result {\"name\":\"Todo 1\",\"__typename\":\"Todo\",\"id\":\"1\"}",
+    },
+  },
+  "results": Table {
+    Table {
+      "type": "return",
+    },
+  },
+}
+]]
+
 snapshots["ApolloClient write then read will not use a default id getter if id and _id are not present 1"] = [[
 
 Table {

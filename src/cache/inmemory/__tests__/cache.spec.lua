@@ -18,16 +18,10 @@ return function()
 	local Boolean = LuauPolyfill.Boolean
 	local Error = LuauPolyfill.Error
 	local Map = LuauPolyfill.Map
-	local Object_ = LuauPolyfill.Object
+	local Object = LuauPolyfill.Object
 	-- ROBLOX TODO: replace when available in LuauPolyfill
-	local Object: typeof(Object_) & { isFrozen: (any) -> boolean } = setmetatable({
-		-- ROBLOX deviation: no real way to check for this currently.
-		isFrozen = function(_obj: any)
-			return true
-		end,
-	}, {
-		__index = Object_,
-	}) :: any
+	Object.isFrozen = (table :: any).isfrozen
+
 	local String = LuauPolyfill.String
 	type Array<T> = LuauPolyfill.Array<T>
 	type Record<T, U> = { [T]: U }

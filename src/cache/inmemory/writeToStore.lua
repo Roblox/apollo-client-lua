@@ -392,7 +392,7 @@ function StoreWriter:processSelectionSet(ref_: ProcessSelectionSetOptions): Stor
 			elseif not Boolean.toJSBoolean(context.clientOnly) and not addTypenameToDocument:added(selection) then
 				invariant.error(
 					string.sub(
-						("Missing field %s while writing result %s"):format(
+						("Missing field '%s' while writing result %s"):format(
 							resultKeyNameFromField(selection),
 							HttpService:JSONEncode(result)
 						),

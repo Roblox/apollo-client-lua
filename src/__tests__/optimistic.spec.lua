@@ -1310,7 +1310,7 @@ return function()
 			end)
 
 			-- ROBLOX deviation START: no RxJS available
-			-- itAsync(itFIXME)("will handle dependent updates", function(resolve, reject)
+			-- itAsync(itSKIP)("will handle dependent updates", function(resolve, reject)
 			-- 	-- ROBLOX FIXME
 			-- jestExpect:assertions(1)
 			-- 	local link = mockSingleLink(
@@ -1753,7 +1753,7 @@ return function()
 			end)
 
 			-- ROBLOX deviation START: no RxJS available and fragments are not supported
-			-- 	itAsync(itFIXME)("will handle dependent updates", function(resolve, reject)
+			-- 	itAsync(itSKIP)("will handle dependent updates", function(resolve, reject)
 			-- 		-- ROBLOX FIXME
 			-- jestExpect:assertions(1)
 			-- 		local link = mockSingleLink(

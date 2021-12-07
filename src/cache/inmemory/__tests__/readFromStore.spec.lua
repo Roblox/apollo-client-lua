@@ -1174,6 +1174,8 @@ return function()
 						keyFields = { "name" },
 						fields = {
 							children = function(_self, offspring: Array<Reference>, ref)
+								-- Automatically filter out any dangling references, and
+								-- supply a default empty array if !offspring.
 								if Boolean.toJSBoolean(offspring) then
 									return Array.filter(offspring, function(val)
 										return ref:canRead(val)
@@ -1187,6 +1189,7 @@ return function()
 					Query = {
 						fields = {
 							ruler = function(_self, ruler, ref)
+								-- If the throne is empty, promote Apollo!
 								if ref:canRead(ruler) then
 									return ruler
 								else
@@ -1212,12 +1215,21 @@ return function()
 	}
       ]])
 
-			local children = Array.map(
-				{ "Son #1", "Hera", "Son #2", "Zeus", "Demeter", "Hades", "Poseidon", "Hestia" },
-				function(name)
-					return { __typename = "Deity", name = name, children = {} }
-				end
-			)
+			local children = Array.map({
+				-- Sons #1 and #2 don't have names because Cronus (l.k.a. Saturn)
+				-- devoured them shortly after birth, as famously painted by
+				-- Francisco Goya:
+				"Son #1",
+				"Hera",
+				"Son #2",
+				"Zeus",
+				"Demeter",
+				"Hades",
+				"Poseidon",
+				"Hestia",
+			}, function(name)
+				return { __typename = "Deity", name = name, children = {} }
+			end)
 
 			cache:writeQuery({
 				query = rulerQuery,
@@ -1251,6 +1263,7 @@ return function()
 				complete = true,
 			}
 
+			-- We already have one diff because of the immediate:true above.
 			jestExpect(diffs).toEqual({ initialDiff })
 
 			jestExpect(devour("Son #1")).toBe(true)

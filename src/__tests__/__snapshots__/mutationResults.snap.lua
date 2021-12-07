@@ -7,17 +7,12 @@ snapshots["mutation results should warn when the result fields don't match the q
 [MockFunction] {
   "calls": Table {
     Table {
-      "Missing field 'description' while writing result {
-  \"id\": \"2\",
-  \"name\": \"Todo 2\",
-  \"__typename\": \"createTodo\"
-}",
+      "Missing field 'description' while writing result {\"name\":\"Todo 2\",\"__typename\":\"createTodo\",\"id\":\"2\"}",
     },
   },
   "results": Table {
     Table {
       "type": "return",
-      "value": undefined,
     },
   },
 }
