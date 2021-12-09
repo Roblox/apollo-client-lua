@@ -7,25 +7,26 @@
 ]]
 
 local Suite = {}
+Suite.__index = Suite
 
 function Suite.new()
-    local self = setmetatable({}, Suite)
-    return self
+	local self = setmetatable({}, Suite)
+	return self
 end
 
 function Suite:add(...)
 	-- ROBLOX TODO: implement
-    return self
+	return self
 end
 
 function Suite:on(...)
 	-- ROBLOX TODO: implement
-    return self
+	return self
 end
 
 function Suite:run(...)
 	-- ROBLOX TODO: implement
-    return self
+	return self
 end
 
 local Benchmark = {

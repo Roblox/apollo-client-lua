@@ -2,16 +2,7 @@
 
 local rootWorkspace = script.Parent.Parent
 
-local getters = {}
-
-local exports = setmetatable({}, {
-    __index = function(t, k)
-        if getters[k] then
-            return getters[k]()
-        end
-        return rawget(t,k)
-    end
-})
+local exports = {}
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Boolean = LuauPolyfill.Boolean
@@ -51,29 +42,21 @@ export type Nullable<T> = T | nil
 export type Description = DescriptionObject | string
 export type CycleFunction = (doneFn: DoneFunction) -> ()
 export type BenchmarkFunction = (description: Description, cycleFn: CycleFunction) -> ()
-export type GroupFunction = (done: DoneFunction) -> ()
+export type GroupFunction = (done: DoneFunction, scope: Scope) -> ()
 export type AfterEachCallbackFunction = (descr: Description, event: any) -> ()
 export type AfterEachFunction = (afterEachFnArg: AfterEachCallbackFunction) -> ()
 export type AfterAllCallbackFunction = () -> ()
 export type AfterAllFunction = (afterAllFn: AfterAllCallbackFunction) -> ()
 
--- ROBLOX deviation START: using getter to simulate upstream behavior
-local benchmark: BenchmarkFunction
-getters.benchmark = function(): BenchmarkFunction
-    return benchmark
-end
-exports.benchmark = benchmark
-local afterEach: AfterEachFunction
-getters.afterEach = function(): BenchmarkFunction
-    return afterEach
-end
-exports.afterEach = afterEach
-local afterAll: AfterAllFunction
-getters.afterAll = function(): BenchmarkFunction
-    return afterAll
-end
-exports.afterAll = afterAll
+-- ROBLOX deviation START: passing scope to a groupFn so no need to set it globally
+-- local benchmark: BenchmarkFunction
+-- exports.benchmark = benchmark
+-- local afterEach: AfterEachFunction
+-- exports.afterEach = afterEach
+-- local afterAll: AfterAllFunction
+-- exports.afterAll = afterAll
 -- ROBLOX deviation END
+
 -- Used to log stuff within benchmarks without pissing off tslint.
 local function log(logString: string, ...: any)
 	-- tslint:disable-next-line
@@ -83,7 +66,7 @@ exports.log = log
 
 -- A reasonable implementation of dataIdFromObject that we use within
 -- the benchmarks.
-local function dataIdFromObject(object: any)
+local function dataIdFromObject(_self, object: any)
 	if object.__typename and object.id then
 		return object.__typename .. "__" .. object.id
 	end
@@ -97,29 +80,32 @@ type Scope = {
 	afterAll: AfterAllFunction?,
 }
 
--- Internal function that returns the current exposed functions
--- benchmark, setup, etc.
-local function currentScope()
-	return {
-		benchmark = benchmark,
-		afterEach = afterEach,
-		afterAll = afterAll,
-	}
-end
+-- ROBLOX deviation START: passing scope to a groupFn so no need to set it globally
+-- -- Internal function that returns the current exposed functions
+-- -- benchmark, setup, etc.
+-- local function currentScope()
+-- 	return {
+-- 		benchmark = benchmark,
+-- 		afterEach = afterEach,
+-- 		afterAll = afterAll,
+-- 	}
+-- end
 
--- Internal function that lets us set benchmark, setup, afterEach, etc.
--- in a reasonable fashion.
-local function setScope(scope: Scope)
-	benchmark = scope.benchmark :: BenchmarkFunction
-	afterEach = scope.afterEach :: AfterEachFunction
-	afterAll = scope.afterAll :: AfterAllFunction
-end
+-- -- Internal function that lets us set benchmark, setup, afterEach, etc.
+-- -- in a reasonable fashion.
+-- local function setScope(scope: Scope)
+-- 	benchmark = scope.benchmark :: BenchmarkFunction
+-- 	afterEach = scope.afterEach :: AfterEachFunction
+-- 	afterAll = scope.afterAll :: AfterAllFunction
+-- end
+-- ROBLOX deviation END
 
 local groupPromises: Array<Promise<nil>> = {}
 exports.groupPromises = groupPromises
 
 local function group(groupFn: GroupFunction)
-	local oldScope = currentScope()
+	-- ROBLOX deviation: passing scope to a groupFn so no need to set it globally
+	-- local oldScope = currentScope()
 	local scope: { benchmark: BenchmarkFunction?, afterEach: AfterEachFunction?, afterAll: AfterAllFunction? } = {}
 
 	local afterEachFn: Nullable<AfterEachCallbackFunction> = nil
@@ -178,9 +164,11 @@ local function group(groupFn: GroupFunction)
 				resolve()
 			end
 
-			setScope(scope)
-			groupFn(groupDone)
-			setScope(oldScope)
+			-- ROBLOX deviation START: passing scope to a groupFn so no need to set it globally
+			-- setScope(scope)
+			groupFn(groupDone, scope)
+			-- setScope(oldScope)
+			-- ROBLOX deviation END
 		end)
 	)
 end
