@@ -20,10 +20,14 @@ return function()
 	local clearTimeout = LuauPolyfill.clearTimeout
 	local console = LuauPolyfill.console
 
+	type Array<T> = LuauPolyfill.Array<T>
 	type Error = LuauPolyfill.Error
 	type Object = LuauPolyfill.Object
 
 	local Promise = require(rootWorkspace.Promise)
+
+	-- ROBLOX FIXME: remove if better solution is found
+	type FIX_ANALYZE = any
 
 	local gql = require(rootWorkspace.GraphQLTag).default
 
@@ -40,16 +44,18 @@ return function()
 	local function identity<T>(x: T): T
 		return x
 	end
-	local NIL = {}
-	local function times<T>(n: number, iteratee_: ((n: number) -> T)?): Array<T>
-		local iteratee = identity
+	local function times<T>(n: number, iteratee_: ((n: number) -> ...T)?): Array<T>
+		local iteratee: (n: number) -> ...T = identity :: FIX_ANALYZE
 		if iteratee_ ~= nil then
 			iteratee = iteratee_
 		end
 
-		local result = {}
+		local result = {} :: Array<T>
 		for i = 0, n - 1 do
-			table.insert(result, iteratee(i) or NIL)
+			local iterateeResult = iteratee(i)
+			if iterateeResult then
+				table.insert(result, iterateeResult :: FIX_ANALYZE)
+			end
 		end
 		return result
 	end
@@ -63,7 +69,8 @@ return function()
 	local ApolloLink = apolloLinkModule.ApolloLink
 	type ApolloLink = apolloLinkModule.ApolloLink
 	type FetchResult___ = apolloLinkModule.FetchResult___
-	local Observable = apolloLinkModule.Observable
+	local utilitiesModule = require(apolloClientWorkspace.utilities)
+	local Observable = utilitiesModule.Observable
 
 	local print_ = require(rootWorkspace.GraphQL).print
 
@@ -85,7 +92,10 @@ return function()
 	end
 
 	local function requestToKey(request: Operation): string
-		local queryString = if request.query then print_(request.query) else request.query
+		local queryString: string | nil = nil
+		if request.query then
+			queryString = (print_(request.query) :: FIX_ANALYZE) :: string | nil
+		end
 		return HttpService:JSONEncode({
 			variables = request.variables or {},
 			query = queryString,
@@ -95,18 +105,18 @@ return function()
 	type MockLink = {
 		addMockedResponse: (self: MockLink, mockedResponse: MockedResponse) -> (),
 		request: (self: MockLink, operation: Operation) -> any,
-	}
+	} & ApolloLink
 
 	MockLink = setmetatable({}, { __index = ApolloLink })
 	MockLink.__index = MockLink
 
-	function MockLink.new(mockedResponses: Array<MockedResponse>)
-		local self = setmetatable(ApolloLink.new(), MockLink)
+	function MockLink.new(mockedResponses: Array<MockedResponse>): MockLink
+		local self = setmetatable(ApolloLink.new(), MockLink) :: any
 		self.mockedResponsesByKey = {}
 		Array.forEach(mockedResponses, function(mockedResponse)
 			self:addMockedResponse(mockedResponse)
 		end)
-		return self
+		return self :: MockLink
 	end
 
 	function MockLink:addMockedResponse(mockedResponse: MockedResponse): ()
@@ -201,9 +211,10 @@ return function()
 
 	group(function(end_, scope)
 		scope.benchmark("baseline", function(done)
-			local arr = Array.from({ length = 100 }, function()
-				return math.random()
-			end)
+			local arr = {}
+			for _ = 1, 100 do
+				table.insert(arr, math.random())
+			end
 			Array.sort(arr)
 			done()
 		end)
@@ -269,7 +280,7 @@ return function()
 		times(4, function(countR)
 			local count = 5 * math.pow(4, countR)
 			scope.benchmark(
-				{ name = ("write data and deliver update to %s subscribers"):format(count), count = count },
+				{ name = ("write data and deliver update to %d subscribers"):format(count), count = count },
 				function(done)
 					local promises: Array<Promise<nil>> = {}
 					local client = getClientInstance()
@@ -301,10 +312,14 @@ return function()
 				end
 			)
 
-			scope.afterEach(function(description: DescriptionObject, event: any)
-				local iterCount = description["count"] :: number
-				meanTimes[tostring(iterCount)] = event.target.stats.mean * 1000
+			-- ROBLOX deviation START: description needs to be `DescriptionObject | string` to make analyze happy
+			scope.afterEach(function(description: DescriptionObject | string, event: any)
+				if typeof(description) ~= "string" then
+					local iterCount = description["count"] :: number
+					meanTimes[tostring(iterCount)] = event.target.stats.mean * 1000
+				end
 			end)
+			-- ROBLOX deviation END
 		end)
 		end_()
 	end)
@@ -354,7 +369,7 @@ return function()
 			end)
 
 			scope.benchmark({
-				name = ("read single item from cache with %s items in cache"):format(count),
+				name = ("read single item from cache with %d items in cache"):format(count),
 				count = count,
 			}, function(done)
 				local randomIndex = math.floor(math.random() * count)
@@ -406,7 +421,7 @@ return function()
 			})
 
 			scope.benchmark(
-				("read result with %s items associated with the result"):format(reservationCount),
+				("read result with %d items associated with the result"):format(reservationCount),
 				function(done)
 					cache:readQuery({ query = query, variables = variables })
 					done()
@@ -458,7 +473,7 @@ return function()
 			-- We only keep track of the results so that V8 doesn't decide to just throw
 			-- away our cache read code.
 			local _results: any = nil
-			scope.benchmark(("diff query against store with %s items"):format(reservationCount), function(done)
+			scope.benchmark(("diff query against store with %d items"):format(reservationCount), function(done)
 				_results = cache:diff({
 					query = query,
 					variables = variables,

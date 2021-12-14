@@ -6,7 +6,6 @@ local exports = {}
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Boolean = LuauPolyfill.Boolean
-local console = LuauPolyfill.console
 
 local Promise = require(rootWorkspace.Promise)
 
@@ -29,6 +28,7 @@ local Benchmark = require(script.Parent.benchmark)
 -- it allows you to define a particular block of code to be benchmarked.
 
 Benchmark.options.minSamples = 150
+Benchmark.options.maxTime = _G.__MAX_BENCHMARK_TIME__ and tonumber(_G.__MAX_BENCHMARK_TIME__)
 local bsuite = Benchmark.Suite.new()
 exports.bsuite = bsuite
 export type DoneFunction = () -> ()
@@ -59,8 +59,10 @@ export type AfterAllFunction = (afterAllFn: AfterAllCallbackFunction) -> ()
 
 -- Used to log stuff within benchmarks without pissing off tslint.
 local function log(logString: string, ...: any)
-	-- tslint:disable-next-line
-	console.log(logString, ...)
+	if not _G.__CI__ then
+		-- tslint:disable-next-line
+		print(logString, ...)
+	end
 end
 exports.log = log
 
@@ -75,9 +77,9 @@ end
 exports.dataIdFromObject = dataIdFromObject
 
 type Scope = {
-	benchmark: BenchmarkFunction?,
-	afterEach: AfterEachFunction?,
-	afterAll: AfterAllFunction?,
+	benchmark: BenchmarkFunction,
+	afterEach: AfterEachFunction,
+	afterAll: AfterAllFunction,
 }
 
 -- ROBLOX deviation START: passing scope to a groupFn so no need to set it globally
@@ -106,51 +108,50 @@ exports.groupPromises = groupPromises
 local function group(groupFn: GroupFunction)
 	-- ROBLOX deviation: passing scope to a groupFn so no need to set it globally
 	-- local oldScope = currentScope()
-	local scope: { benchmark: BenchmarkFunction?, afterEach: AfterEachFunction?, afterAll: AfterAllFunction? } = {}
 
 	local afterEachFn: Nullable<AfterEachCallbackFunction> = nil
-	scope.afterEach = function(afterEachFnArg: AfterEachCallbackFunction)
-		afterEachFn = afterEachFnArg
-	end
-
 	local afterAllFn: Nullable<AfterAllCallbackFunction> = nil
-	scope.afterAll = function(afterAllFnArg: AfterAllCallbackFunction)
-		afterAllFn = afterAllFnArg
-	end
-
 	local benchmarkPromises: Array<Promise<nil>> = {}
 
-	scope.benchmark = function(description: string | Description, benchmarkFn: CycleFunction)
-		local name = Boolean.toJSBoolean((description :: DescriptionObject).name)
-				and (description :: DescriptionObject).name
-			or description :: string
-		log("Adding benchmark: ", name)
+	local scope: Scope = {
+		afterEach = function(afterEachFnArg: AfterEachCallbackFunction)
+			afterEachFn = afterEachFnArg
+		end,
+		afterAll = function(afterAllFnArg: AfterAllCallbackFunction)
+			afterAllFn = afterAllFnArg
+		end,
+		benchmark = function(description: string | Description, benchmarkFn: CycleFunction)
+			local name = Boolean.toJSBoolean((description :: DescriptionObject).name)
+					and (description :: DescriptionObject).name
+				or description :: string
+			log("Adding benchmark: ", name)
 
-		-- const scopes: Object[] = [];
-		local cycleCount = 0
-		table.insert(
-			benchmarkPromises,
-			Promise.new(function(resolve, _)
-				bsuite:add(name, {
-					defer = true,
-					fn = function(deferred: any)
-						local function done()
-							cycleCount += 1
-							deferred:resolve()
-						end
+			-- const scopes: Object[] = [];
+			local cycleCount = 0
+			table.insert(
+				benchmarkPromises,
+				Promise.new(function(resolve, _)
+					bsuite:add(name, {
+						defer = true,
+						fn = function(deferred: any)
+							local function done()
+								cycleCount += 1
+								deferred:resolve()
+							end
 
-						benchmarkFn(done)
-					end,
-					onComplete = function(event: any)
-						if Boolean.toJSBoolean(afterEachFn) then
-							afterEachFn(description, event)
-						end
-						resolve()
-					end,
-				})
-			end)
-		)
-	end
+							benchmarkFn(done)
+						end,
+						onComplete = function(event: any)
+							if afterEachFn ~= nil then
+								afterEachFn(description, event)
+							end
+							resolve()
+						end,
+					})
+				end)
+			)
+		end,
+	}
 
 	table.insert(
 		groupPromises,

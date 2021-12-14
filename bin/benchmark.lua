@@ -4,9 +4,7 @@ local ProcessService = game:GetService("ProcessService")
 local Packages = Root.Packages
 local benchmark = require(Packages.ApolloClientBenchmarks)
 
-local ok, result = pcall(function()
-	benchmark()
-end)
+local ok, result = pcall(benchmark)
 
 if not ok then
 	warn(result)

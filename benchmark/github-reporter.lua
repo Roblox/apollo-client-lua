@@ -61,7 +61,7 @@ local function collectAndReportBenchmarks(uploadToGithub: boolean)
 
 				bsuite
 					:on("error", function(error_)
-						log("Error: ", error_)
+						warn("Error: ", error_.error)
 					end)
 					:on("cycle", function(event: any)
 						retMap[event.target.name] = {
@@ -76,9 +76,13 @@ local function collectAndReportBenchmarks(uploadToGithub: boolean)
 						resolve(retMap)
 					end)
 					:run({ async = false })
+					:expect()
 			end)
 		end)
-		:andThen(function(res)
+		:andThen(function(res: { [string]: {
+			mean: number,
+			moe: number,
+		} })
 			local message = ""
 			local _pass = false
 			Array.forEach(Object.keys(res), function(element: string)
@@ -92,16 +96,15 @@ local function collectAndReportBenchmarks(uploadToGithub: boolean)
 					else
 						local normalizedMean = res[element].mean / res["baseline"].mean
 						if normalizedMean > thresholds[element] then
-							local perfDropMessage =
-								(
-									'Performance drop detected for benchmark: "%s", %s / %s = %s > %s'
-								):format(
-									element,
-									res[element].mean,
-									res["baseline"].mean,
-									normalizedMean,
-									thresholds[element]
-								)
+							local perfDropMessage = (
+								'Performance drop detected for benchmark: "%s", %4.4f / %4.4f = %4.4f > %4.4f'
+							):format(
+								element,
+								res[element].mean,
+								res["baseline"].mean,
+								normalizedMean,
+								thresholds[element]
+							)
 							console.error(perfDropMessage)
 							if message == "" then
 								message = ('Performance drop detected for benchmark: "%s"'):format(element)
@@ -109,7 +112,7 @@ local function collectAndReportBenchmarks(uploadToGithub: boolean)
 							end
 						else
 							console.log(
-								('No performance drop detected for benchmark: "%s", %s / %s = %s <= %s'):format(
+								('No performance drop detected for benchmark: "%s", %4.4f / %4.4f = %4.4f <= %4.4f'):format(
 									element,
 									res[element].mean,
 									res["baseline"].mean,
@@ -150,6 +153,7 @@ local function collectAndReportBenchmarks(uploadToGithub: boolean)
 				return
 			end
 		end)
+		:expect()
 end
 exports.collectAndReportBenchmarks = collectAndReportBenchmarks
 

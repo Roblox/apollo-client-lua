@@ -2,6 +2,7 @@ Packages/*
 !Packages/.robloxrc
 
 rotriever.lock
+roblox.toml
 *.rbxmx
 *.rbxm
 
