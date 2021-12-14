@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/testing-library/react-testing-library/blob/v9.4.1/src/act-compat.js
+-- ROBLOX upstream: https://github.com/testing-library/react-testing-library/blob/v12.1.2/src/act-compat.js
 
 local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
@@ -102,7 +102,7 @@ local function asyncAct(cb)
 					if not youHaveBeenWarned then
 						-- if act is supported and async act isn't and they're trying to use async
 						-- act, then they need to upgrade from 16.8 to 16.9.
-						-- This is a seemless upgrade, so we'll add a warning
+						-- This is a seamless upgrade, so we'll add a warning
 						console.error(
 							'It looks like you\'re using a version of react-dom that supports the "act" function, but not an awaitable version of "act" which you will need. Please upgrade to at least react-dom@16.9.0 to remove this warning.'
 						)

@@ -41,9 +41,10 @@ local function wait_(callback_: GenericFunction?, ref_: WaitOptions?)
 	return waitForExpect(callback, timeout, interval)
 end
 
-local function waitWrapper(_callback: GenericFunction?, waitOptions: WaitOptions?)
+local function waitWrapper(...)
+	local args = ...
 	return getConfig().asyncWrapper(function()
-		return wait_(_callback, waitOptions)
+		return wait_(args)
 	end)
 end
 

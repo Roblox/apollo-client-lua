@@ -14,7 +14,7 @@ return function()
 	local jestExpect = JestGlobals.expect
 
 	local React = require(rootWorkspace.React)
-	local reactTestUtilsModule = require(srcWorkspace.testUtils.react)
+	local reactTestUtilsModule = require(srcWorkspace.testUtils.react)(afterEach)
 	local render = reactTestUtilsModule.render
 	local wait_ = reactTestUtilsModule.wait
 	local gql = require(rootWorkspace.GraphQLTag).default

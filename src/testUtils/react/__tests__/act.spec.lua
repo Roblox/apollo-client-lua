@@ -1,20 +1,21 @@
 -- ROBLOX upstream: https://github.com/testing-library/react-testing-library/blob/v9.4.1/src/__tests__/act.js
-
-local srcWorkspace = script.Parent.Parent.Parent.Parent
-local rootWorkspace = srcWorkspace.Parent
-
-local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
-local jestExpect = JestGlobals.expect
-local jest = JestGlobals.jest
-
-local React = require(rootWorkspace.React)
-
-local testUtilsModule = require(srcWorkspace.testUtils.react)
-local render = testUtilsModule.render
--- ROBLOX deviation: not using fireEvent
--- local fireEvent = testUtilsModule.fireEvent
-
 return function()
+	local srcWorkspace = script.Parent.Parent.Parent.Parent
+	local rootWorkspace = srcWorkspace.Parent
+
+	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
+	local jestExpect = JestGlobals.expect
+	local jest = JestGlobals.jest
+
+	local React = require(rootWorkspace.React)
+
+	local testUtilsModule = require(srcWorkspace.testUtils.react)(afterEach)
+	local render = testUtilsModule.render
+
+	-- ROBLOX deviation: not using fireEvent, screen
+	-- local fireEvent = testUtilsModule.fireEvent
+	-- local screen = testUtilsModule.screen
+
 	describe("act", function()
 		it("render calls useEffect immediately", function()
 			local effectCb = jest.fn()

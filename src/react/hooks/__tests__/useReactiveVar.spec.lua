@@ -20,7 +20,7 @@ return function()
 	local StrictMode = React.StrictMode
 	local useEffect = React.useEffect
 
-	local testingLibraryModule = require(srcWorkspace.testUtils.react)
+	local testingLibraryModule = require(srcWorkspace.testUtils.react)(afterEach)
 	local render = testingLibraryModule.render
 	local wait_ = testingLibraryModule.wait
 	local act = testingLibraryModule.act
@@ -360,7 +360,7 @@ return function()
 
 					wait_(function()
 						jestExpect(getAllByText("10")).toHaveLength(1)
-					end)
+					end):expect()
 
 					resolve()
 				end)

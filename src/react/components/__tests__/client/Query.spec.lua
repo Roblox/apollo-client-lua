@@ -51,7 +51,7 @@ return function()
 	local graphQLModule = require(rootWorkspace.GraphQL)
 	type DocumentNode = graphQLModule.DocumentNode
 
-	local testingLibraryModule = require(srcWorkspace.testUtils.react)
+	local testingLibraryModule = require(srcWorkspace.testUtils.react)(afterEach)
 	local render = testingLibraryModule.render
 	local wait_ = testingLibraryModule.wait
 
@@ -1007,7 +1007,6 @@ return function()
 					local function onErrorFunc(queryError: ApolloError)
 						rejectOnComponentThrow(reject, function()
 							jestExpect(queryError.networkError).toEqual(error_)
-							resolve()
 						end)
 					end
 
@@ -1025,7 +1024,7 @@ return function()
 						)
 					)
 
-					wait_():expect()
+					wait_():andThen(resolve, reject)
 				end):expect()
 			end)
 		end)
@@ -1405,7 +1404,8 @@ return function()
 				local expectedError = Error.new(
 					"Running a Query requires a graphql Query, but a Subscription was " .. "used instead."
 				)
-				jestExpect(error_).toEqual(expectedError)
+				-- ROBLOX deviation: compare error message and not whole error
+				jestExpect(error_.message).toEqual(expectedError.message)
 			end
 
 			function Component:componentDidMount()

@@ -27,7 +27,7 @@ Object.assign(exports, require(script.wait))
 -- export * from './query-helpers'
 -- export {getRoles, logRoles, isInaccessible} from './role-helpers'
 -- export * from './pretty-dom'
--- export {configure} from './config'
+exports.configure = require(script.config).configure
 
 -- export {
 --   // The original name of bindElementToQueries was weird

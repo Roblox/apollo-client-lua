@@ -1,19 +1,18 @@
 -- ROBLOX upstream: https://github.com/testing-library/react-testing-library/blob/v9.4.1/src/__tests__/cleanup.js
-
-local srcWorkspace = script.Parent.Parent.Parent.Parent
-local rootWorkspace = srcWorkspace.Parent
-
-local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
-local jestExpect = JestGlobals.expect
-local jest = JestGlobals.jest
-
-local React = require(rootWorkspace.React)
-
-local ParentModule = require(script.Parent.Parent)
-local render = ParentModule.render
-local cleanup = ParentModule.cleanup
-
 return function()
+	local srcWorkspace = script.Parent.Parent.Parent.Parent
+	local rootWorkspace = srcWorkspace.Parent
+
+	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
+	local jestExpect = JestGlobals.expect
+	local jest = JestGlobals.jest
+
+	local React = require(rootWorkspace.React)
+
+	local ParentModule = require(script.Parent.Parent)(afterEach)
+	local render = ParentModule.render
+	local cleanup = ParentModule.cleanup
+
 	describe("cleanup", function()
 		it("cleans up the document", function()
 			local spy = jest.fn()

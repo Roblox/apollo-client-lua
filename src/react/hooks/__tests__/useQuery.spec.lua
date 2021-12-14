@@ -40,7 +40,7 @@ return function()
 
 	local gql = require(rootWorkspace.GraphQLTag).gql
 
-	local reactTestingModule = require(srcWorkspace.testUtils.react)
+	local reactTestingModule = require(srcWorkspace.testUtils.react)(afterEach)
 	local render = reactTestingModule.render
 	local cleanup = reactTestingModule.cleanup
 	local wait_ = reactTestingModule.wait
@@ -582,6 +582,7 @@ return function()
 				end
 			)
 		end)
+
 		describe("Polling", function()
 			itAsync(it)("should support polling", function(resolve, reject)
 				local renderCount = 0
@@ -2819,7 +2820,7 @@ return function()
 
 				return wait_(function()
 					jestExpect(client["queryManager"]["queries"].size).toBe(0)
-				end)
+				end):expect()
 			end)
 		end)
 

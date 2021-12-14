@@ -2,6 +2,10 @@
 
 local exports = {}
 
+local rootWorkspace = script.Parent.Parent.Parent.Parent
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
+local Object = LuauPolyfill.Object
+
 type GenericFunction = (...any) -> any?
 
 -- It would be cleaner for this to live inside './queries', but
@@ -24,22 +28,17 @@ local config = {
 	defaultHidden = false,
 }
 
--- ROBLOX deviation: dont need configure function
---[[
-export function configure(newConfig) {
-  if (typeof newConfig === 'function') {
-    // Pass the existing config out to the provided function
-    // and accept a delta in return
-    newConfig = newConfig(config)
-  }
+local function configure(newConfig)
+	if typeof(newConfig) == "function" then
+		-- Pass the existing config out to the provided function
+		-- and accept a delta in return
+		newConfig = newConfig(config)
+	end
 
-  // Merge the incoming config delta
-  config = {
-    ...config,
-    ...newConfig,
-  }
-}
-]]
+	-- Merge the incoming config delta
+	config = Object.assign({}, config, newConfig)
+end
+exports.configure = configure
 
 local function getConfig()
 	return config

@@ -612,6 +612,7 @@ return function()
 			)
 		end)
 	end)
+
 	describe("cache-only", function()
 		itAsync(it)("allows explicit refetch to happen", function(resolve, reject)
 			local counter = 0

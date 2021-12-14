@@ -8,6 +8,9 @@ local Promise = require(rootWorkspace.Promise)
 local helpersModule = require(script.helpers)
 local getSetTimeoutFn = helpersModule.getSetTimeoutFn
 
+-- ROBLOX deviation: setTimeout currently operates at minimum 30Hz rate. Any lower number seems to be treated as 0
+local TICK = 50
+
 local defaults = {
 	timeout = 4500,
 	interval = 50,
@@ -18,8 +21,8 @@ local function waitForExpect(expectation: () -> (), _timeout: number?, _interval
 	local interval = _interval or defaults.interval
 
 	local setTimeout = getSetTimeoutFn()
-	if interval < 1 then
-		interval = 1
+	if interval < TICK then
+		interval = TICK
 	end
 
 	local maxTries = math.ceil(timeout / interval)
@@ -35,25 +38,24 @@ local function waitForExpect(expectation: () -> (), _timeout: number?, _interval
 		end
 		function runExpectation()
 			tries += 1
-			do --[[ ROBLOX COMMENT: try-catch block conversion ]]
-				xpcall(function()
-					Promise.delay(0)
-						:andThen(function()
-							return expectation()
-						end)
-						:andThen(function()
-							return Promise.delay(0)
-						end)
-						:andThen(function()
-							return resolve()
-						end)
-						:catch(rejectOrRerun)
-				end, function(error_)
-					rejectOrRerun(error_)
-				end)
-			end
+			xpcall(function()
+				Promise.delay(0)
+					:andThen(function()
+						return expectation()
+					end)
+					:andThen(function()
+						return Promise.delay(0)
+					end)
+					:andThen(function()
+						return resolve()
+					end)
+					:catch(rejectOrRerun)
+			end, function(error_)
+				rejectOrRerun(error_)
+			end)
 		end
-		setTimeout(runExpectation, 0)
+		-- ROBLOX deviation: setTimeout currently operates at minimum 30Hz rate. Any lower number seems to be treated as 0
+		setTimeout(runExpectation, TICK)
 	end)
 end
 

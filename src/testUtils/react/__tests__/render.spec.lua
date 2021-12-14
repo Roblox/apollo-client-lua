@@ -1,25 +1,24 @@
 -- ROBLOX upstream: https://github.com/testing-library/react-testing-library/blob/v9.4.1/src/__tests__/render.js
-
-local srcWorkspace = script.Parent.Parent.Parent.Parent
-local rootWorkspace = srcWorkspace.Parent
-
-local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
-local jestExpect = JestGlobals.expect
-
--- ROBLOX FIXME: remove if better solution is found
-type FIX_ANALYZE = any
-
-local React = require(rootWorkspace.React)
-
-local ReactRoblox = require(rootWorkspace.ReactRoblox)
-
-local RoactCompat = require(rootWorkspace.Dev.RoactCompat)
-local Portal = RoactCompat.Portal
-
-local reactTestUtilsModule = require(srcWorkspace.testUtils.react)
-local render = reactTestUtilsModule.render
-
 return function()
+	local srcWorkspace = script.Parent.Parent.Parent.Parent
+	local rootWorkspace = srcWorkspace.Parent
+
+	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
+	local jestExpect = JestGlobals.expect
+
+	-- ROBLOX FIXME: remove if better solution is found
+	type FIX_ANALYZE = any
+
+	local React = require(rootWorkspace.React)
+
+	local ReactRoblox = require(rootWorkspace.ReactRoblox)
+
+	local RoactCompat = require(rootWorkspace.Dev.RoactCompat)
+	local Portal = RoactCompat.Portal
+
+	local reactTestUtilsModule = require(srcWorkspace.testUtils.react)(afterEach)
+	local render = reactTestUtilsModule.render
+
 	describe("render", function()
 		it("renders TextLabel", function()
 			local ref = React.createRef()

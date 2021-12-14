@@ -2,7 +2,7 @@
 
 local exports = {}
 
-local act = require(script.ReactTestUtilsAct).default
+local act = require(script.ReactTestUtilsPublicAct).default
 exports.act = act
 
 return exports

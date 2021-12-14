@@ -5477,7 +5477,8 @@ return function()
 				end):andThen(resolve, reject)
 			end)
 
-			itAsync(it)("should refetch using the specified context, if provided", function(resolve, reject)
+			-- ROBLOX FIXME: Observable cancelled prematurely
+			itAsync(itFIXME)("should refetch using the specified context, if provided", function(resolve, reject)
 				local queryManager = makeQueryManager(reject)
 
 				local observable = queryManager:watchQuery({

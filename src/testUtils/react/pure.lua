@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/testing-library/react-testing-library/blob/v9.4.1/src/pure.js
+-- ROBLOX upstream: https://github.com/testing-library/react-testing-library/blob/12.1.2/src/pure.js
 
 local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
@@ -6,6 +6,7 @@ local rootWorkspace = srcWorkspace.Parent
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Error = LuauPolyfill.Error
 local Object = LuauPolyfill.Object
+local Promise = require(rootWorkspace.Promise)
 
 local Shared = require(rootWorkspace.Shared)
 type ReactElement = Shared.ReactElement
@@ -16,34 +17,46 @@ local ReactRoblox = require(rootWorkspace.ReactRoblox)
 -- ROBLOX deviation: not converting react-dom
 -- local ReactDOM = require(Packages["react-dom"]).default
 
+local domModule = require(script.Parent.Parent.dom)
 -- ROBLOX deviation: not converting these parts of dom testing lib
--- local domModule = require(Packages["@testing-library"].dom)
 -- local getQueriesForElement = domModule.getQueriesForElement
 -- local prettyDOM = domModule.prettyDOM
--- local dtlFireEvent = domModule.fireEvent
--- local configureDTL = domModule.configure
+local configureDTL = domModule.configure
+-- local fireEvent = require(script.Parent.["fire-event"]
 
 local actCompatModule = require(script.Parent["act-compat"])
 local act = actCompatModule.default
 
--- ROBLOX deviation: asyncAct is only used with configureDTL, not being used
--- local asyncAct = actCompatModule.asyncAct
+local asyncAct = actCompatModule.asyncAct
 
 local exports = {}
 
 type GenericObject = { [string]: any }
 
--- ROBLOX deviation: not using configureDTL
--- configureDTL({
--- 	asyncWrapper = function(cb)
--- 		local result
--- 		error("not implemented")		--[[ await asyncAct(async () => {
---       result = await cb();
---     }) ]]
---  --[[ ROBLOX TODO: Unhandled node for type: AwaitExpression ]]
--- 		return result
--- 	end,
--- })
+configureDTL({
+	asyncWrapper = function(cb: (...any) -> ...any)
+		return Promise.resolve():andThen(function()
+			local result
+			Promise.resolve()
+				:andThen(function()
+					return asyncAct(function()
+						return Promise.resolve():andThen(function()
+							result = cb():expect()
+						end)
+					end)
+				end)
+				:expect()
+			return result
+		end)
+	end,
+	eventWrapper = function(cb)
+		local result
+		act(function()
+			result = cb()
+		end)
+		return result
+	end,
+})
 
 -- ROBLOX deviation: instead of importing getQueriesForElement, we are defining it here
 local function getQueriesForElement(rootInstance: Instance)
@@ -143,23 +156,23 @@ local function render(ui: any, renderOptions: RenderOptions?)
 			-- ROBLOX deviation: we aren't using baseElement for querying
 			-- baseElement = baseElement,
 			-- ROBLOX deviation: not including debug function, havent converted prettyDOM
-			-- debug = function(el)
+			-- debug = function(el, maxLength, options)
 			-- 	if el == nil then
 			-- 		el = baseElement
 			-- 	end
-			-- 	return (function()
-			-- 		if Boolean.toJSBoolean(Array:isArray(el)) then
-			-- 			return el:forEach(function(e)
-			-- 				return console:log(prettyDOM(e))
-			-- 			end)
-			-- 		else
-			-- 			return console:log(prettyDOM(el))
-			-- 		end
-			-- 	end)()
+			-- 	if Array.isArray(el) then
+			-- 		return Array.forEach(el, function(e)
+			-- 			return console.log(prettyDOM(e, maxLength, options))
+			-- 		end)
+			-- 	else
+			-- 		return console:log(prettyDOM(el, maxLength, options))
+			-- 	end
 			-- end,
 			-- ROBLOX deviation: using ReactRoblox's root's unmount function
 			unmount = function()
-				container:unmount()
+				act(function()
+					container:unmount()
+				end)
 			end,
 			rerender = function(rerenderUi)
 				render(wrapUiIfNeeded(rerenderUi), { container = container })
@@ -170,10 +183,11 @@ local function render(ui: any, renderOptions: RenderOptions?)
 			-- asFragment = function()
 			-- 	if typeof(document.createRange) == "function" then
 			-- 		return document:createRange():createContextualFragment(container.innerHTML)
-			-- 	end
-			-- 	local template = document:createElement("template")
-			-- 	template.innerHTML = container.innerHTML
-			-- 	return template.content
+			-- 	else
+			-- 		local template = document:createElement("template")
+			-- 		template.innerHTML = container.innerHTML
+			-- 		return template.content
+			--  end
 			-- end,
 		},
 		-- ROBLOX deviation: using rootInstance for querying
@@ -198,7 +212,9 @@ exports.render = render
 local function cleanup()
 	for _, container in ipairs(mountedContainers) do
 		if container.unmount ~= nil then
-			container:unmount()
+			act(function()
+				container:unmount()
+			end)
 		end
 	end
 	if rootInstance then
@@ -206,75 +222,6 @@ local function cleanup()
 	end
 end
 exports.cleanup = cleanup
-
--- ROBLOX deviation: not using the event functionality
--- local function fireEvent(
--- 	__unhandledIdentifier__ --[[ ROBLOX TODO: Unhandled node for type: RestElement ]]--[[ ...args ]]
-
--- )
--- 	local returnValue
--- 	ac
--- 	t(function()
--- 		returnValue = dtlFireEvent(
--- 			error("not implemented") --[[ ROBLOX TODO: Unhandled node for type: SpreadElement ]]
--- 			--[[ ...args ]]
--- 		)
--- 	end)
--- 	return returnValue
--- end
-
--- Object.keys(dtlFireEvent):forEach(function(key)
--- 	fireEvent[tostring(key)] = function(
--- 		__unhandledIdentifier__ --[[ ROBLOX TODO: Unhandled node for type: RestElement ]]	--[[ ...args ]]
-
--- 	)
--- 		local returnValue
--- 		act(function()
--- 			returnValue = dtlFireEvent[tostring(key)](
--- 				dtlFireEvent,
--- 				error("not implemented") --[[ ROBLOX TODO: Unhandled node for type: SpreadElement ]]
--- 				--[[ ...args ]]
--- 			)
--- 		end)
--- 		return returnValue
--- 	end
--- end)
-
--- local mouseEnter = fireEvent.mouseEnter
--- local mouseLeave = fireEvent.mouseLeave
--- fireEvent.mouseEnter = function(
--- 	__unhandledIdentifier__ --[[ ROBLOX TODO: Unhandled node for type: RestElement ]]--[[ ...args ]]
-
--- )
--- 	mouseEnter(
--- 		error("not implemented") --[[ ROBLOX TODO: Unhandled node for type: SpreadElement ]]
--- 		--[[ ...args ]]
--- 	)
--- 	return fireEvent:mouseOver(
--- 		error("not implemented") --[[ ROBLOX TODO: Unhandled node for type: SpreadElement ]]
--- 		--[[ ...args ]]
--- 	)
--- end
--- fireEvent.mouseLeave = function(
--- 	__unhandledIdentifier__ --[[ ROBLOX TODO: Unhandled node for type: RestElement ]]--[[ ...args ]]
-
--- )
--- 	mouseLeave(
--- 		error("not implemented") --[[ ROBLOX TODO: Unhandled node for type: SpreadElement ]]
--- 		--[[ ...args ]]
--- 	)
--- 	return fireEvent:mouseOut(
--- 		error("not implemented") --[[ ROBLOX TODO: Unhandled node for type: SpreadElement ]]
--- 		--[[ ...args ]]
--- 	)
--- end
-
--- local select = fireEvent.select
--- fireEvent.select = function(node, init)
--- 	select(node, init)
--- 	node:focus()
--- 	fireEvent:keyUp(node, init)
--- end
 
 Object.assign(exports, require(srcWorkspace.testUtils.dom))
 

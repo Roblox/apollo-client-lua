@@ -14,7 +14,7 @@ return function()
 	local React = require(rootWorkspace.React)
 	local useContext = React.useContext
 
-	local testingLibraryModule = require(srcWorkspace.testUtils.react)
+	local testingLibraryModule = require(srcWorkspace.testUtils.react)(afterEach)
 	local render = testingLibraryModule.render
 	local cleanup = testingLibraryModule.cleanup
 

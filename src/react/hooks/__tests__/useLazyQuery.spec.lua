@@ -18,7 +18,7 @@ return function()
 	local graphQLModule = require(rootWorkspace.GraphQL)
 	type DocumentNode = graphQLModule.DocumentNode
 	local gql = require(rootWorkspace.GraphQLTag).default
-	local reactTestingModule = require(srcWorkspace.testUtils.react)
+	local reactTestingModule = require(srcWorkspace.testUtils.react)(afterEach)
 	local render = reactTestingModule.render
 	local wait_ = reactTestingModule.wait
 

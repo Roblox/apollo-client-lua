@@ -32,7 +32,7 @@ return function()
 	local GraphQLError = require(rootWorkspace.GraphQL).GraphQLError
 
 	local gql = require(rootWorkspace.GraphQLTag).default
-	local testUtilsModule = require(srcWorkspace.testUtils.react)
+	local testUtilsModule = require(srcWorkspace.testUtils.react)(afterEach)
 	local render = testUtilsModule.render
 	local cleanup = testUtilsModule.cleanup
 	local wait_ = testUtilsModule.wait
@@ -270,15 +270,17 @@ return function()
 							useMutation(CREATE_TODO_MUTATION)[1] :: MutationTupleFirst<any, any, any, any>
 
 						local function doIt()
-							-- ROBLOX FIXME: using rejectOnComponentThrow to propagate error to test runner
-							return Promise.resolve():andThen(rejectOnComponentThrow(reject, function()
-								local ref = createTodo({ variables = variables }):expect()
-								local data = ref.data
-								jestExpect(data).toEqual(CREATE_TODO_RESULT)
-								jestExpect(data.createTodo.description).toEqual(
-									CREATE_TODO_RESULT.createTodo.description
-								)
-							end))
+							return Promise.resolve():andThen(function()
+								-- ROBLOX FIXME: using rejectOnComponentThrow to propagate error to test runner
+								rejectOnComponentThrow(reject, function()
+									local ref = createTodo({ variables = variables }):expect()
+									local data = ref.data
+									jestExpect(data).toEqual(CREATE_TODO_RESULT)
+									jestExpect(data.createTodo.description).toEqual(
+										CREATE_TODO_RESULT.createTodo.description
+									)
+								end)
+							end)
 						end
 
 						useEffect(function()
@@ -336,10 +338,10 @@ return function()
 
 						render(React.createElement(MockedProvider, { mocks = mocks }, React.createElement(Component)))
 
-						wait_(function()
+						return wait_(function()
 							jestExpect(fetchResult.data).toBeUndefined()
 							jestExpect(fetchResult.errors.message).toEqual(CREATE_TODO_ERROR)
-						end):andThen(resolve, reject):expect()
+						end):andThen(resolve, reject)
 					end)
 				end)
 
@@ -367,17 +369,19 @@ return function()
 								useMutation(CREATE_TODO_MUTATION, { errorPolicy = "none" })[1] :: MutationTupleFirst<any, any, any, any>
 
 							local function doIt()
-								-- ROBLOX FIXME: using rejectOnComponentThrow to propagate error to test runner
-								return Promise.resolve():andThen(rejectOnComponentThrow(reject, function()
-									local ok, error_ = pcall(function()
-										createTodo({ variables = variables }):expect()
+								return Promise.resolve():andThen(function()
+									-- ROBLOX FIXME: using rejectOnComponentThrow to propagate error to test runner
+									rejectOnComponentThrow(reject, function()
+										local ok, error_ = pcall(function()
+											createTodo({ variables = variables }):expect()
+										end)
+										if not ok then
+											jestExpect(error_.message).toEqual(
+												jestExpect.stringContaining(CREATE_TODO_ERROR)
+											)
+										end
 									end)
-									if not ok then
-										jestExpect(error_.message).toEqual(
-											jestExpect.stringContaining(CREATE_TODO_ERROR)
-										)
-									end
-								end))
+								end)
 							end
 
 							useEffect(function()
@@ -417,19 +421,21 @@ return function()
 								useMutation(CREATE_TODO_MUTATION, { errorPolicy = "all" })[1] :: MutationTupleFirst<any, any, any, any>
 
 							local function doIt()
-								-- ROBLOX FIXME: using rejectOnComponentThrow to propagate error to test runner
-								return Promise.resolve():andThen(rejectOnComponentThrow(reject, function()
-									local ref = createTodo({ variables = variables }):expect()
-									local data, errors = ref.data, ref.errors
+								return Promise.resolve():andThen(function()
+									-- ROBLOX FIXME: using rejectOnComponentThrow to propagate error to test runner
+									rejectOnComponentThrow(reject, function()
+										local ref = createTodo({ variables = variables }):expect()
+										local data, errors = ref.data, ref.errors
 
-									jestExpect(data).toEqual(CREATE_TODO_RESULT)
-									jestExpect(data.createTodo.description).toEqual(
-										CREATE_TODO_RESULT.createTodo.description
-									)
-									jestExpect((errors :: any)[1].message).toEqual(
-										jestExpect.stringContaining(CREATE_TODO_ERROR)
-									)
-								end))
+										jestExpect(data).toEqual(CREATE_TODO_RESULT)
+										jestExpect(data.createTodo.description).toEqual(
+											CREATE_TODO_RESULT.createTodo.description
+										)
+										jestExpect((errors :: any)[1].message).toEqual(
+											jestExpect.stringContaining(CREATE_TODO_ERROR)
+										)
+									end)
+								end)
 							end
 							useEffect(function()
 								doIt()

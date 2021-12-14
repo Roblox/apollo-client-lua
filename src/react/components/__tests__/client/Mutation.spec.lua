@@ -52,7 +52,7 @@ return function()
 	type ExecutionResult = graphQLModule.ExecutionResult
 	local GraphQLError = graphQLModule.GraphQLError
 
-	local testingLibraryModule = require(srcWorkspace.testUtils.react)
+	local testingLibraryModule = require(srcWorkspace.testUtils.react)(afterEach)
 	local render = testingLibraryModule.render
 	local cleanup = testingLibraryModule.cleanup
 	-- ROBLOX TODO: fireEvent not ported

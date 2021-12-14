@@ -15,7 +15,7 @@ return function()
 
 	local gql = require(rootWorkspace.GraphQLTag).default
 
-	local testingLibraryModule = require(srcWorkspace.testUtils.react)
+	local testingLibraryModule = require(srcWorkspace.testUtils.react)(afterEach)
 	local render = testingLibraryModule.render
 	local wait_ = testingLibraryModule.wait
 
