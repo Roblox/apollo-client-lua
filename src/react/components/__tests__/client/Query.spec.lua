@@ -335,8 +335,7 @@ return function()
 				end):andThen(resolve, reject)
 			end)
 
-			-- ROBLOX FIXME: enabling this tests makes other tests fail :(
-			itAsync(itFIXME)("fetchMore", function(resolve, reject)
+			itAsync(it)("fetchMore", function(resolve, reject)
 				local data1 = { allPeople = { people = { { name = "Luke Skywalker" } } } }
 				local data2 = { allPeople = { people = { { name = "Han Solo" } } } }
 
@@ -1738,8 +1737,7 @@ return function()
 			end):andThen(resolve, reject)
 		end)
 
-		-- ROBLOX FIXME: onError is called multipled times
-		itAsync(itFIXME)("should not repeatedly call onError if setState in it", function(resolve, reject)
+		itAsync(it)("should not repeatedly call onError if setState in it", function(resolve, reject)
 			local mockError = {
 				{
 					request = { query = allPeopleQuery, variables = { first = 1 } },

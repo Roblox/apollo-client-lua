@@ -32,8 +32,8 @@ return function()
 	end
 
 	describe("LocalState", function()
-		-- ROBLOX TODO: fragments are not supported
-		xit("resolver info field provides information about named fragments", function()
+		-- ROBLOX TODO: fragments are not supported yet
+		itSKIP("resolver info field provides information about named fragments", function()
 			-- Create client with local resolver
 			local localQueryResolver = jest.fn().mockReturnValue({
 				__typename = "LocalQueryResponse",

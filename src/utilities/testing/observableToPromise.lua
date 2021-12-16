@@ -56,16 +56,16 @@ local function observableToPromiseAndSubscription(
 	local cbs = { ... }
 
 	local observable = ref.observable
-	local shouldResolve, wait, errorCallbacks
+	local shouldResolve, wait_, errorCallbacks
 	if ref.shouldResolve ~= nil then
 		shouldResolve = ref.shouldResolve
 	else
 		shouldResolve = true
 	end
 	if ref.wait ~= nil then
-		wait = ref.wait
+		wait_ = ref.wait
 	else
-		wait = -1
+		wait_ = -1
 	end
 	if ref.errorCallbacks ~= nil then
 		errorCallbacks = ref.errorCallbacks
@@ -92,10 +92,10 @@ local function observableToPromiseAndSubscription(
 			end
 
 			if cbIndex == #cbs and errorIndex == #errorCallbacks then
-				if wait == -1 then
+				if wait_ == -1 then
 					done()
 				else
-					setTimeout(done, wait)
+					setTimeout(done, wait_)
 				end
 			end
 		end

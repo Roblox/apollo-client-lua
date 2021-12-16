@@ -98,6 +98,11 @@ return function()
 	end
 
 	describe("useQuery Hook", function()
+		-- ROBLOX deviation: resetting ObservableQuery behaviour
+		beforeAll(function()
+			_G.__WARNED_ABOUT_OBSERVABLE_QUERY_UPDATE_QUERY__ = false
+		end)
+
 		local CAR_QUERY: DocumentNode = gql([[
 
 			query {
@@ -1542,6 +1547,7 @@ return function()
 							result = { data = moreCarResults },
 						},
 					}
+
 					itAsync(it)("updateQuery", function(resolve, reject)
 						local renderCount = 0
 
@@ -2341,8 +2347,7 @@ return function()
 				end):andThen(resolve, reject)
 			end)
 
-			-- ROBLOX FIXME: calls repeatedly
-			itAsync(itFIXME)("should not repeatedly call onCompleted if it alters state", function(resolve, reject)
+			itAsync(it)("should not repeatedly call onCompleted if it alters state", function(resolve, reject)
 				local query = gql([[
 
 					query people($first: Int) {
@@ -2379,6 +2384,9 @@ return function()
 						elseif renderCount == 2 then
 							jestExpect(loading).toBeFalsy()
 							jestExpect(onCompletedCallCount).toBe(1)
+						else
+							-- ROBLOX deviation: rejecting if too many renders
+							reject("too many renders")
 						end
 						renderCount += 1
 					end)
@@ -2594,7 +2602,7 @@ return function()
 		end)
 
 		describe("Client Resolvers", function()
-			-- ROBLOX TODO: requires fragments
+			-- ROBLOX TODO: fragments are not supported yet
 			itAsync(itSKIP)(
 				"should receive up to date @client(always: true) fields on entity update",
 				function(resolve, reject)
@@ -2959,7 +2967,7 @@ return function()
 				end):andThen(resolve, reject)
 			end)
 
-			-- ROBLOX FIXME: timing issue
+			-- ROBLOX FIXME: timing issue. Promise/setTimeout not deterministic
 			itAsync(itFIXME)("should persist result.previousData across multiple results", function(resolve, reject)
 				local query: TypedDocumentNode<{ car: { id: string, make: string } }, { vin: string }> = gql([[
 

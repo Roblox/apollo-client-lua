@@ -269,7 +269,7 @@ return function()
 			end):timeout(3):expect()
 		end)
 
-		-- ROBLOX NOTE: this is skipped upstream
+		-- ROBLOX comment: this test is skipped upstream
 		xit("allows multiple query results from link with all errors", function()
 			Promise.new(function(resolve, reject)
 				local done = createDone(resolve, reject)

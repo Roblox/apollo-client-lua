@@ -524,6 +524,7 @@ return function()
 
 		-- XXX this looks like a bug in zen-observable but we should figure
 		-- out a solution for it
+		-- ROBLOX comment: this test is skipped upstream
 		itAsync(xit)("handles an unsubscribe action that happens before data returns", function(resolve, reject)
 			local subscription = assertWithObserver({
 				reject = reject,
@@ -5477,7 +5478,7 @@ return function()
 				end):andThen(resolve, reject)
 			end)
 
-			-- ROBLOX FIXME: Observable cancelled prematurely
+			-- ROBLOX FIXME: Passes intermittently. Observable cancelled prematurely
 			itAsync(itFIXME)("should refetch using the specified context, if provided", function(resolve, reject)
 				local queryManager = makeQueryManager(reject)
 

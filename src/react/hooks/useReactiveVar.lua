@@ -13,14 +13,14 @@ local useState = reactModule.useState
 local cacheModule = require(srcWorkspace.cache)
 type ReactiveVar<T> = cacheModule.ReactiveVar<T>
 
+-- ROBLOX deviation: error is triggered because array with nil values has a different count
+local NIL = { __value = "nil placeholder" }
+
 local function useReactiveVar<T>(rv: ReactiveVar<T>): T
 	local value = rv()
 	-- We don't actually care what useState thinks the value of the variable
 	-- is, so we take only the update function from the returned array.
 	local _, setValue = useState(value)
-
-	-- ROBLOX deviation: error is triggered because array with nil values has a different count
-	local NIL = { __value = "nil placeholder" }
 
 	-- We subscribe to variable updates on initial mount and when the value has
 	-- changed. This avoids a subtle bug in React.StrictMode where multiple

@@ -111,7 +111,7 @@ return function()
 	describe("reading from the store", function()
 		local reader = StoreReader.new({ cache = InMemoryCache.new() })
 		-- ROBLOX TODO: fragments are not supported yet
-		xit("runs a nested query with proper fragment fields in arrays", function()
+		itSKIP("runs a nested query with proper fragment fields in arrays", function()
 			withError(function()
 				local store = defaultNormalizedCacheFactory({
 					ROOT_QUERY = ({ __typename = "Query", nestedObj = makeReference("abcde") } :: any) :: StoreObject,
@@ -346,7 +346,7 @@ return function()
 		end)
 
 		-- ROBLOX TODO: fragments are not supported yet
-		xit("runs a nested query with multiple fragments", function()
+		itSKIP("runs a nested query with multiple fragments", function()
 			local result: any = {
 				id = "abcd",
 				stringField = "This is a string!",
@@ -574,7 +574,7 @@ return function()
 		end)
 
 		-- ROBLOX TODO: fragments are not supported yet
-		xit("readFragment supports returnPartialData", function()
+		itSKIP("readFragment supports returnPartialData", function()
 			local cache = InMemoryCache.new()
 			local id = cache:identify({ __typename = "ABObject", id = 321 })
 
@@ -948,7 +948,7 @@ return function()
 		end)
 
 		-- ROBLOX TODO: fragments are not supported yet
-		xit("read functions for root query fields work with empty cache", function()
+		itSKIP("read functions for root query fields work with empty cache", function()
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					Query = {
@@ -1716,7 +1716,7 @@ return function()
 		end)
 
 		-- ROBLOX TODO: fragments are not supported yet
-		xit("readFragment can opt out of canonization", function()
+		itSKIP("readFragment can opt out of canonization", function()
 			local count = 0
 
 			local cache = InMemoryCache.new({

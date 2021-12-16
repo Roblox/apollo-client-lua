@@ -382,6 +382,7 @@ return function()
 
 			-- TODO: Something isn't quite right with this test. It's failing but not
 			-- for the right reasons.
+			-- ROBLOX comment: this test is skipped upstream
 			itAsync(xit)(
 				"if query is refetched, and an error is returned, no other observer callbacks will be called",
 				function(resolve, reject)
@@ -1261,7 +1262,7 @@ return function()
 		end)
 
 		describe("currentResult", function()
-			-- ROBLOX TODO: doesn't support fragments yet
+			-- ROBLOX TODO: fragments are not supported yet
 			itAsync(itSKIP)("returns the same value as observableQuery.next got", function(resolve, reject)
 				local queryWithFragment = gql([[
 

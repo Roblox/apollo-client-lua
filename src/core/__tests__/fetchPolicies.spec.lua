@@ -510,8 +510,8 @@ return function()
 	end)
 
 	describe("cache-first", function()
-		-- ROBLOX comment: skipped upstream
-		itAsync(itSKIP)("does not trigger network request during optimistic update", function(resolve, reject)
+		-- ROBLOX comment: this test is skipped upstream
+		itAsync(xit)("does not trigger network request during optimistic update", function(resolve, reject)
 			local results: Array<any> = {}
 			local client = ApolloClient.new({
 				link = ApolloLink.new(function(_self, operation, forward)

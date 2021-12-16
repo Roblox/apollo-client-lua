@@ -369,7 +369,7 @@ return function()
 		end)
 
 		-- ROBLOX TODO: fragments are not supported yet
-		xit("should respect optimistic updates, when active", function()
+		itSKIP("should respect optimistic updates, when active", function()
 			local ref = newBookAuthorCache()
 			local cache, query = ref.cache, ref.query
 
@@ -1661,7 +1661,7 @@ return function()
 		end)
 
 		-- ROBLOX TODO: fragments are not supported yet
-		xit("supports cache.identify(reference)", function()
+		itSKIP("supports cache.identify(reference)", function()
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					Task = {
@@ -1695,7 +1695,7 @@ return function()
 		end)
 
 		-- ROBLOX TODO: fragments are not supported yet
-		xit("supports cache.identify(object)", function()
+		itSKIP("supports cache.identify(object)", function()
 			local queryWithAliases: DocumentNode = gql([[
 
       query {

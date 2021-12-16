@@ -29,6 +29,9 @@ local coreModule = require(script.Parent.Parent.Parent.Parent.core)
 type OperationVariables = coreModule.OperationVariables
 local getApolloContext = require(script.Parent.Parent.Parent.context).getApolloContext
 
+-- ROBLOX deviation: error is triggered because array with nil values has a different count
+local NIL = { __value = "nil placeholder" }
+
 -- <TData, TVariables>
 local function useBaseQuery(
 	query: DocumentNode | TypedDocumentNode<any, any>,
@@ -41,7 +44,7 @@ local function useBaseQuery(
 	local context = useContext(getApolloContext())
 	local tick, forceUpdate = useReducer(function(x: any)
 		return x + 1
-	end, 0, nil)
+	end, 0)
 	local updatedOptions = Boolean.toJSBoolean(options) and Object.assign({}, options, { query = query })
 		or { query = query }
 	local queryDataRef = useRef(nil)
@@ -111,8 +114,6 @@ local function useBaseQuery(
 		end
 	end, {})
 
-	-- ROBLOX deviation: error is triggered because array with nil values has a different count
-	local NIL = { __value = "nil placeholder" }
 	useEffect(function()
 		return queryData:afterExecute({ lazy = lazy })
 	end, {

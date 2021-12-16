@@ -45,7 +45,7 @@ return function()
 
 		-- TODO Reenable this when ObjectCanon allows enabling canonization for
 		-- arbitrary prototypes (not just {Array,Object}.prototype and null).
-		-- ROBLOX NOTE: this test is skipped upstream
+		-- ROBLOX comment: this test is skipped upstream
 		xit("preserves custom prototypes", function()
 			local canon = ObjectCanon.new()
 

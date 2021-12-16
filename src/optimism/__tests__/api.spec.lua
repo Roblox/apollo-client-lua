@@ -50,7 +50,7 @@ return function()
 		end)
 
 		-- ROBLOX SKIP: no crypto dependency available
-		xit("works with two layers of functions", function()
+		itSKIP("works with two layers of functions", function()
 			-- local files: { [string]: string } = {
 			-- 	["a.js"] = "a",
 			-- 	["b.js"] = "b",
@@ -130,7 +130,7 @@ return function()
 		end)
 
 		-- ROBLOX SKIP: no fibers dependency available
-		xit("is not confused by fibers", function()
+		itSKIP("is not confused by fibers", function()
 			-- local Fiber = wrapYieldingFiberMethods(require("fibers"))
 
 			-- local order = {}

@@ -1383,7 +1383,7 @@ return function()
 
 		describe("write then read", function()
 			-- ROBLOX TODO: fragments are not supported yet
-			xit("will write data locally which will then be read back", function()
+			itSKIP("will write data locally which will then be read back", function()
 				local client = ApolloClient.new({
 					link = ApolloLink.empty(),
 					cache = InMemoryCache.new({

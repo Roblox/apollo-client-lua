@@ -418,7 +418,11 @@ function ObservableQuery:fetchMore(
 			local updateQuery = fetchMoreOptions.updateQuery
 
 			if Boolean.toJSBoolean(updateQuery) then
-				if Boolean.toJSBoolean(_G.__DEV__) and not warnedAboutUpdateQuery then
+				-- ROBLOX deviation: added _G.__WARNED_ABOUT_OBSERVABLE_QUERY_UPDATE_QUERY__ global to allow reset this check during tests
+				if
+					Boolean.toJSBoolean(_G.__DEV__)
+					and (not warnedAboutUpdateQuery or not _G.__WARNED_ABOUT_OBSERVABLE_QUERY_UPDATE_QUERY__)
+				then
 					invariant.warn([[The updateQuery callback for fetchMore is deprecated, and will be removed
 in the next major version of Apollo Client.
 
@@ -431,6 +435,7 @@ The field policy system handles pagination more effectively than a
 hand-written updateQuery function, and you only need to define the policy
 once, rather than every time you call fetchMore.]])
 					warnedAboutUpdateQuery = true
+					_G.__WARNED_ABOUT_OBSERVABLE_QUERY_UPDATE_QUERY__ = warnedAboutUpdateQuery
 				end
 
 				self:updateQuery(function(previous)
