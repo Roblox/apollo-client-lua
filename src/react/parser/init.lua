@@ -88,7 +88,7 @@ local function parser(document: DocumentNode): IDocumentDefinition
 			.. "You must include a query, subscription or mutation as well"
 	)
 	invariant(
-		#queries + #mutations + #subscriptions <= 1 --[[ ROBLOX CHECK: operator '<=' works only if either both arguments are strings or both are a number ]],
+		#queries + #mutations + #subscriptions <= 1,
 		"react-apollo only supports a query, subscription, or a mutation per HOC. "
 			.. ("%s had %s queries, %s "):format(tostring(document), tostring(#queries), tostring(#subscriptions))
 			.. ("subscriptions and %s mutations. "):format(tostring(#mutations))
