@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/react/context/__tests__/ApolloConsumer.test.tsx
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/react/context/__tests__/ApolloConsumer.test.tsx
 
 return function()
 	local srcWorkspace = script.Parent.Parent.Parent.Parent

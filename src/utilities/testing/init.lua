@@ -1,6 +1,12 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/utilities/testing/index.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/utilities/testing/index.ts
+local exports = {}
 
-local exports: { [string]: any } = {}
+local srcWorkspace = script.Parent.Parent
+local rootWorkspace = srcWorkspace.Parent
+
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
+local Object = LuauPolyfill.Object
+
 local MockedProviderModule = require(script.mocking.MockedProvider)
 exports.MockedProvider = MockedProviderModule.MockedProvider
 export type MockedProviderProps<TSerializedCache> = MockedProviderModule.MockedProviderProps<TSerializedCache>
@@ -18,5 +24,5 @@ exports.mockObservableLink = mockSubscriptionLinkModule.mockObservableLink
 exports.stripSymbols = require(script.stripSymbols).stripSymbols
 exports.subscribeAndCount = require(script.subscribeAndCount).default
 exports.itAsync = require(script.itAsync)
-exports.withErrorSpy = require(script.withErrorSpy).withErrorSpy
+Object.assign(exports, require(script.withConsoleSpy))
 return exports

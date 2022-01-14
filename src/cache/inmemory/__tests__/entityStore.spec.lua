@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/cache/inmemory/__tests__/entityStore.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/cache/inmemory/__tests__/entityStore.ts
 
 return function()
 	local srcWorkspace = script.Parent.Parent.Parent.Parent
@@ -38,6 +38,8 @@ return function()
 	type Reference = storeUtilsModule.Reference
 	local makeReference = storeUtilsModule.makeReference
 	local isReference = storeUtilsModule.isReference
+	type StoreValue = storeUtilsModule.StoreValue
+
 	local MissingFieldError = require(script.Parent.Parent.Parent).MissingFieldError
 	local typedDocumentNodeModule = require(srcWorkspace.jsutils.typedDocumentNode)
 	type TypedDocumentNode<Result, Variables> = typedDocumentNodeModule.TypedDocumentNode<Result, Variables>
@@ -1026,6 +1028,63 @@ return function()
 			})
 
 			jestExpect(cache2:extract()).toEqual({})
+		end)
+
+		it("cache.gc is not confused by StoreObjects with stray __ref fields", function()
+			local cache = InMemoryCache.new({ typePolicies = { Person = { keyFields = { "name" } } } })
+
+			local query = gql([[
+			
+				query {
+				  parent {
+					name
+					child {
+					  name
+					}
+				  }
+				}
+			  ]])
+
+			local data = {
+				parent = {
+					__typename = "Person",
+					name = "Will Smith",
+					child = { __typename = "Person", name = "Jaden Smith" },
+				},
+			}
+
+			cache:writeQuery({ query = query, data = data })
+
+			jestExpect(cache:gc()).toEqual({})
+
+			local willId = cache:identify(data.parent) :: string
+			local store = cache["data"]
+			local storeRootData = store["data"];
+			-- Hacky way of injecting a stray __ref field into the Will Smith Person
+			-- object, clearing store.refs (which was populated by the previous GC).
+			(storeRootData[willId] :: any).__ref = willId
+			store["refs"] = {}
+
+			jestExpect(cache:extract()).toEqual({
+				['Person:{"name":"Jaden Smith"}'] = {
+					__typename = "Person",
+					name = "Jaden Smith",
+				},
+				['Person:{"name":"Will Smith"}'] = {
+					__typename = "Person",
+					name = "Will Smith",
+					child = {
+						__ref = 'Person:{"name":"Jaden Smith"}',
+					},
+					-- This is the bogus line that makes this Person object look like a
+					-- Reference object to the garbage collector.
+					__ref = 'Person:{"name":"Will Smith"}',
+				},
+				ROOT_QUERY = { __typename = "Query", parent = { __ref = 'Person:{"name":"Will Smith"}' } },
+			})
+
+			-- Ensure the garbage collector is not confused by the stray __ref.
+			jestExpect(cache:gc()).toEqual({})
 		end)
 
 		it("allows evicting specific fields", function()
@@ -2617,6 +2676,55 @@ return function()
 				"1982103558",
 				"1449373321",
 			})
+		end)
+
+		it("Refuses to merge { __ref } objects as StoreObjects", function()
+			local cache = InMemoryCache.new({
+				typePolicies = {
+					Query = { fields = { book = { keyArgs = { "isbn" } } } },
+					Book = {
+						keyFields = { "isbn" },
+					},
+				},
+			})
+
+			local store = cache["data"]
+
+			local query = gql([[
+			
+				query Book($isbn: string) {
+				  book(isbn: $isbn) {
+					title
+				  }
+				}
+			  ]])
+
+			local data = {
+				book = { __typename = "Book", isbn = "1449373321", title = "Designing Data-Intensive Applications" },
+			}
+
+			cache:writeQuery({ query = query, data = data, variables = { isbn = data.book.isbn } })
+
+			local bookId = cache:identify(data.book) :: any
+
+			store:merge(bookId, (makeReference(bookId) :: StoreValue) :: StoreObject)
+
+			local snapshot = cache:extract()
+			jestExpect(snapshot).toEqual({
+				ROOT_QUERY = {
+					__typename = "Query",
+					['book:{"isbn":"1449373321"}'] = { __ref = 'Book:{"isbn":"1449373321"}' },
+				},
+				['Book:{"isbn":"1449373321"}'] = {
+					__typename = "Book",
+					isbn = "1449373321",
+					title = "Designing Data-Intensive Applications",
+				},
+			})
+
+			store:merge((makeReference(bookId) :: StoreValue) :: StoreObject, bookId)
+
+			jestExpect(cache:extract()).toEqual(snapshot)
 		end)
 	end)
 end

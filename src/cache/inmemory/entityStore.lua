@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/cache/inmemory/entityStore.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/cache/inmemory/entityStore.ts
 local exports = {}
 
 local srcWorkspace = script.Parent.Parent.Parent
@@ -129,7 +129,7 @@ function EntityStore.new(policies: Policies, group: CacheGroup): EntityStore
 	local self = setmetatable({}, EntityStore) :: any
 	self.policies = policies
 	self.group = group
-	self.data = {}
+	self.data = {} :: NormalizedCacheObject
 
 	-- Maps root entity IDs to the number of times they have been retained, minus
 	-- the number of times they have been released. Retained entities keep other
@@ -261,6 +261,15 @@ end
 
 function EntityStore:merge(older: string | StoreObject, newer: StoreObject | string): ()
 	local dataId: string | nil
+
+	-- Convert unexpected references to ID strings.
+	if isReference(older) then
+		older = ((older :: any) :: Reference).__ref
+	end
+	if isReference(newer) then
+		newer = ((newer :: any) :: Reference).__ref
+	end
+
 	local existing: StoreObject | nil
 	if typeof(older) == "string" then
 		dataId = older
@@ -614,20 +623,35 @@ function EntityStore:findChildRefIds(dataId: string): Record<string, boolean>
 	if not hasOwn(self.refs, dataId) then
 		self.refs[dataId] = {}
 		local found = self.refs[dataId]
-		local workSet = Set.new({ self.data[dataId] })
+		local root = self.data[dataId]
+		if not Boolean.toJSBoolean(root) then
+			return found
+		end
+
+		local workSet = Set.new({ root })
 		-- Within the store, only arrays and objects can contain child entity
 		-- references, so we can prune the traversal using this predicate:
 		for _, obj in workSet:ipairs() do
 			if isReference(obj) then
 				found[obj.__ref] = true
-			elseif isNonNullObject(obj) then
-				Array.forEach(
+				-- In rare cases, a { __ref } Reference object may have other fields.
+				-- This often indicates a mismerging of References with StoreObjects,
+				-- but garbage collection should not be fooled by a stray __ref
+				-- property in a StoreObject (ignoring all the other fields just
+				-- because the StoreObject looks like a Reference). To avoid this
+				-- premature termination of findChildRefIds recursion, we fall through
+				-- to the code below, which will handle any other properties of obj.
+			end
+
+			if isNonNullObject(obj) then
+				Array.forEach(Object.keys(obj), function(key)
+					local child = obj[key]
 					-- No need to add primitive values to the workSet, since they cannot
 					-- contain reference objects.
-					Array.filter(Object.values(obj), isNonNullObject),
-					workSet.add,
-					workSet
-				)
+					if isNonNullObject(child) then
+						workSet:add(child)
+					end
+				end)
 			end
 		end
 	end

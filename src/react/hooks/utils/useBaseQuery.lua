@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/react/hooks/utils/useBaseQuery.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/react/hooks/utils/useBaseQuery.ts
 local exports = {}
 local srcWorkspace = script.Parent.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
@@ -28,6 +28,8 @@ local useDeepMemo = require(script.Parent.useDeepMemo).useDeepMemo
 local coreModule = require(script.Parent.Parent.Parent.Parent.core)
 type OperationVariables = coreModule.OperationVariables
 local getApolloContext = require(script.Parent.Parent.Parent.context).getApolloContext
+
+local useAfterFastRefresh = require(script.Parent.useAfterFastRefresh).useAfterFastRefresh
 
 -- ROBLOX deviation: error is triggered because array with nil values has a different count
 local NIL = { __value = "nil placeholder" }
@@ -108,9 +110,18 @@ local function useBaseQuery(
 			return result :: QueryResult<any, any>
 		end
 	end)()
+
+	if _G.__DEV__ then
+		-- ensure we run an update after refreshing so that we reinitialize
+		useAfterFastRefresh(forceUpdate)
+	end
+
 	useEffect(function()
 		return function()
-			return queryData:cleanup()
+			queryData:cleanup()
+			-- this effect can run multiple times during a fast-refresh
+			-- so make sure we clean up the ref
+			queryDataRef.current = nil
 		end
 	end, {})
 

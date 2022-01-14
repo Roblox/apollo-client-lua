@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/cache/inmemory/object-canon.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/cache/inmemory/object-canon.ts
 
 local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
@@ -42,8 +42,10 @@ local isObjectOrArray = utilitiesModule.isNonNullObject
 local sortedEncode = require(srcWorkspace.luaUtils.sortedEncode).sortedEncode
 
 -- ROBLOX deviation: predeclare variables
-local stringifyCanon
-local stringifyCache
+local resetCanonicalStringify
+-- Can be reset by calling canonicalStringify.reset().
+local stringifyCanon: ObjectCanon
+local stringifyCache: WeakMap<Object, string>
 
 local function shallowCopy(value: T_): T_
 	if isObjectOrArray(value) then
@@ -197,7 +199,7 @@ function ObjectCanon:admit(value: any?): any?
 					-- Since canonical arrays may be shared widely between
 					-- unrelated consumers, it's important to regard them as
 					-- immutable, even if they are not frozen in production.
-					if Boolean.toJSBoolean(_G.__DEV__) then
+					if _G.__DEV__ then
 						Object.freeze(array)
 					end
 				end
@@ -283,6 +285,9 @@ local canonicalStringify = Object.assign(
 	setmetatable({}, {
 		__call = function(_self, value: any): string
 			if isObjectOrArray(value) then
+				if stringifyCanon == nil then
+					resetCanonicalStringify()
+				end
 				local canonical = stringifyCanon:admit(value)
 				local json = stringifyCache:get(canonical)
 				if json == nil then
@@ -300,16 +305,16 @@ local canonicalStringify = Object.assign(
 		end,
 	}),
 	{
-		reset = function(self)
-			stringifyCanon = ObjectCanon.new()
+		reset = function(_self)
+			return resetCanonicalStringify()
 		end,
 	}
 )
 exports.canonicalStringify = canonicalStringify
 
--- Can be reset by calling canonicalStringify.reset().
-stringifyCanon = ObjectCanon.new()
+function resetCanonicalStringify()
+	stringifyCanon = ObjectCanon.new()
+	stringifyCache = WeakMap.new()
+end
 
---Needs no resetting, thanks to weakness.
-stringifyCache = WeakMap.new()
 return exports

@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/core/LocalState.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/core/LocalState.ts
 
 local srcWorkspace = script.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent

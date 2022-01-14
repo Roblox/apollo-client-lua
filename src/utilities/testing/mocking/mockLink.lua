@@ -1,16 +1,12 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/utilities/testing/mocking/mockLink.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/utilities/testing/mocking/mockLink.ts
 local exports = {}
 local srcWorkspace = script.Parent.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
-local Array, Boolean, clearTimeout, Error, setTimeout, String =
-	LuauPolyfill.Array,
-	LuauPolyfill.Boolean,
-	LuauPolyfill.clearTimeout,
-	LuauPolyfill.Error,
-	LuauPolyfill.setTimeout,
-	LuauPolyfill.String
+local Array, Boolean, clearTimeout, Error, setTimeout =
+	LuauPolyfill.Array, LuauPolyfill.Boolean, LuauPolyfill.clearTimeout, LuauPolyfill.Error, LuauPolyfill.setTimeout
+
 type Array<T> = LuauPolyfill.Array<T>
 type Error = LuauPolyfill.Error
 type Record<T, U> = { [T]: U }
@@ -37,34 +33,9 @@ local addTypenameToDocument = utilitiesModule.addTypenameToDocument
 local removeClientSetsFromDocument = utilitiesModule.removeClientSetsFromDocument
 local removeConnectionDirectiveFromDocument = utilitiesModule.removeConnectionDirectiveFromDocument
 local cloneDeep = utilitiesModule.cloneDeep
-local makeUniqueId = utilitiesModule.makeUniqueId
+local stringifyForDisplay = utilitiesModule.stringifyForDisplay
+
 export type ResultFunction<T> = () -> T
-
--- ROBLOX deviation: HttpService:JSONEncode does not have a replacer function
-function replaceUndefined(source, replacement)
-	if not Array.isArray(source) then
-		return source
-	end
-	local res = {}
-	for i = 1, #source, 1 do
-		if source[i] == nil then
-			table.insert(res, replacement)
-		else
-			table.insert(res, source[i])
-		end
-	end
-	return res
-end
-
-local function stringifyForDisplay(value: any): string
-	local undefId = makeUniqueId("stringifyForDisplay")
-
-	return Array.join(
-		String.split(HttpService:JSONEncode(replaceUndefined(value, undefId)), HttpService:JSONEncode(undefId)),
-		"<undefined>"
-	)
-end
-
 export type MockedResponse_ = MockedResponse<Record<string, any>>
 
 export type MockedResponse<TData> = {

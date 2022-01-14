@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/link/http/__tests__/parseAndCheckHttpResponse.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/link/http/__tests__/parseAndCheckHttpResponse.ts
 
 return function()
 	local rootWorkspace = script.Parent.Parent.Parent.Parent.Parent

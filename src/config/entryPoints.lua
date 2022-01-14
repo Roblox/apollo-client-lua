@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/config/entryPoints.js
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/config/entryPoints.js
 local rootWorkspace = script.Parent.Parent.Parent
 local exports = {}
 

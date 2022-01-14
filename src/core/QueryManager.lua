@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/core/QueryManager.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/core/QueryManager.ts
 
 local exports = {}
 
@@ -1064,7 +1064,7 @@ function QueryManager:getObservableQueries(
 		end
 	end
 
-	if Boolean.toJSBoolean(_G.__DEV__) and Boolean.toJSBoolean(queryNamesAndDocs.size) then
+	if _G.__DEV__ and Boolean.toJSBoolean(queryNamesAndDocs.size) then
 		-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
 		mapForEach(queryNamesAndDocs, function(included, nameOrDoc)
 			if not included then
@@ -1540,7 +1540,7 @@ function QueryManager:refetchQueries(
 						-- includedQueriesById, in case it was added earlier because of
 						-- options.include.
 						includedQueriesById:delete(oq.queryId)
-						local result: boolean | InternalRefetchQueriesResult<TResult_> = (
+						local result: TResult_ | boolean | Promise<ApolloQueryResult<any>> = (
 							(onQueryUpdated :: any) :: OnQueryUpdated<TResult_>
 						)(ref, oq, diff, lastDiff)
 
@@ -1553,7 +1553,7 @@ function QueryManager:refetchQueries(
 						-- Record the result in the results Map, as long as onQueryUpdated
 						-- did not return false to skip/ignore this result.
 						if result ~= false then
-							results:set(oq, result)
+							results:set(oq, result :: InternalRefetchQueriesResult<TResult_>)
 						end
 
 						-- Prevent the normal cache broadcast of this result, since we've
@@ -1577,7 +1577,7 @@ function QueryManager:refetchQueries(
 		-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
 		mapForEach(includedQueriesById, function(ref__, queryId)
 			local oq, lastDiff, diff = ref__.oq, ref__.lastDiff, ref__.diff
-			local result: nil | boolean | InternalRefetchQueriesResult<any>
+			local result: TResult_ | boolean | Promise<ApolloQueryResult<any>> | nil
 
 			-- If onQueryUpdated is provided, we want to use it for all included
 			-- queries, even the QueryOptions ones.
@@ -1596,7 +1596,7 @@ function QueryManager:refetchQueries(
 			end
 
 			if result ~= false then
-				results:set(oq, result)
+				results:set(oq, result :: InternalRefetchQueriesResult<TResult_>)
 			end
 
 			-- ROBLOX TODO: use String.indexOf
@@ -1667,7 +1667,7 @@ function QueryManager:fetchQueryByPolicy(
 			and not equal(data, {})
 			and not Boolean.toJSBoolean(returnPartialData)
 		then
-			invariant.warn(
+			invariant.debug(
 				("Missing cache result fields: %s"):format(Array.join(
 					Array.map(diff.missing, function(m)
 						return Array.join(m.path, ".")

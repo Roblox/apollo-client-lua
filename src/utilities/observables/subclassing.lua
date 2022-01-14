@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/utilities/observables/subclassing.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/utilities/observables/subclassing.ts
 
 -- ROBLOX deviation: no support for type constraints in Luau
 -- S extends new (...args: any[]) => Observable<any>,

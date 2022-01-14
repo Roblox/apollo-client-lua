@@ -1,13 +1,13 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/utilities/index.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/utilities/index.ts
 local exports: { [string]: any } = {}
 local srcWorkspace = script.Parent
-local Packages = srcWorkspace.Parent
+local rootWorkspace = srcWorkspace.Parent
 local invariant = require(srcWorkspace.jsutils.invariant).invariant
 local DEV = require(script.globals).DEV
 invariant("boolean" == typeof(DEV), tostring(DEV))
 exports.DEV = DEV
 -- ROBLOX deviation: add polyfills for JS Primitives
-local LuauPolyfill = require(Packages.LuauPolyfill)
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Object = LuauPolyfill.Object
 
 exports.NULL = require(script.globals).NULL
@@ -102,6 +102,7 @@ export type ObservableSubscription = ObservableModule.ObservableSubscription
 Object.assign(exports, require(script.common.mergeDeep))
 Object.assign(exports, require(script.common.cloneDeep))
 Object.assign(exports, require(script.common.maybeDeepFreeze))
+Object.assign(exports, require(script.common.stringifyForDisplay))
 Object.assign(exports, require(script.observables.iteration))
 Object.assign(exports, require(script.observables.asyncMap))
 local concastModule = require(script.observables.Concast)

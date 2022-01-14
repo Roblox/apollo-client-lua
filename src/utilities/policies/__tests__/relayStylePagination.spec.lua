@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/utilities/policies/__tests__/relayStylePagination.test.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/utilities/policies/__tests__/relayStylePagination.test.ts
 return function()
 	local srcWorkspace = script.Parent.Parent.Parent.Parent
 	local rootWorkspace = srcWorkspace.Parent

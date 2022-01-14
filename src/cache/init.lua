@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/cache/index.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/cache/index.ts
 local exports = {}
 
 local srcWorkspace = script.Parent
@@ -80,6 +80,8 @@ export type FieldMergeFunction<T, V> = policiesModule.FieldMergeFunction<T, V>
 export type FieldFunctionOptions<TArgs, TVars> = policiesModule.FieldFunctionOptions<TArgs, TVars>
 export type PossibleTypesMap = policiesModule.PossibleTypesMap
 exports.Policies = policiesModule.Policies
+-- ROBLOX deviation: reexport Object.None
+exports.Object = policiesModule.Object
 
 exports.canonicalStringify = require(script.inmemory["object-canon"]).canonicalStringify
 

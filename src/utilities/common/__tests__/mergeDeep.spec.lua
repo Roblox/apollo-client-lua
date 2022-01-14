@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/utilities/common/__tests__/mergeDeep.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/utilities/common/__tests__/mergeDeep.ts
 
 return function()
 	local srcWorkspace = script.Parent.Parent.Parent.Parent

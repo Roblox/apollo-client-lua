@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/react/hooks/__tests__/useQuery.test.tsx
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/react/hooks/__tests__/useQuery.test.tsx
 
 return function()
 	local srcWorkspace = script.Parent.Parent.Parent.Parent
@@ -1211,7 +1211,8 @@ return function()
 						table.insert(mocks, item)
 					end)
 
-					local link = MockLink.new(mocks):setOnError(reject)
+					-- ROBLOX FIXME Luau: Type '{{| request: {| query: any |}, result: {| errors: {any} |} |}}' could not be converted into 'Array<MockedResponse>'
+					local link = MockLink.new(mocks :: Array<any>):setOnError(reject)
 					local renderCount = 0
 
 					local function App()

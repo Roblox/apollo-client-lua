@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/core/__tests__/ObservableQuery.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/core/__tests__/ObservableQuery.ts
 
 return function()
 	local srcWorkspace = script.Parent.Parent.Parent
@@ -1015,24 +1015,42 @@ return function()
 
 					local mocks = mockFetchQuery(queryManager)
 
-					subscribeAndCount(reject, observable, function(handleCount)
-						if handleCount == 1 then
+					subscribeAndCount(reject, observable, function(count, result)
+						if count == 1 then
+							jestExpect(result).toEqual({
+								loading = false,
+								networkStatus = NetworkStatus.ready,
+								data = dataOne,
+							})
 							observable:refetch(differentVariables :: FIX_ANALYZE)
-						elseif handleCount == 2 then
+						elseif count == 2 then
+							jestExpect(result).toEqual({
+								loading = false,
+								networkStatus = NetworkStatus.ready,
+								data = dataTwo,
+							})
+
 							local fqbpCalls = mocks.fetchQueryByPolicy.mock.calls
 							jestExpect(#fqbpCalls).toBe(2)
 							-- ROBLOX deviation checking 3rd argument to account for self param
+							jestExpect(fqbpCalls[1][3].fetchPolicy).toEqual("cache-first")
 							jestExpect(fqbpCalls[2][3].fetchPolicy).toEqual("network-only")
+
+							local fqoCalls = mocks.fetchQueryObservable.mock.calls
+							jestExpect(#fqoCalls).toBe(2)
+							-- ROBLOX deviation checking 3rd argument to account for self param
+							jestExpect(fqoCalls[1][3].fetchPolicy).toEqual("cache-first")
+							jestExpect(fqoCalls[2][3].fetchPolicy).toEqual("network-only")
+
 							-- Although the options.fetchPolicy we passed just now to
 							-- fetchQueryByPolicy should have been network-only,
 							-- observable.options.fetchPolicy should now be updated to
 							-- cache-first, thanks to options.nextFetchPolicy.
 							jestExpect(observable.options.fetchPolicy).toBe("cache-first")
-							local fqoCalls = mocks.fetchQueryObservable.mock.calls
-							jestExpect(#fqoCalls).toBe(2)
-							-- ROBLOX deviation checking 3rd argument to account for self param
-							jestExpect(fqoCalls[2][3].fetchPolicy).toEqual("cache-first")
-							resolve()
+							-- Give the test time to fail if more results are delivered.
+							setTimeout(resolve, 50)
+						else
+							reject(Error.new(("too many results (%s, %s)"):format(tostring(count), tostring(result))))
 						end
 					end)
 				end

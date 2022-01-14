@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/react/data/QueryData.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/react/data/QueryData.ts
 local exports = {}
 local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
@@ -9,42 +9,32 @@ local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
 type Promise<T> = PromiseTypeModule.Promise<T>
 local hasOwnProperty = require(srcWorkspace.luaUtils.hasOwnProperty)
 type Function = (...any) -> ...any
+type ReturnType<T> = any
+type Object = { [string]: any }
+
+-- ROBLOX TODO: Partial type not available
+type Partial<T> = any
 
 local equal = require(srcWorkspace.jsutils.equal)
 
 local apolloErrorModule = require(srcWorkspace.errors)
 local ApolloError = apolloErrorModule.ApolloError
 type ApolloError = apolloErrorModule.ApolloError
+
 local coreModule = require(script.Parent.Parent.Parent.core)
 type ApolloClient<TCacheShape> = coreModule.ApolloClient<TCacheShape>
 local NetworkStatus = coreModule.NetworkStatus
-
 type FetchMoreQueryOptions<TVariables, TData> = coreModule.FetchMoreQueryOptions<TVariables, TData>
-
 type ObservableQuery<TData, TVariables> = coreModule.ObservableQuery<TData, TVariables>
-
-local applyNextFetchPolicy = coreModule.applyNextFetchPolicy
-
--- local SubscribeToMoreOptions = coreModule.SubscribeToMoreOptions
-
--- ROBLOX TODO use import when FetchMoreOptions is imported
--- local FetchMoreOptions = coreModule.FetchMoreOptions
-type FetchMoreOptions<TData, TVariables> = any
-
--- ROBLOX TODO use import when UpdateQueryOptions is imported
--- local UpdateQueryOptions = coreModule.UpdateQueryOptions
-type UpdateQueryOptions = any
-
--- ROBLOX TODO import from coreModule when available
-local GraphQLModule = require(rootWorkspace.GraphQL)
-type DocumentNode = GraphQLModule.DocumentNode
-
--- ROBLOX TODO import from coreModule when available
+type SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData> =
+	coreModule.SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData>
+type FetchMoreOptions<TData, TVariables> = coreModule.FetchMoreOptions<TData, TVariables>
+type UpdateQueryOptions<TVariables> = coreModule.UpdateQueryOptions<TVariables>
+type DocumentNode = coreModule.DocumentNode
 type TypedDocumentNode<Result, Variables> = coreModule.TypedDocumentNode<Result, Variables>
 
--- ROBLOX TODO use import when ObservableSubscription is imported
--- local ObservableSubscription = require(srcWorkspace.utilities).ObservableSubscription
-type ObservableSubscription = any
+local utilitiesModule = require(srcWorkspace.utilities)
+type ObservableSubscription = utilitiesModule.ObservableSubscription
 
 local DocumentType = require(script.Parent.Parent.parser).DocumentType
 local typesModule = require(script.Parent.Parent.types.types)
@@ -56,6 +46,11 @@ type ObservableQueryFields<TData, TVariables> = typesModule.ObservableQueryField
 local operationDataModule = require(script.Parent.OperationData)
 local OperationData = operationDataModule.OperationData
 type OperationData<TOptions> = operationDataModule.OperationData<TOptions>
+
+-- ROBLOX deviation: can't express indexed type
+-- type ObservableQueryOptions<TData, TVars> =
+-- ReturnType<QueryData<TData, TVars>["prepareObservableQueryOptions"]>;
+type ObservableQueryOptions<TData, TVars> = ReturnType<(self: QueryData<TData, TVars>) -> { [string]: any }>
 
 type QueryData<TData, TVariables> = OperationData<QueryDataOptions<TData, TVariables>> & {
 	onNewData: ((self: QueryData<TData, TVariables>) -> ()),
@@ -71,37 +66,47 @@ type QueryData<TData, TVariables> = OperationData<QueryDataOptions<TData, TVaria
 local QueryData = setmetatable({}, { __index = OperationData })
 QueryData.__index = QueryData
 
-function QueryData.new(
+function QueryData.new<TData, TVariables>(
 	ref: {
-		options: QueryDataOptions<any, any>,
+		options: QueryDataOptions<TData, TVariables>,
 		context: any,
-		onNewData: (self: QueryData<any, any>) -> (),
+		onNewData: (self: QueryData<TData, TVariables>) -> (),
 	}
-): QueryData<any, any>
+): QueryData<TData, TVariables>
 	local options, context, onNewData = ref.options, ref.context, ref.onNewData
 	local self: any = OperationData.new(options, context)
 	self.runLazy = false
-	self.previous = {}
+	self.previous = {} :: {
+		client: ApolloClient<Object>?,
+		query: DocumentNode | TypedDocumentNode<TData, TVariables>?,
+		observableQueryOptions: ObservableQueryOptions<TData, TVariables>?,
+		result: QueryResult<TData, TVariables>?,
+		loading: boolean?,
+		options: QueryDataOptions<TData, TVariables>?,
+		error: ApolloError?,
+	}
 	self.onNewData = onNewData
 
-	self.runLazyQuery = function(options: QueryLazyOptions<any>?)
+	self.runLazyQuery = function(options: QueryLazyOptions<TVariables>?)
 		self:cleanup()
 		self.runLazy = true
 		self.lazyOptions = options
 		self:onNewData()
 	end
 
-	self.obsRefetch = function(_self: QueryData<any, any>, variables: any?)
+	self.obsRefetch = function(_self: QueryData<TData, TVariables>, variables: Partial<TVariables>?)
 		if Boolean.toJSBoolean(self.currentObservable) then
 			return self.currentObservable:refetch(variables)
 		end
 		return nil
 	end
 
-	self.obsFetchMore =
-		function(_self: QueryData<any, any>, fetchMoreOptions: FetchMoreQueryOptions<any, any> & FetchMoreOptions<any, any>)
-			return self.currentObservable:fetchMore(fetchMoreOptions)
-		end
+	self.obsFetchMore = function(
+		_self: QueryData<TData, TVariables>,
+		fetchMoreOptions: FetchMoreQueryOptions<TVariables, TData> & FetchMoreOptions<TData, TVariables>
+	)
+		return if self.currentObservable then self.currentObservable:fetchMore(fetchMoreOptions) else nil
+	end
 
 	-- ROBLOX deviation: there are no default generic params in Luau:
 	-- <TVars = TVariables>(
@@ -110,22 +115,19 @@ function QueryData.new(
 	--       options: UpdateQueryOptions<TVars>
 	--     ) => TData
 	--   )
-	self.obsUpdateQuery = function(_self: QueryData<any, any>, mapFn: any)
-		return self.currentObservable:updateQuery(mapFn)
+	self.obsUpdateQuery = function<TVars>(
+		_self: QueryData<TData, TVariables>,
+		mapFn: (previousQueryResult: TData, options: UpdateQueryOptions<TVars>) -> TData
+	)
+		return if self.currentObservable then self.currentObservable:updateQuery(mapFn) else nil
 	end
 
-	self.obsStartPolling = function(_self: QueryData<any, any>, pollInterval: number)
-		if Boolean.toJSBoolean(self.currentObservable) then
-			return self.currentObservable:startPolling(pollInterval)
-		end
-		return nil
+	self.obsStartPolling = function(_self: QueryData<TData, TVariables>, pollInterval: number)
+		return if self.currentObservable then self.currentObservable:startPolling(pollInterval) else nil
 	end
 
-	self.obsStopPolling = function(_self: QueryData<any, any>)
-		if Boolean.toJSBoolean(self.currentObservable) then
-			return self.currentObservable:stopPolling()
-		end
-		return nil
+	self.obsStopPolling = function(_self: QueryData<TData, TVariables>)
+		return if self.currentObservable then self.currentObservable:stopPolling() else nil
 	end
 
 	-- ROBLOX deviation: there are no default generic params in Luau:
@@ -139,8 +141,10 @@ function QueryData.new(
 	--   TSubscriptionData
 	-- >
 	-- )
-	self.obsSubscribeToMore = function(options: any)
-		return self.currentObservable:subscribeToMore(options)
+	self.obsSubscribeToMore = function<TSubscriptionData, TSubscriptionVariables>(
+		options: SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData>
+	)
+		return if self.currentObservable then self.currentObservable:subscribeToMore(options) else nil
 	end
 
 	return setmetatable(self, QueryData)
@@ -282,8 +286,6 @@ function QueryData:prepareObservableQueryOptions()
 		and (options.fetchPolicy == "network-only" or options.fetchPolicy == "cache-and-network")
 	then
 		options.fetchPolicy = "cache-first"
-	elseif Boolean.toJSBoolean(options.nextFetchPolicy) and Boolean.toJSBoolean(self.currentObservable) then
-		applyNextFetchPolicy(options)
 	end
 	return Object.assign({}, options, { displayName = displayName, context = options.context })
 end

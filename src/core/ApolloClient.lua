@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/core/ApolloClient.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/core/ApolloClient.ts
 
 local exports = {}
 local srcWorkspace = script.Parent.Parent
@@ -214,7 +214,7 @@ function ApolloClient.new(options: ApolloClientOptions<TCacheShape_>): ApolloCli
 		-- ROBLOX deviation: using _G instead of window
 		connectToDevTools = typeof(_G) == "table"
 			and not Boolean.toJSBoolean((_G :: any).__APOLLO_CLIENT__)
-			and Boolean.toJSBoolean(_G.__DEV__)
+			and _G.__DEV__
 	else
 		connectToDevTools = options.connectToDevTools
 	end
@@ -690,7 +690,6 @@ end
   * their queries again using your network interface. If you do not want to
   * re-execute any queries then you should make sure to stop watching any
   * active queries.
-  * Takes optional parameter `includeStandby` which will include queries in standby-mode when refetching.
 ]]
 function ApolloClient:refetchQueries(options: RefetchQueriesOptions<TCache_, TResult_>): RefetchQueriesResult<TResult_>
 	local map = self.queryManager:refetchQueries(options)
@@ -709,6 +708,13 @@ function ApolloClient:refetchQueries(options: RefetchQueriesOptions<TCache_, TRe
 	-- Promise.all(results):
 	result.queries = queries
 	result.results = results
+
+	-- If you decide to ignore the result Promise because you're using
+	-- result.queries and result.results instead, you shouldn't have to worry
+	-- about preventing uncaught rejections for the Promise.all result.
+	result:catch(function(error_)
+		invariant.debug(("In client.refetchQueries, Promise.all promise rejected with error %s"):format(error_))
+	end)
 
 	return result
 end

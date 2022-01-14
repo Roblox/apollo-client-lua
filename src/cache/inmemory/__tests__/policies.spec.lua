@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/cache/inmemory/__tests__/policies.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/cache/inmemory/__tests__/policies.ts
 return function()
 	local srcWorkspace = script.Parent.Parent.Parent.Parent
 	local rootWorkspace = srcWorkspace.Parent
@@ -58,7 +58,9 @@ return function()
 	type FieldPolicy<TExisting, TIncoming, TReadResult> = policiesModule.FieldPolicy<TExisting, TIncoming, TReadResult>
 	type StorageType = policiesModule.StorageType
 
-	local withErrorSpy = require(script.Parent.Parent.Parent.Parent.utilities.testing).withErrorSpy
+	local testingModule = require(script.Parent.Parent.Parent.Parent.utilities.testing)
+	local withErrorSpy = testingModule.withErrorSpy
+	local withWarningSpy = testingModule.withWarningSpy
 
 	local function reverse(s: string)
 		-- ROBLOX deviation: using built-in string.reverse function instead
@@ -4019,6 +4021,59 @@ return function()
 					lowerCase = "inveigle",
 					titleCase = "Inveigle",
 				},
+			})
+		end)
+
+		withWarningSpy(it, "readField warns if explicitly passed undefined `from` option", function()
+			local cache = InMemoryCache.new({
+				typePolicies = {
+					Query = {
+						fields = {
+							fullNameWithDefaults = function(_self, _, ref)
+								return ("%s %s"):format(
+									ref:readField({ fieldName = "firstName" }),
+									ref:readField("lastName")
+								)
+							end,
+							fullNameWithVoids = function(_self, _, ref)
+								return ("%s %s"):format(
+									-- ROBLOX deviations: return string if result is nil
+									ref:readField({ fieldName = "firstName", from = Object.None }) or "undefined",
+									ref:readField("lastName", nil) or "undefined"
+								)
+							end,
+						},
+					},
+				},
+			})
+
+			local firstNameLastNameQuery = gql([[
+			
+				query {
+				  firstName
+				  lastName
+				}
+			  ]])
+
+			local fullNamesQuery = gql([[
+			
+				query {
+				  fullNameWithVoids
+				  fullNameWithDefaults
+				}
+			  ]])
+
+			cache:writeQuery({
+				query = firstNameLastNameQuery,
+				data = {
+					firstName = "Alan",
+					lastName = "Turing",
+				},
+			})
+
+			jestExpect(cache:readQuery({ query = fullNamesQuery })).toEqual({
+				fullNameWithDefaults = "Alan Turing",
+				fullNameWithVoids = "undefined undefined",
 			})
 		end)
 

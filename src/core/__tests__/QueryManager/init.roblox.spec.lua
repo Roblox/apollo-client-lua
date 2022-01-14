@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/core/__tests__/QueryManager/index.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/core/__tests__/QueryManager/index.ts
 
 return function()
 	-- ROBLOX deviation: setTimeout currently operates at minimum 30Hz rate. Any lower number seems to be treated as 0
@@ -1424,10 +1424,6 @@ return function()
 		end)
 
 		itAsync(it)("supports cache-only fetchPolicy fetching only cached data", function(resolve, reject)
-			local spy = jest.fn()
-			local oldWarn = console.warn
-			console.warn = spy
-
 			local primeQuery = gql([[
 
       query primeQuery {
@@ -1474,12 +1470,7 @@ return function()
 					return handle:result():andThen(function(result)
 						jestExpect(result.data["luke"].name).toBe("Luke Skywalker")
 						jestExpect(result.data).never.toHaveProperty("vader")
-						jestExpect(spy).toHaveBeenCalledTimes(1)
 					end)
-				end) -- ROBLOX TODO: finally is swallowing the error
-				:finally(function()
-					console.warn = oldWarn
-					-- spy:mockRestore()
 				end)
 				:andThen(resolve, reject)
 		end)
@@ -5893,18 +5884,18 @@ return function()
 			local verbosity: ReturnType<typeof(setVerbosity)>
 			local spy: any
 			-- ROBLOX deviation: using jest.fn instead of jest.spyOn until spyOn is implemented
-			local oldConsoleWarn
+			local oldConsoleDebug
 			beforeEach(function()
-				verbosity = setVerbosity("warn")
+				verbosity = setVerbosity("debug")
 				--[[
 					ROBLOX deviation:
 					using jest.fn instead of jest.spyOn until spyOn is implemented
 					original code:
-					spy = jest:spyOn(console, "warn"):mockImplementation()
+					spy = jest:spyOn(console, "debug"):mockImplementation()
 				]]
 				spy = jest.fn()
-				oldConsoleWarn = console.warn
-				console.warn = spy
+				oldConsoleDebug = console.debug
+				console.debug = spy
 			end)
 
 			afterEach(function()
@@ -5915,7 +5906,7 @@ return function()
 					original code:
 					spy:mockRestore()
 				]]
-				console.warn = oldConsoleWarn
+				console.debug = oldConsoleDebug
 			end)
 
 			local function validateWarnings(

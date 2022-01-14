@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/cache/inmemory/policies.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/cache/inmemory/policies.ts
 
 local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
@@ -16,8 +16,6 @@ type Set<T> = LuauPolyfill.Set<T>
 type Map<K, V> = LuauPolyfill.Map<K, V>
 type Function = (...any) -> ...any
 type Record<T, U> = { [T]: U }
-type ReturnType<T> = any
-type Exclude<T, V> = T
 type Readonly<T> = T
 
 -- ROBLOX FIXME: remove if better solution is found
@@ -63,6 +61,7 @@ local isReference = utilitiesModule.isReference
 local getStoreKeyName = utilitiesModule.getStoreKeyName
 local canUseWeakMap = utilitiesModule.canUseWeakMap
 local isNonNullObject = utilitiesModule.isNonNullObject
+local stringifyForDisplay = utilitiesModule.stringifyForDisplay
 -- ROBLOX TODO: circular dependency
 -- local typesModule = require(script.Parent.types)
 type IdGetter = (any) -> string | nil -- typesModule.IdGetter
@@ -96,6 +95,7 @@ type WriteContext = writeToStoreModule.WriteContext
 -- used by getStoreKeyName. This function is used when computing storeFieldName
 -- strings (when no keyArgs has been configured for a field).
 local canonicalStringify = require(script.Parent["object-canon"]).canonicalStringify
+
 getStoreKeyName:setStringify(canonicalStringify)
 
 local policiesTypesModule = require(script.Parent.policies_types)
@@ -993,7 +993,7 @@ exports.Policies = Policies
 
 function makeFieldFunctionOptions(
 	policies: Policies,
-	objectOrReference: StoreObject | Reference | nil,
+	objectOrReference: (StoreObject | Reference)?,
 	fieldSpec: FieldSpecifier,
 	context: ReadMergeModifyContext,
 	storage: StorageType
@@ -1014,13 +1014,51 @@ function makeFieldFunctionOptions(
 		storage = storage,
 		cache = policies.cache,
 		canRead = context.store.canRead,
-		readField = function(_self, fieldNameOrOptions: string | ReadFieldOptions, from: (StoreObject | Reference)?)
-			local options: ReadFieldOptions = typeof(fieldNameOrOptions) == "string"
-					and { fieldName = fieldNameOrOptions, from = from }
-				or Object.assign({}, fieldNameOrOptions)
-			if nil == options.from then
-				options.from = objectOrReference :: FIX_ANALYZE
+		readField = function(_self, fieldNameOrOptions: string | ReadFieldOptions, ...: (StoreObject | Reference)?)
+			-- ROBLOX deviation: format arguments to print helpful message (handle nil, and Object.None)
+			local arguments = {
+				if isNonNullObject(fieldNameOrOptions)
+				then Object.assign({}, fieldNameOrOptions :: ReadFieldOptions, if (fieldNameOrOptions :: ReadFieldOptions).from == Object.None then {from = "<Object.None>"} else nil ::any)
+				else fieldNameOrOptions,
+				if select("#", ...) >= 1 then "<nil>" else nil :: any,
+			} :: Array<any>
+
+			local options: ReadFieldOptions
+
+			if typeof(fieldNameOrOptions) == "string" then
+				options = {
+					fieldName = fieldNameOrOptions,
+					-- Default to objectOrReference only when no second argument was
+					-- passed for the from parameter, not when undefined is explicitly
+					-- passed as the second argument.
+					from = if select("#", ...) >= 1 then ... else objectOrReference,
+				}
+			elseif isNonNullObject(fieldNameOrOptions) then
+				options = Object.assign({}, fieldNameOrOptions)
+				-- Default to objectOrReference only when fieldNameOrOptions.from is
+				-- actually omitted, rather than just undefined.
+				-- ROBLOX deviation: {from: nil} works the same as omitted in Lua, use Object.None instead
+				if not hasOwn(fieldNameOrOptions, "from") then
+					options.from = objectOrReference :: any
+				end
+			else
+				invariant.warn(
+					("Unexpected readField arguments: %s"):format(stringifyForDisplay(Array.from(arguments)))
+				)
+				-- The readField helper function returns undefined for any missing
+				-- fields, so it should also return undefined if the arguments were not
+				-- of a type we expected
+				return
 			end
+
+			if _G.__DEV__ and nil == options.from then
+				invariant.warn(
+					("Undefined 'from' passed to readField with arguments %s"):format(
+						stringifyForDisplay(Array.from(arguments))
+					)
+				)
+			end
+
 			if nil == options.variables then
 				options.variables = variables
 			end
@@ -1029,6 +1067,7 @@ function makeFieldFunctionOptions(
 		mergeObjects = makeMergeObjectsFunction(context.store),
 	}
 end
+
 function makeMergeObjectsFunction(store: NormalizedCache): MergeObjectsFunction
 	return function(self, existing, incoming)
 		if Array.isArray(existing) or Array.isArray(incoming) then
@@ -1049,11 +1088,18 @@ function makeMergeObjectsFunction(store: NormalizedCache): MergeObjectsFunction
 			end
 
 			if isReference(existing) and storeValueIsStoreObject(incoming) then
+				-- Update the normalized EntityStore for the entity identified by
+				-- existing.__ref, preferring/overwriting any fields contributed by the
+				-- newer incoming StoreObject.
 				store:merge(existing.__ref, incoming)
 				return existing
 			end
 
 			if storeValueIsStoreObject(existing) and isReference(incoming) then
+				-- Update the normalized EntityStore for the entity identified by
+				-- incoming.__ref, taking fields from the older existing object only if
+				-- those fields are not already present in the newer StoreObject
+				-- identified by incoming.__ref.
 				store:merge(existing, incoming.__ref)
 				return incoming
 			end
@@ -1141,6 +1187,7 @@ type AliasMap = {
 	-- Undefined when there are no child selection sets.
 	subsets: Record<string, AliasMap>?,
 }
+
 function makeAliasMap(selectionSet: SelectionSetNode, fragmentMap: FragmentMap): AliasMap
 	local map: AliasMap = {}
 	-- TODO Cache this work, perhaps by storing selectionSet._aliasMap?
@@ -1182,6 +1229,7 @@ function makeAliasMap(selectionSet: SelectionSetNode, fragmentMap: FragmentMap):
 	end
 	return map
 end
+
 function computeKeyObject(
 	response: Record<string, any>,
 	specifier: KeySpecifier,
@@ -1235,4 +1283,10 @@ function computeKeyObject(
 	end)
 	return keyObj
 end
+
+-- ROBLOX deviation: reexport Object.None
+exports.Object = {
+	None = Object.None,
+}
+
 return exports

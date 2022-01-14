@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/cache/inmemory/writeToStore.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/cache/inmemory/writeToStore.ts
 
 local exports = {}
 
@@ -183,7 +183,16 @@ function StoreWriter:writeToStore(store: NormalizedCache, writeOpts: Cache_Write
 		local entityRef = makeReference(dataId_)
 
 		if Boolean.toJSBoolean(mergeTree.map.size) then
-			fields = self:applyMerges(mergeTree, entityRef, fields, context)
+			local applied = self:applyMerges(mergeTree, entityRef, fields, context)
+			if isReference(applied) then
+				-- Assume References returned by applyMerges have already been merged
+				-- into the store. See makeMergeObjectsFunction in policies.ts for an
+				-- example of how this can happen.
+				return
+			end
+			-- Otherwise, applyMerges returned a StoreObject, whose fields we should
+			-- merge into the store (see store.merge statement below).
+			fields = applied
 		end
 
 		if _G.__DEV__ and not context.overwrite then
@@ -496,7 +505,7 @@ function StoreWriter:applyMerges(
 	incoming: T_,
 	context: WriteContext,
 	getStorageArgs: Tuple<string | StoreObject, Array<string | number>>?
-): T_
+): T_ | Reference
 	if Boolean.toJSBoolean(mergeTree.map.size) and not isReference(incoming) then
 		local e: StoreObject | Reference | nil = (function(): StoreObject | Reference | nil
 			local ref = (function(): boolean

@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/core/ObservableQuery.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/core/ObservableQuery.ts
 
 local srcWorkspace = script.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
@@ -64,6 +64,9 @@ type WatchQueryOptions<TVariables, TData> = watchQueryOptionsModule.WatchQueryOp
 type FetchMoreQueryOptions<TVariables, TData> = watchQueryOptionsModule.FetchMoreQueryOptions<TVariables, TData>
 type SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData> =
 	watchQueryOptionsModule.SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData>
+
+type WatchQueryFetchPolicy = watchQueryOptionsModule.WatchQueryFetchPolicy
+
 local queryInfoModule = require(script.Parent.QueryInfo)
 type QueryInfo = queryInfoModule.QueryInfo
 
@@ -79,6 +82,8 @@ local warnedAboutUpdateQuery = false
 
 local ObservableQuery = setmetatable({}, { __index = Observable })
 ObservableQuery.__index = function(t, k)
+	-- Computed shorthand for this.options.variables, preserved for
+	-- backwards compatibility.
 	if k == "variables" then
 		return t.options.variables
 	end
@@ -193,6 +198,8 @@ function ObservableQuery.new(
 			self.queryName = opDef.name.value
 		end
 	end
+
+	self.initialFetchPolicy = Boolean.toJSBoolean(options.fetchPolicy) and options.fetchPolicy or "cache-first"
 
 	-- related classes
 	self.queryManager = queryManager
@@ -366,8 +373,6 @@ function ObservableQuery:refetch(variables: Partial<TVariables_>?): Promise<Apol
 		reobserveOptions.fetchPolicy = "no-cache"
 	elseif fetchPolicy ~= "cache-and-network" then
 		reobserveOptions.fetchPolicy = "network-only"
-		-- Go back to the original options.fetchPolicy after this refetch.
-		reobserveOptions.nextFetchPolicy = Boolean.toJSBoolean(fetchPolicy) and fetchPolicy or "cache-first"
 	end
 
 	if Boolean.toJSBoolean(variables) and not equal(self.options.variables, variables) then
@@ -420,7 +425,7 @@ function ObservableQuery:fetchMore(
 			if Boolean.toJSBoolean(updateQuery) then
 				-- ROBLOX deviation: added _G.__WARNED_ABOUT_OBSERVABLE_QUERY_UPDATE_QUERY__ global to allow reset this check during tests
 				if
-					Boolean.toJSBoolean(_G.__DEV__)
+					_G.__DEV__
 					and (not warnedAboutUpdateQuery or not _G.__WARNED_ABOUT_OBSERVABLE_QUERY_UPDATE_QUERY__)
 				then
 					invariant.warn([[The updateQuery callback for fetchMore is deprecated, and will be removed
@@ -561,25 +566,11 @@ function ObservableQuery:setVariables(variables: TVariables_): Promise<ApolloQue
 		return Promise.resolve()
 	end
 
-	local fetchPolicy
-
-	if self.options.fetchPolicy == nil then
-		fetchPolicy = "cache-first"
-	else
-		fetchPolicy = self.options.fetchPolicy
-	end
-
-	local reobserveOptions: Partial<WatchQueryOptions<TVariables_, TData_>> = {
-		fetchPolicy = fetchPolicy,
+	return self:reobserve({
+		-- Reset options.fetchPolicy to its original value.
+		fetchPolicy = self.initialFetchPolicy,
 		variables = variables,
-	} :: any
-
-	if fetchPolicy ~= "cache-first" and fetchPolicy ~= "no-cache" and fetchPolicy ~= "network-only" then
-		reobserveOptions.fetchPolicy = "cache-and-network"
-		reobserveOptions.nextFetchPolicy = fetchPolicy
-	end
-
-	return self:reobserve(reobserveOptions, NetworkStatus.setVariables)
+	}, NetworkStatus.setVariables)
 end
 
 function ObservableQuery:updateQuery(
@@ -672,8 +663,6 @@ function ObservableQuery:updatePolling()
 				self
 					:reobserve({
 						fetchPolicy = "network-only",
-						nextFetchPolicy = Boolean.toJSBoolean(self.options.fetchPolicy) and self.options.fetchPolicy
-							or "cache-first",
 					}, NetworkStatus.poll)
 					:andThen(poll, poll)
 			else
@@ -717,26 +706,54 @@ function ObservableQuery:reobserve(
 	newNetworkStatus: NetworkStatus?
 ): Promise<ApolloQueryResult<TData_>>
 	self.isTornDown = false
-	local options: WatchQueryOptions<TVariables_, TData_>
-	if newNetworkStatus == NetworkStatus.refetch then
-		options = Object.assign({}, self.options, compact(newOptions))
-	else
-		if Boolean.toJSBoolean(newOptions) then
-			Object.assign(self.options, compact(newOptions))
-		end
 
+	-- ROBLOX TODO: Comments here should be inlined to compound boolean, but stylua format makes luau issue warnings
+	local useDisposableConcast =
+		-- * Refetching uses a disposable Concast to allow refetches using different
+		-- options/variables, without permanently altering the options of the
+		-- original ObservableQuery.
+		-- * The fetchMore method does not actually call the reobserve method, but,
+		-- if it did, it would definitely use a disposable Concast.
+		-- * Polling uses a disposable Concast so the polling options (which force
+		-- fetchPolicy to be "network-only") won't override the original options.
+		newNetworkStatus == NetworkStatus.refetch or newNetworkStatus == NetworkStatus.fetchMore or newNetworkStatus == NetworkStatus.poll
+
+	-- Save the old variables, since Object.assign may modify them below.
+	local oldVariables = self.options.variables
+
+	local options = if useDisposableConcast
+	-- Disposable Concast fetches receive a shallow copy of this.options
+    -- (merged with newOptions), leaving this.options unmodified.
+	then compact(self.options, newOptions)
+	else Object.assign(self.options, compact(newOptions))
+
+	if not useDisposableConcast then
+		-- We can skip calling updatePolling if we're not changing this.options.
 		self:updatePolling()
-		options = self.options
+
+		-- Reset options.fetchPolicy to its original value when variables change,
+		-- unless a new fetchPolicy was provided by newOptions.
+		if
+			newOptions ~= nil
+			and Boolean.toJSBoolean(newOptions.variables)
+			and not Boolean.toJSBoolean(newOptions.fetchPolicy)
+			and not equal(newOptions.variables, oldVariables)
+		then
+			options.fetchPolicy = self.initialFetchPolicy
+			if newNetworkStatus == nil then
+				newNetworkStatus = NetworkStatus.setVariables
+			end
+		end
 	end
 
 	local concast = self:fetch(options, newNetworkStatus)
-	if newNetworkStatus ~= NetworkStatus.refetch then
-		-- We use the {add,remove}Observer methods directly to avoid
-		-- wrapping observer with an unnecessary SubscriptionObserver
-		-- object, in part so that we can remove it here without triggering
-		-- any unsubscriptions, because we just want to ignore the old
-		-- observable, not prematurely shut it down, since other consumers
-		-- may be awaiting this.concast.promise.
+
+	if not useDisposableConcast then
+		-- We use the {add,remove}Observer methods directly to avoid wrapping
+		-- observer with an unnecessary SubscriptionObserver object, in part so
+		-- that we can remove it here without triggering any unsubscriptions,
+		-- because we just want to ignore the old observable, not prematurely shut
+		-- it down, since other consumers may be awaiting this.concast.promise.
 		if Boolean.toJSBoolean(self.concast) then
 			self.concast:removeObserver(self.observer, true)
 		end
@@ -745,6 +762,7 @@ function ObservableQuery:reobserve(
 	end
 
 	concast:addObserver(self.observer)
+
 	return concast.promise
 end
 
@@ -810,11 +828,6 @@ local function applyNextFetchPolicy(
 	local nextFetchPolicy = options.nextFetchPolicy
 
 	if Boolean.toJSBoolean(nextFetchPolicy) then
-		-- The options.nextFetchPolicy transition should happen only once, but it
-		-- should also be possible (though uncommon) for a nextFetchPolicy function
-		-- to set options.nextFetchPolicy to perform an additional transition.
-		options.nextFetchPolicy = nil
-
 		-- When someone chooses "cache-and-network" or "network-only" as their
 		-- initial FetchPolicy, they often do not want future cache updates to
 		-- trigger unconditional network requests, which is what repeatedly

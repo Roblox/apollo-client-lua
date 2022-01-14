@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/core/__tests__/fetchPolicies.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/core/__tests__/fetchPolicies.ts
 
 return function()
 	local srcWorkspace = script.Parent.Parent.Parent
@@ -655,7 +655,7 @@ return function()
 					jestExpect(observable.options.fetchPolicy).toBe("cache-only")
 					setTimeout(resolve, 50)
 				else
-					reject(("too many results (%s)"):format(count))
+					reject(("too many results (%s)"):format(tostring(count)))
 				end
 			end)
 		end)

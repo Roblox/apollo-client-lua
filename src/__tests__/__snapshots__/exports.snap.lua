@@ -1,8 +1,8 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/__tests__/__snapshots__/exports.ts.snap
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/__tests__/__snapshots__/exports.ts.snap
 local snapshots = {}
 
 -- ROBLOX deviation:
--- Exports added: NULL
+-- Exports added: NULL, Object.None
 -- Exports removed: Cache (namespace exported as types)
 snapshots["exports of public entry points @apollo/client 1"] = [[
 
@@ -19,6 +19,7 @@ Table {
   "MissingFieldError",
   "NULL",
   "NetworkStatus",
+  "Object",
   "Observable",
   "ObservableQuery",
   "applyNextFetchPolicy",
@@ -66,6 +67,7 @@ Table {
 ]]
 
 -- ROBLOX deviation:
+-- Exports removed: Object.None
 -- Exports removed: Cache (namespace exported as types)
 snapshots["exports of public entry points @apollo/client/cache 1"] = [[
 
@@ -74,6 +76,7 @@ Table {
   "EntityStore",
   "InMemoryCache",
   "MissingFieldError",
+  "Object",
   "Policies",
   "cacheSlot",
   "canonicalStringify",
@@ -86,7 +89,7 @@ Table {
 ]]
 
 -- ROBLOX deviation:
--- Exports added: NULL
+-- Exports added: NULL, Object.None
 -- Exports removed: Cache (namespace exported as types)
 snapshots["exports of public entry points @apollo/client/core 1"] = [[
 
@@ -100,6 +103,7 @@ Table {
   "MissingFieldError",
   "NULL",
   "NetworkStatus",
+  "Object",
   "Observable",
   "ObservableQuery",
   "applyNextFetchPolicy",
@@ -347,6 +351,8 @@ Table {
   "stripSymbols",
   "subscribeAndCount",
   "withErrorSpy",
+  "withLogSpy",
+  "withWarningSpy",
 }
 ]]
 
@@ -410,6 +416,7 @@ Table {
   "resultKeyNameFromField",
   "shouldInclude",
   "storeKeyNameFromField",
+  "stringifyForDisplay",
   "uuid",
   "valueToObjectRepresentation",
 }

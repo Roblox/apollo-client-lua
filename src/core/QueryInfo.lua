@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/core/QueryInfo.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/core/QueryInfo.ts
 
 local exports = {}
 local srcWorkspace = script.Parent.Parent
@@ -305,12 +305,14 @@ function QueryInfo:getDiffOptions(variables): Cache_DiffOptions<any, any>
 		variables = self.variables
 	end
 
+	local oq = self.observableQuery
+
 	return {
 		query = self.document,
 		variables = variables,
 		returnPartialData = true,
 		optimistic = true,
-		canonizeResults = self:canonize(),
+		canonizeResults = not Boolean.toJSBoolean(oq) or oq.options.canonizeResults ~= false,
 	}
 end
 
@@ -461,11 +463,6 @@ function QueryInfo:updateWatch(variables)
 		self.lastWatch = watchOptions
 		self.cancel = self.cache:watch(self.lastWatch)
 	end
-end
-
-function QueryInfo:canonize()
-	local oq = self.observableQuery
-	return not Boolean.toJSBoolean(oq) or oq.options.canonizeResults ~= false
 end
 
 function QueryInfo:resetLastWrite()

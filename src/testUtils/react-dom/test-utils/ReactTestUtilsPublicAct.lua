@@ -88,7 +88,7 @@ local didWarnAboutUsingActInProd = false
 -- ROBLOX deviation: This seems to be a bug in upstream. act-compat doest adhere to the callback typing upstream.
 -- Added () -> () to align with how act is used in act-compat.
 local function act(callback: (() -> Thenable<any>) | () -> ())
-	if not Boolean.toJSBoolean(_G.__DEV__) then
+	if not _G.__DEV__ then
 		if didWarnAboutUsingActInProd == false then
 			didWarnAboutUsingActInProd = true
 			console.error("act(...) is not supported in production builds of React, and might not behave as expected.")
@@ -108,7 +108,7 @@ local function act(callback: (() -> Thenable<any>) | () -> ())
 		actingUpdatesScopeDepth -= 1
 		IsSomeRendererActing.current = previousIsSomeRendererActing
 		IsThisRendererActing.current = previousIsThisRendererActing
-		if Boolean.toJSBoolean(_G.__DEV__) then
+		if _G.__DEV__ then
 			if actingUpdatesScopeDepth > previousActingUpdatesScopeDepth then
 				-- if it's _less than_ previousActingUpdatesScopeDepth, then we can assume the 'other' one has warned
 				console.error(
@@ -133,7 +133,7 @@ local function act(callback: (() -> Thenable<any>) | () -> ())
 		-- setup a boolean that gets set to true only
 		-- once this act() call is await-ed
 		local called = false
-		if Boolean.toJSBoolean(_G.__DEV__) then
+		if _G.__DEV__ then
 			if typeof(Promise) ~= "nil" then
 				Promise.delay(0):andThen(function()
 					if called == false then
@@ -177,7 +177,7 @@ local function act(callback: (() -> Thenable<any>) | () -> ())
 			end)
 		end)
 	else
-		if Boolean.toJSBoolean(_G.__DEV__) then
+		if _G.__DEV__ then
 			if result ~= nil then
 				console.error(
 					(
@@ -208,7 +208,7 @@ local function act(callback: (() -> Thenable<any>) | () -> ())
 		-- in the sync case, the returned thenable only warns *if* await-ed
 		return {
 			andThen = function(self, resolve: () -> ())
-				if Boolean.toJSBoolean(_G.__DEV__) then
+				if _G.__DEV__ then
 					console.error("Do not await the result of calling act(...) with sync logic, it is not a Promise.")
 				end
 				resolve()

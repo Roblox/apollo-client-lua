@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/cache/inmemory/policies.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/cache/inmemory/policies.ts
 -- ROBLOX deviation: extracted types to avoid circular dependencies
 
 local srcWorkspace = script.Parent.Parent.Parent

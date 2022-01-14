@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/core/index.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/core/index.ts
 
 local exports = {}
 local srcWorkspace = script.Parent
@@ -80,6 +80,8 @@ exports.defaultDataIdFromObject = cacheModule.defaultDataIdFromObject
 exports.InMemoryCache = cacheModule.InMemoryCache
 exports.MissingFieldError = cacheModule.MissingFieldError
 exports.makeVar = cacheModule.makeVar
+-- ROBLOX deviation: reexport Object.None
+exports.Object = cacheModule.Object
 export type ApolloCache<TSerialized> = cacheModule.ApolloCache<TSerialized>
 export type Cache_DiffResult<T> = cacheModule.Cache_DiffResult<T>
 export type Cache_WatchCallback = cacheModule.Cache_WatchCallback

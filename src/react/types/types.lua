@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/react/types/types.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/react/types/types.ts
 local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 
@@ -34,12 +34,9 @@ type FetchResult<TData> = { [string]: any }
 -- local ApolloError = require(script.Parent.Parent.Parent.errors).ApolloError
 type ApolloError = { [string]: any }
 
--- ROBLOX TODO: use import when ApolloCache is imported
--- local ApolloCache = coreModule.ApolloCache
-type ApolloCache<T> = { [string]: any }
-
-local apolloClientModule = require(srcWorkspace.core.ApolloClient)
-type ApolloClient<TCacheShape> = apolloClientModule.ApolloClient<TCacheShape>
+local coreModule = require(script.Parent.Parent.Parent.core)
+type ApolloCache<TSerialized> = coreModule.ApolloCache<TSerialized>
+type ApolloClient<TCacheShape> = coreModule.ApolloClient<TCacheShape>
 
 -- ROBLOX TODO use import when ApolloQueryResult is imported
 -- local ApolloQueryResult = coreModule.ApolloQueryResult
@@ -226,7 +223,7 @@ export type RefetchQueriesFunction = (...any) -> InternalRefetchQueriesInclude
 -- ROBLOX TODO: when we port over MutationOptions we should implement the omitted version of it
 export type MutationOptionsWithoutMutationProperty<TData, TVariables, TContext, TCache> = any
 
---[[ ROBLOX deviation: there are no default generic params in Luau: `<TData, TVariables extends OperationVariables, TCache extends ApolloCache<any> = ApolloCache<any>>` ]]
+--[[ ROBLOX deviation: there are no default generic params in Luau: `<TData = any, TVariables = OperationVariables, TContext = DefaultContext, TCache extends ApolloCache<any> = ApolloCache<any>>` ]]
 export type BaseMutationOptions<TData, TVariables, TContext, TCache> = MutationOptionsWithoutMutationProperty<TData, TVariables, TContext, TCache> & {
 	client: ApolloClient<Object>?,
 	notifyOnNetworkStatusChange: boolean?,
@@ -235,7 +232,7 @@ export type BaseMutationOptions<TData, TVariables, TContext, TCache> = MutationO
 	ignoreResults: boolean?,
 }
 
---[[ ROBLOX deviation: there are no default generic params in Luau: `<TData, TVariables, TContext, TCache extends ApolloCache<any>,` ]]
+--[[ ROBLOX deviation: there are no default generic params in Luau: `<TData = any, TVariables = OperationVariables, TContext = DefaultContext, TCache extends ApolloCache<any> = ApolloCache<any>>` ]]
 export type MutationFunctionOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<TData, TVariables, TContext, TCache> & {
 	mutation: (DocumentNode | TypedDocumentNode<TData, TVariables>)?,
 }
@@ -266,7 +263,7 @@ export type MutationHookOptions<TData, TVariables, TContext, TCache> = BaseMutat
 	mutation: (DocumentNode | TypedDocumentNode<TData, TVariables>)?,
 }
 
---[[ ROBLOX deviation: there are no default generic params in Luau: `<TData, TVariables extends OperationVariables, TContext extends DefaultContext, TCache extends ApolloCache<any>,` ]]
+--[[ ROBLOX deviation: there are no default generic params in Luau: `<TData = any, TVariables = OperationVariables, TContext = DefaultContext, TCache extends ApolloCache<any> = ApolloCache<any>>` ]]
 export type MutationDataOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<TData, TVariables, TContext, TCache> & {
 	mutation: DocumentNode | TypedDocumentNode<TData, TVariables>,
 }
@@ -274,7 +271,7 @@ export type MutationDataOptions<TData, TVariables, TContext, TCache> = BaseMutat
 --[[
 	ROBLOX deviation: no way to type a tuple in Luau. Using Tuple helper type in case it becomes possible in later versions of Luau
 	original type:
- export type MutationTuple<TData, TVariables, TContext, TCache extends ApolloCache<any>> = [
+ export type MutationTuple<TData, TVariables, TContext = DefaultContext, TCache extends ApolloCache<any>> = [
    (
      options?: MutationFunctionOptions<TData, TVariables, TContext, TCache>
   ) => Promise<FetchResult<TData>>,

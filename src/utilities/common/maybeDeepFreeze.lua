@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/utilities/common/maybeDeepFreeze.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/utilities/common/maybeDeepFreeze.ts
 local exports = {}
 
 local srcWorkspace = script.Parent.Parent.Parent
@@ -11,7 +11,6 @@ Object.freeze = (table :: any).freeze
 Object.isFrozen = (table :: any).isfrozen
 
 local Set = LuauPolyfill.Set
-local Boolean = LuauPolyfill.Boolean
 local Array = LuauPolyfill.Array
 
 require(script.Parent.Parent.globals) -- For __DEV__
@@ -36,7 +35,7 @@ local function deepFreeze(value: any)
 end
 
 local function maybeDeepFreeze<T>(obj: T): T
-	if Boolean.toJSBoolean(_G.__DEV__) then
+	if _G.__DEV__ then
 		deepFreeze(obj)
 	end
 	return obj

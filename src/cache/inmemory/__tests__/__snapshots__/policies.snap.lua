@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/cache/inmemory/__tests__/__snapshots__/policies.ts.snap
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/cache/inmemory/__tests__/__snapshots__/policies.ts.snap
 
 local snapshots = {}
 snapshots["type policies complains about missing key fields 1"] = [[
@@ -154,6 +154,28 @@ snapshots["type policies field policies runs nested merge functions as well as a
     Table {
       "type": "return",
     },
+    Table {
+      "type": "return",
+    },
+    Table {
+      "type": "return",
+    },
+  },
+}
+]]
+
+snapshots["type policies readField warns if explicitly passed undefined `from` option 1"] = [[
+
+[MockFunction] {
+  "calls": Table {
+    Table {
+      "Undefined 'from' passed to readField with arguments [{\"from\":\"<Object.None>\",\"fieldName\":\"firstName\"}]",
+    },
+    Table {
+      "Undefined 'from' passed to readField with arguments [\"lastName\",\"<nil>\"]",
+    },
+  },
+  "results": Table {
     Table {
       "type": "return",
     },

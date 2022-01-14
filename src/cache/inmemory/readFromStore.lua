@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/cache/inmemory/readFromStore.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/cache/inmemory/readFromStore.ts
 
 -- ROBLOX FIXME: remove when analyze is fixed
 type InvalidAnalyzeErrorFix = any
@@ -558,7 +558,7 @@ function StoreReader:execSubSelectedArrayImpl(ref: ExecSubSelectedArrayOptions):
 			)
 		end
 
-		if Boolean.toJSBoolean(_G.__DEV__) then
+		if _G.__DEV__ then
 			assertSelectionSetForIdValue(context.store, field, item)
 		end
 

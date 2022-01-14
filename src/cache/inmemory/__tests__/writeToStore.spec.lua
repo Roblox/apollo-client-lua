@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/cache/inmemory/__tests__/writeToStore.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/cache/inmemory/__tests__/writeToStore.ts
 
 return function()
 	local srcWorkspace = script.Parent.Parent.Parent.Parent
@@ -54,6 +54,9 @@ return function()
 	local storeKeyNameFromField = storeUtilsModule.storeKeyNameFromField
 	local makeReference = storeUtilsModule.makeReference
 	local isReference = storeUtilsModule.isReference
+	type Reference = storeUtilsModule.Reference
+	type StoreObject = storeUtilsModule.StoreObject
+
 	local addTypenameToDocument =
 		require(script.Parent.Parent.Parent.Parent.utilities.graphql.transform).addTypenameToDocument
 	local cloneDeep = require(script.Parent.Parent.Parent.Parent.utilities.common.cloneDeep).cloneDeep
@@ -2276,6 +2279,135 @@ return function()
 				})
 			end
 		)
+
+		it("should not merge { __ref } as StoreObject when mergeObjects used", function()
+			local merges: Array<{ existing: Reference | nil, incoming: Reference | StoreObject, merged: Reference }> =
+				{}
+
+			local cache = InMemoryCache.new({
+				typePolicies = {
+					Account = {
+						merge = function(_self, existing, incoming, ref)
+							local merged = ref:mergeObjects(existing, incoming)
+							table.insert(merges, { existing = existing, incoming = incoming, merged = merged })
+							-- ROBLOX comment: not required
+							-- debugger;
+							return merged
+						end,
+					},
+				},
+			})
+
+			local contactLocationQuery = gql([[
+			
+				query {
+				  account {
+					contact
+					location
+				  }
+				}
+			  ]])
+
+			local contactOnlyQuery = gql([[
+			
+				query {
+				  account {
+					contact
+				  }
+				}
+			  ]])
+
+			local locationOnlyQuery = gql([[
+			
+				query {
+				  account {
+					location
+				  }
+				}
+			  ]])
+
+			cache:writeQuery({
+				query = contactLocationQuery,
+				data = {
+					account = {
+						__typename = "Account",
+						contact = "billing@example.com",
+						location = "Exampleville, Ohio",
+					},
+				},
+			})
+
+			jestExpect(cache:extract()).toEqual({
+				ROOT_QUERY = {
+					__typename = "Query",
+					account = {
+						__typename = "Account",
+						contact = "billing@example.com",
+						location = "Exampleville, Ohio",
+					},
+				},
+			})
+
+			cache:writeQuery({
+				query = contactOnlyQuery,
+				data = { account = { __typename = "Account", id = 12345, contact = "support@example.com" } },
+			})
+
+			jestExpect(cache:extract()).toEqual({
+				["Account:12345"] = {
+					__typename = "Account",
+					id = 12345,
+					contact = "support@example.com",
+					location = "Exampleville, Ohio",
+				},
+				ROOT_QUERY = { __typename = "Query", account = { __ref = "Account:12345" } },
+			})
+
+			cache:writeQuery({
+				query = locationOnlyQuery,
+				data = { account = { __typename = "Account", location = "Nowhere, New Mexico" } },
+			})
+
+			jestExpect(cache:extract()).toEqual({
+				["Account:12345"] = {
+					__typename = "Account",
+					id = 12345,
+					contact = "support@example.com",
+					location = "Nowhere, New Mexico",
+				},
+				ROOT_QUERY = { __typename = "Query", account = { __ref = "Account:12345" } },
+			})
+
+			jestExpect(merges).toEqual({
+				{
+					existing = 0 and nil or nil,
+					incoming = {
+						__typename = "Account",
+						contact = "billing@example.com",
+						location = "Exampleville, Ohio",
+					},
+					merged = {
+						__typename = "Account",
+						contact = "billing@example.com",
+						location = "Exampleville, Ohio",
+					},
+				},
+				{
+					existing = {
+						__typename = "Account",
+						contact = "billing@example.com",
+						location = "Exampleville, Ohio",
+					},
+					incoming = { __ref = "Account:12345" },
+					merged = { __ref = "Account:12345" },
+				},
+				{
+					existing = { __ref = "Account:12345" },
+					incoming = { __typename = "Account", location = "Nowhere, New Mexico" },
+					merged = { __ref = "Account:12345" },
+				},
+			})
+		end)
 
 		it("should not deep-freeze scalar objects", function()
 			local query = gql([[

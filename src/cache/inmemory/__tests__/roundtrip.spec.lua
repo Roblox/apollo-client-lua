@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/cache/inmemory/__tests__/roundtrip.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/cache/inmemory/__tests__/roundtrip.ts
 
 return function()
 	local srcWorkspace = script.Parent.Parent.Parent.Parent
@@ -9,7 +9,6 @@ return function()
 
 	local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 	local Array = LuauPolyfill.Array
-	local Boolean = LuauPolyfill.Boolean
 	local Error = LuauPolyfill.Error
 	local Object = LuauPolyfill.Object
 	-- ROBLOX TODO: remove when available in LuauPolyfill
@@ -87,7 +86,7 @@ return function()
 		jestExpect(immutableResult).toEqual(reconstructedResult)
 		jestExpect(readQueryFromStore(reader, readOptions)).toBe(immutableResult)
 
-		if Boolean.toJSBoolean(_G.__DEV__) then
+		if _G.__DEV__ then
 			local ok, res = pcall(function()
 				(immutableResult :: any).illegal = "this should not work"
 				error(Error.new("unreached"))

@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/cache/inmemory/inMemoryCache.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/cache/inmemory/inMemoryCache.ts
 
 -- ROBLOX FIXME: remove when analyze is fixed
 type InvalidAnalyzeErrorFix = any

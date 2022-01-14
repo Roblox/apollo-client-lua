@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/core/types.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/core/types.ts
 
 local srcWorkspace = script.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
@@ -21,8 +21,8 @@ type Promise<T> = PromiseTypeModule.Promise<T>
 -- ROBLOX deviation: need to define Map type for use below
 type Map<T, U> = { [any]: any }
 
--- ROBLOX deviation: only used during upstreams generic type restriction for RefetchQueriesOptions
--- local ApolloCache = require(script.Parent.Parent.cache).ApolloCache
+local cacheModule = require(script.Parent.Parent.cache)
+type ApolloCache<TSerialized> = cacheModule.ApolloCache<TSerialized>
 
 -- ROBLOX deviation: inline trivial type to avoid circular dependency
 -- local FetchResult = require(script.Parent.Parent.link.core).FetchResult
@@ -195,7 +195,14 @@ export type InternalRefetchQueriesOptions<TCache, TResult> = RefetchQueriesOptio
 	removeOptimistic: string?,
 }
 
-export type InternalRefetchQueriesResult<TResult> = TResult | Promise<ApolloQueryResult<any>>
+-- ROBLOX deviation: conditional type not available yet TResult extends boolean ? Promise<ApolloQueryResult<any>> : TResult;
+-- If onQueryUpdated returns a boolean, that's equivalent to refetching the
+-- query when the boolean is true and skipping the query when false, so the
+-- internal type of refetched results is Promise<ApolloQueryResult<any>>.
+-- Otherwise, onQueryUpdated returns whatever it returns. If onQueryUpdated is
+-- not provided, TResult defaults to Promise<ApolloQueryResult<any>> (see the
+-- generic type parameters of client.refetchQueries).
+export type InternalRefetchQueriesResult<TResult> = Promise<ApolloQueryResult<any>> | TResult
 
 -- ROBLOX deviation: inline default type args
 export type InternalRefetchQueriesMap<TResult> =
@@ -230,6 +237,15 @@ export type MutationQueryReducer<T> = (
 ) -> Record<string, any>
 
 export type MutationQueryReducersMap<T> = { [string]: MutationQueryReducer<T> }
+
+-- @deprecated Use MutationUpdaterFunction instead.
+export type MutationUpdaterFn<T> = (
+	-- The MutationUpdaterFn type is broken because it mistakenly uses the same
+	-- type parameter T for both the cache and the mutationResult. Do not use this
+	-- type unless you absolutely need it for backwards compatibility.
+	cache: ApolloCache<T>,
+	mutationResult: FetchResult<T, any, any>
+) -> ()
 
 -- ROBLOX deviation: Luau doesn't have Omit type util so we need to be more verbose
 -- Omit<FetchResult<TData>, 'context'>

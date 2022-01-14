@@ -1,4 +1,4 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.0-rc.17/src/__tests__/local-state/resolvers.ts
+-- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/__tests__/local-state/resolvers.ts
 
 return function()
 	local srcWorkspace = script.Parent.Parent.Parent

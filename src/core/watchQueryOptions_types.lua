@@ -43,11 +43,11 @@ type InternalRefetchQueriesInclude = any
  * - standby: only for queries that aren't actively watched, but should be available for refetch and updateQueries.
  */
 ]]
--- ROBLOX deviation :
+-- ROBLOX TODO : replace when tooling supports Singleton types
 -- export type FetchPolicy =| 'cache-first'| 'network-only'| 'cache-only'| 'no-cache'| 'standby'
 export type FetchPolicy = string
 
--- ROBLOX deviation :
+-- ROBLOX TODO : replace when tooling supports Singleton types
 -- export type ErrorPolicy = 'none' | 'ignore' | 'all';
 export type ErrorPolicy = string
 
@@ -137,10 +137,10 @@ export type WatchQueryOptions<TVariables, TData> = QueryOptions_omit_fetchPolicy
 	refetchWritePolicy: RefetchWritePolicy?,
 }
 
--- ROBLOX deviation
+-- ROBLOX TODO : replace when tooling supports Singleton types
 -- export type WatchQueryFetchPolicy = FetchPolicy | 'cache-and-network';
 export type WatchQueryFetchPolicy = string
--- ROBLOX deviation
+-- ROBLOX TODO : replace when tooling supports Singleton types
 -- export type RefetchWritePolicy = "merge" | "overwrite";
 export type RefetchWritePolicy = string
 
