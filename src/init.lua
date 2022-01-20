@@ -5,6 +5,7 @@ local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Object = LuauPolyfill.Object
 local coreModule = require(script.core)
 Object.assign(exports, coreModule)
+exports.None = coreModule.None
 export type ApolloCache<TSerialized> = coreModule.ApolloCache<TSerialized>
 export type ApolloClient<TCacheShape> = coreModule.ApolloClient<TCacheShape>
 export type ApolloClientOptions<TCacheShape> = coreModule.ApolloClientOptions<TCacheShape>

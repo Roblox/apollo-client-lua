@@ -145,10 +145,14 @@ function EntityStore.new(policies: Policies, group: CacheGroup): EntityStore
 		function(_self: EntityStore, objectOrReference: StoreObject | Reference | nil, storeFieldName: string)
 			return maybeDeepFreeze((function()
 				if isReference(objectOrReference) then
+					-- ROBLOX deviation START: added type annotation
 					return self:get((objectOrReference :: Reference).__ref, storeFieldName)
+					-- ROBLOX deviation END
 				else
 					if Boolean.toJSBoolean(objectOrReference) then
+						-- ROBLOX deviation START: added type annotation
 						return (objectOrReference :: StoreObject)[storeFieldName]
+						-- ROBLOX deviation END
 					else
 						return objectOrReference
 					end
@@ -264,10 +268,14 @@ function EntityStore:merge(older: string | StoreObject, newer: StoreObject | str
 
 	-- Convert unexpected references to ID strings.
 	if isReference(older) then
+		-- ROBLOX deviation START: added type annotation
 		older = ((older :: any) :: Reference).__ref
+		-- ROBLOX deviation END
 	end
 	if isReference(newer) then
+		-- ROBLOX deviation START: added type annotation
 		newer = ((newer :: any) :: Reference).__ref
+		-- ROBLOX deviation END
 	end
 
 	local existing: StoreObject | nil

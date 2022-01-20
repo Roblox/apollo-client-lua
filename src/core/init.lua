@@ -81,7 +81,7 @@ exports.InMemoryCache = cacheModule.InMemoryCache
 exports.MissingFieldError = cacheModule.MissingFieldError
 exports.makeVar = cacheModule.makeVar
 -- ROBLOX deviation: reexport Object.None
-exports.Object = cacheModule.Object
+exports.None = cacheModule.None
 export type ApolloCache<TSerialized> = cacheModule.ApolloCache<TSerialized>
 export type Cache_DiffResult<T> = cacheModule.Cache_DiffResult<T>
 export type Cache_WatchCallback = cacheModule.Cache_WatchCallback

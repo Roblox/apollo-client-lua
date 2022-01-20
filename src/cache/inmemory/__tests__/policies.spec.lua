@@ -4037,9 +4037,10 @@ return function()
 							end,
 							fullNameWithVoids = function(_self, _, ref)
 								return ("%s %s"):format(
-									-- ROBLOX deviations: return string if result is nil
+									-- ROBLOX deviation START: return string if result is nil
 									ref:readField({ fieldName = "firstName", from = Object.None }) or "undefined",
 									ref:readField("lastName", nil) or "undefined"
+									-- ROBLOX deviation END
 								)
 							end,
 						},

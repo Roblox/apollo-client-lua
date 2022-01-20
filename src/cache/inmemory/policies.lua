@@ -1285,8 +1285,6 @@ function computeKeyObject(
 end
 
 -- ROBLOX deviation: reexport Object.None
-exports.Object = {
-	None = Object.None,
-}
+exports.None = Object.None
 
 return exports

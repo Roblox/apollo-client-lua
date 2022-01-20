@@ -708,15 +708,18 @@ function ObservableQuery:reobserve(
 	self.isTornDown = false
 
 	-- ROBLOX TODO: Comments here should be inlined to compound boolean, but stylua format makes luau issue warnings
+	-- stylua: ignore
 	local useDisposableConcast =
 		-- * Refetching uses a disposable Concast to allow refetches using different
 		-- options/variables, without permanently altering the options of the
 		-- original ObservableQuery.
+		newNetworkStatus == NetworkStatus.refetch or
 		-- * The fetchMore method does not actually call the reobserve method, but,
 		-- if it did, it would definitely use a disposable Concast.
+		newNetworkStatus == NetworkStatus.fetchMore or
 		-- * Polling uses a disposable Concast so the polling options (which force
 		-- fetchPolicy to be "network-only") won't override the original options.
-		newNetworkStatus == NetworkStatus.refetch or newNetworkStatus == NetworkStatus.fetchMore or newNetworkStatus == NetworkStatus.poll
+		newNetworkStatus == NetworkStatus.poll
 
 	-- Save the old variables, since Object.assign may modify them below.
 	local oldVariables = self.options.variables

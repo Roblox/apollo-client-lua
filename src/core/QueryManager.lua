@@ -131,9 +131,8 @@ type MutationStoreValue = {
 	loading: boolean,
 	error: Error | nil,
 }
-
--- ROBLOX TODO: use MutationOptions when available
-type UpdateQueries<TData> = any --[[ MutationOptions<TData, any, any>["updateQueries"] ]]
+-- ROBLOX TODO: revisit when default generic types are available
+type UpdateQueries<TData> = typeof((({} :: any) :: MutationOptions<TData, any, any, any>).updateQueries)
 
 type TransformCacheEntry = {
 	document: DocumentNode,
@@ -148,6 +147,7 @@ type TransformCacheEntry = {
 local QueryManager = {}
 QueryManager.__index = QueryManager
 
+-- ROBLOX TODO: add generics for markMutationResult, markMutationOptimistic, watchQuery, startGraphQLSubscription
 export type QueryManager<TStore> = {
 	cache: ApolloCache<TStore>,
 	link: ApolloLink,
@@ -163,7 +163,7 @@ export type QueryManager<TStore> = {
 		self: QueryManager<TStore>,
 		mutation: {
 			mutationId: string,
-			result: FetchResult<any, any, any>,
+			result: FetchResult<TData_, any, any>,
 			document: DocumentNode,
 			variables: TVariables_?,
 			fetchPolicy: string?,
@@ -177,7 +177,7 @@ export type QueryManager<TStore> = {
 			onQueryUpdated: OnQueryUpdated<any>,
 			keepRootFields: boolean,
 		},
-		cache: ApolloCache<TStore_>
+		cache: ApolloCache<TStore>
 	) -> Promise<FetchResult<TData_, any, any>>,
 	markMutationOptimistic: (
 		self: QueryManager<TStore>,
@@ -194,21 +194,23 @@ export type QueryManager<TStore> = {
 			keepRootFields: boolean,
 		}
 	) -> (),
-	fetchQuery: (
+	fetchQuery: <TData, TVars>(
 		self: QueryManager<TStore>,
 		queryId: string,
-		options: WatchQueryOptions<any, any>,
+		options: WatchQueryOptions<TVars, TData>,
 		networkStatus: NetworkStatus?
-	) -> Promise<ApolloQueryResult<any>>,
+	) -> Promise<ApolloQueryResult<TData>>,
 	getQueryStore: (self: QueryManager<TStore>) -> Record<string, QueryStoreValue>,
 	resetErrors: (self: QueryManager<TStore>, queryId: string) -> (),
 	transform: (self: QueryManager<TStore>, document: DocumentNode) -> TransformCacheEntry,
 	watchQuery: (self: QueryManager<TStore>, options: WatchQueryOptions<any, any>) -> ObservableQuery<any, any>,
-	query: (
+	-- ROBLOX deviation: missing default generic <TVars = OperationVariables>
+	query: <TData, TVars>(
 		self: QueryManager<TStore>,
-		options: QueryOptions<any, any>,
+		options: QueryOptions<TVars, TData>,
 		queryId: string?
-	) -> Promise<ApolloQueryResult<any>>,
+	) -> Promise<ApolloQueryResult<TData>>,
+	-- ROBLOX deviation END
 	generateQueryId: (self: QueryManager<TStore>) -> string,
 	generateRequestId: (self: QueryManager<TStore>) -> number,
 	generateMutationId: (self: QueryManager<TStore>) -> string,
@@ -222,7 +224,7 @@ export type QueryManager<TStore> = {
 	reFetchObservableQueries: (
 		self: QueryManager<TStore>,
 		includeStandby: boolean?
-	) -> Promise<ApolloQueryResult<Array<any>>>,
+	) -> Promise<Array<ApolloQueryResult<any>>>,
 	setObservableQuery: (self: QueryManager<TStore>, observableQuery: ObservableQuery<any, any>) -> (),
 	startGraphQLSubscription: (
 		self: QueryManager<TStore>,
@@ -231,17 +233,17 @@ export type QueryManager<TStore> = {
 	stopQuery: (self: QueryManager<TStore>, queryId: string) -> (),
 	removeQuery: (self: QueryManager<TStore>, queryId: string) -> (),
 	broadcastQueries: (self: QueryManager<TStore>) -> (),
-	getLocalState: (self: QueryManager<TStore>) -> LocalState<TStore_>,
-	fetchQueryObservable: (
+	getLocalState: (self: QueryManager<TStore>) -> LocalState<TStore>,
+	fetchQueryObservable: <TData, TVars>(
 		self: QueryManager<TStore>,
 		queryId: string,
-		options: WatchQueryOptions<any, any>,
+		options: WatchQueryOptions<TVars, TData>,
 		networkStatus: NetworkStatus?
-	) -> Concast<ApolloQueryResult<TData_>>,
-	refetchQueries: (
+	) -> Concast<ApolloQueryResult<TData>>,
+	refetchQueries: <TResult>(
 		self: QueryManager<TStore>,
-		ref: InternalRefetchQueriesOptions<ApolloCache<TStore_>, TResult_>
-	) -> InternalRefetchQueriesMap<TResult_>,
+		ref: InternalRefetchQueriesOptions<ApolloCache<TStore>, TResult>
+	) -> InternalRefetchQueriesMap<TResult>,
 }
 
 type QueryManagerPrivate<TStore> = QueryManager<TStore> & {
@@ -287,18 +289,18 @@ type QueryManagerPrivate<TStore> = QueryManager<TStore> & {
 	prepareContext: (self: QueryManagerPrivate<TStore>, context: Object) -> Object,
 }
 
-function QueryManager.new(
+function QueryManager.new<TStore>(
 	ref: {
-		cache: ApolloCache<TStore_>,
+		cache: ApolloCache<TStore>,
 		link: ApolloLink,
 		queryDeduplication: boolean?,
 		onBroadcast: (() -> ())?,
 		ssrMode: boolean?,
 		clientAwareness: { [string]: string }?,
-		localState: LocalState<TStore_>?,
+		localState: LocalState<TStore>?,
 		assumeImmutableResults: boolean?,
 	}
-): QueryManager<TStore_>
+): QueryManager<TStore>
 	local cache, link, queryDeduplication, onBroadcast, ssrMode, clientAwareness, localState, assumeImmutableResults =
 		ref.cache,
 		ref.link,
@@ -353,7 +355,7 @@ function QueryManager.new(
 		self.mutationStore = {}
 	end
 
-	return (self :: any) :: QueryManager<TStore_>
+	return (self :: any) :: QueryManager<TStore>
 end
 
 --[[*
@@ -1081,7 +1083,7 @@ function QueryManager:getObservableQueries(
 	return queries
 end
 
-function QueryManager:reFetchObservableQueries(includeStandby: boolean?): Promise<ApolloQueryResult<Array<any>>>
+function QueryManager:reFetchObservableQueries(includeStandby: boolean?): Promise<Array<ApolloQueryResult<any>>>
 	if includeStandby == nil then
 		includeStandby = false
 	end

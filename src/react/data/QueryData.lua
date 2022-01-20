@@ -32,6 +32,7 @@ type FetchMoreOptions<TData, TVariables> = coreModule.FetchMoreOptions<TData, TV
 type UpdateQueryOptions<TVariables> = coreModule.UpdateQueryOptions<TVariables>
 type DocumentNode = coreModule.DocumentNode
 type TypedDocumentNode<Result, Variables> = coreModule.TypedDocumentNode<Result, Variables>
+type ApolloQueryResult<T> = coreModule.ApolloQueryResult<T>
 
 local utilitiesModule = require(srcWorkspace.utilities)
 type ObservableSubscription = utilitiesModule.ObservableSubscription
@@ -46,13 +47,48 @@ type ObservableQueryFields<TData, TVariables> = typesModule.ObservableQueryField
 local operationDataModule = require(script.Parent.OperationData)
 local OperationData = operationDataModule.OperationData
 type OperationData<TOptions> = operationDataModule.OperationData<TOptions>
+type ObservableQueryOptions<TData, TVars> =
+	ReturnType<typeof((({} :: any) :: QueryDataPrivate<TData, TVars>).prepareObservableQueryOptions)>
 
--- ROBLOX deviation: can't express indexed type
--- type ObservableQueryOptions<TData, TVars> =
--- ReturnType<QueryData<TData, TVars>["prepareObservableQueryOptions"]>;
-type ObservableQueryOptions<TData, TVars> = ReturnType<(self: QueryData<TData, TVars>) -> { [string]: any }>
+type QueryDataPrivate<TData, TVariables> = {
+	runLazyQuery: (self: QueryData<TData, TVariables>, options: QueryLazyOptions<TVariables>?) -> (),
+	getExecuteSsrResult: (self: QueryData<TData, TVariables>) -> QueryResult<TData, TVariables> | nil,
+	prepareObservableQueryOptions: (
+		self: QueryData<TData, TVariables>
+	) -> ReturnType<typeof((({} :: any) :: QueryData<TData, TVariables>).getOptions)> & { displayName: string },
+	initializeObservableQuery: (self: QueryData<TData, TVariables>) -> (),
+	updateObservableQuery: (self: QueryData<TData, TVariables>) -> (),
+	startQuerySubscription: (
+		self: QueryData<TData, TVariables>,
+		onNewData: ((QueryData<TData, TVariables>) -> ())?
+	) -> (),
+	resubscribeToQuery: (self: QueryData<TData, TVariables>) -> (),
+	getExecuteResult: (self: QueryData<TData, TVariables>) -> QueryResult<TData, TVariables>,
+	handleErrorOrCompleted: (self: QueryData<TData, TVariables>) -> (),
+	removeQuerySubscription: (self: QueryData<TData, TVariables>) -> (),
+	removeObservable: (self: QueryData<TData, TVariables>, andDelete: boolean) -> (),
+	obsRefetch: (
+		self: QueryData<TData, TVariables>,
+		variables: Partial<TVariables>?
+	) -> Promise<ApolloQueryResult<TData>> | nil,
+	obsFetchMore: (
+		self: QueryData<TData, TVariables>,
+		fetchMoreOptions: FetchMoreQueryOptions<TVariables, TData> & FetchMoreOptions<TData, TVariables>
+	) -> Promise<ApolloQueryResult<TData>> | nil,
+	obsUpdateQuery: <TVars>(
+		self: QueryData<TData, TVariables>,
+		mapFn: (previousQueryResult: TData, options: UpdateQueryOptions<TVars>) -> TData
+	) -> () | nil,
+	obsStartPolling: (self: QueryData<TData, TVariables>, pollInterval: number) -> (),
+	obsStopPolling: (self: QueryData<TData, TVariables>) -> (),
+	obsSubscribeToMore: <TSubscriptionData, TSubscriptionVariables>(
+		self: QueryData<TData, TVariables>,
+		options: SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData>
+	) -> ((() -> ()) | nil),
+	observableQueryFields: (self: QueryData<TData, TVariables>) -> ObservableQueryFields<TData, TVariables>,
+}
 
-type QueryData<TData, TVariables> = OperationData<QueryDataOptions<TData, TVariables>> & {
+export type QueryData<TData, TVariables> = OperationData<QueryDataOptions<TData, TVariables>> & {
 	onNewData: ((self: QueryData<TData, TVariables>) -> ()),
 	execute: ((self: QueryData<TData, TVariables>) -> QueryResult<TData, TVariables>),
 	executeLazy: ((self: QueryData<TData, TVariables>) -> QueryTupleAsReturnType<TData, TVariables>),

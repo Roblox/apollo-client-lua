@@ -81,7 +81,7 @@ export type FieldFunctionOptions<TArgs, TVars> = policiesModule.FieldFunctionOpt
 export type PossibleTypesMap = policiesModule.PossibleTypesMap
 exports.Policies = policiesModule.Policies
 -- ROBLOX deviation: reexport Object.None
-exports.Object = policiesModule.Object
+exports.None = policiesModule.None
 
 exports.canonicalStringify = require(script.inmemory["object-canon"]).canonicalStringify
 

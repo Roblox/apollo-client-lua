@@ -2,7 +2,7 @@
 local snapshots = {}
 
 -- ROBLOX deviation:
--- Exports added: NULL, Object.None
+-- Exports added: NULL, None
 -- Exports removed: Cache (namespace exported as types)
 snapshots["exports of public entry points @apollo/client 1"] = [[
 
@@ -19,7 +19,7 @@ Table {
   "MissingFieldError",
   "NULL",
   "NetworkStatus",
-  "Object",
+  "None",
   "Observable",
   "ObservableQuery",
   "applyNextFetchPolicy",
@@ -67,7 +67,7 @@ Table {
 ]]
 
 -- ROBLOX deviation:
--- Exports removed: Object.None
+-- Exports added: None
 -- Exports removed: Cache (namespace exported as types)
 snapshots["exports of public entry points @apollo/client/cache 1"] = [[
 
@@ -76,7 +76,7 @@ Table {
   "EntityStore",
   "InMemoryCache",
   "MissingFieldError",
-  "Object",
+  "None",
   "Policies",
   "cacheSlot",
   "canonicalStringify",
@@ -89,7 +89,7 @@ Table {
 ]]
 
 -- ROBLOX deviation:
--- Exports added: NULL, Object.None
+-- Exports added: NULL, None
 -- Exports removed: Cache (namespace exported as types)
 snapshots["exports of public entry points @apollo/client/core 1"] = [[
 
@@ -103,7 +103,7 @@ Table {
   "MissingFieldError",
   "NULL",
   "NetworkStatus",
-  "Object",
+  "None",
   "Observable",
   "ObservableQuery",
   "applyNextFetchPolicy",
