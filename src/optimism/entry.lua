@@ -123,7 +123,7 @@ Entry.count = 0
 
 type EntryPrivate<TArgs, TValue> = Entry<TArgs, TValue> & { deps: Set<Dep<any>> | nil }
 
-function Entry.new(fn: (...any) -> TValue_): Entry<TArgs_, TValue_>
+function Entry.new<TArgs, TValue>(fn: (...any) -> TValue): Entry<TArgs, TValue>
 	local self = setmetatable({}, Entry)
 
 	self.parents = Set.new()
@@ -140,7 +140,7 @@ function Entry.new(fn: (...any) -> TValue_): Entry<TArgs_, TValue_>
 
 	Entry.count += 1
 
-	return (self :: any) :: Entry<TArgs_, TValue_>
+	return (self :: any) :: Entry<TArgs, TValue>
 end
 
 function Entry:peek(): TValue_ | nil

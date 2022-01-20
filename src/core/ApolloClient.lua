@@ -177,7 +177,7 @@ ApolloClient.__index = ApolloClient
   *                new builds. This is NOT the version of Apollo Client that
   *                you are using.
 ]]
-function ApolloClient.new(options: ApolloClientOptions<TCacheShape_>): ApolloClient<TCacheShape_>
+function ApolloClient.new<TCacheShape>(options: ApolloClientOptions<TCacheShape>): ApolloClient<TCacheShape>
 	local self = setmetatable({}, ApolloClient)
 	self.defaultOptions = {}
 	self.resetStoreCallbacks = {}
@@ -376,7 +376,7 @@ function ApolloClient.new(options: ApolloClientOptions<TCacheShape_>): ApolloCli
 
 	self.localState = LocalState.new({
 		cache = cache,
-		client = (self :: any) :: ApolloClient<TCacheShape_>,
+		client = (self :: any) :: ApolloClient<TCacheShape>,
 		resolvers = resolvers,
 		fragmentMatcher = fragmentMatcher,
 	})
@@ -419,7 +419,7 @@ function ApolloClient.new(options: ApolloClientOptions<TCacheShape_>): ApolloCli
 			end
 		end)(),
 	})
-	return (self :: any) :: ApolloClient<TCacheShape_>
+	return (self :: any) :: ApolloClient<TCacheShape>
 end
 
 --[[

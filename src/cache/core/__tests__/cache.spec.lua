@@ -31,7 +31,7 @@ return function()
 	local cacheModule = require(script.Parent.Parent.types.Cache)
 	type Cache_ReadOptions<TVariables, TData> = cacheModule.Cache_ReadOptions<TVariables, TData>
 	type Cache_WriteOptions<TResult, TVariables> = cacheModule.Cache_WriteOptions<TResult, TVariables>
-	type Cache_DiffOptions<TVariables, TData> = cacheModule.Cache_DiffOptions<TVariables, TData>
+	type Cache_DiffOptions = cacheModule.Cache_DiffOptions
 	type Cache_WatchOptions<Watcher> = cacheModule.Cache_WatchOptions<Watcher>
 	type Cache_DiffResult<T> = cacheModule.Cache_DiffResult<T>
 	type Cache_EvictOptions = cacheModule.Cache_EvictOptions
@@ -47,7 +47,7 @@ return function()
 	type Reference = storeUtilsModule.Reference
 
 	type TestCache = ApolloCache<any> & {
-		diff: (self: TestCache, query: Cache_DiffOptions<any, any>) -> DataProxy_DiffResult<T_>,
+		diff: (self: TestCache, query: Cache_DiffOptions) -> DataProxy_DiffResult<T_>,
 		evict: (self: TestCache) -> boolean,
 		extract: (self: TestCache, optimistic: boolean) -> any,
 		performTransaction: (self: TestCache, transaction: (c: ApolloCache<any>) -> ()) -> (),
@@ -69,7 +69,7 @@ return function()
 		return (self :: any) :: TestCache
 	end
 
-	function TestCache:diff(query: Cache_DiffOptions<any, any>): DataProxy_DiffResult<T_>
+	function TestCache:diff(query: Cache_DiffOptions): DataProxy_DiffResult<T_>
 		return {}
 	end
 

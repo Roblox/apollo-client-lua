@@ -118,16 +118,14 @@ type ObservableQueryPick<TData, TVariables> = {
 	variables: any,
 }
 
--- ROBLOX todo: this implementation is throwing a type error
--- upstream: https://github.com/apollographql/apollo-client/blob/3161e31538c33f3aafb18f955fbee0e6e7a0b0c0/src/react/types/types.ts#L51-L71
 export type ObservableQueryFields<TData, TVariables> = ObservableQueryPick<TData, TVariables> & {
 	fetchMore: ((
 		_self: any,
-		FetchMoreQueryOptions<TVariables, TData> & FetchMoreOptions<TData, TVariables>
-	) -> Promise<ApolloQueryResult<TData>>) & ((
-		-- ROBLOX deviation: dont have function generics
-		{ query: (DocumentNode | TypedDocumentNode<TData, TVariables>)? } & FetchMoreQueryOptions<any, TData> & FetchMoreOptions<any, any>
-	) -> Promise<ApolloQueryResult<any>>),
+		fetchMoreOptions: FetchMoreQueryOptions<TVariables, TData> & FetchMoreOptions<TData, TVariables>
+	) -> Promise<ApolloQueryResult<TData>>) & ((<TData2, TVariables2>(
+		_self: any,
+		fetchMoreOptions: { query: (DocumentNode | TypedDocumentNode<TData, TVariables>)? } & FetchMoreQueryOptions<TVariables2, TData> & FetchMoreOptions<TData2, TVariables2>
+	) -> Promise<ApolloQueryResult<TData2>>)),
 }
 
 --[[ ROBLOX deviation: there are no default generic params in Luau: `<TData = any, TVariables = OperationVariables>` ]]

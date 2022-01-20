@@ -19,6 +19,8 @@ type Object = LuauPolyfill.Object
 type Set<T> = LuauPolyfill.Set<T>
 type Promise<T> = LuauPolyfill.Promise<T>
 
+type Record<T, U> = { [T]: U }
+
 local Promise = require(rootWorkspace.Promise)
 
 local exports = {}
@@ -43,7 +45,7 @@ type Cache_WatchOptions<Watcher> = cacheModule.Cache_WatchOptions<Watcher>
 type Cache_ReadOptions<TVariables, TData> = cacheModule.Cache_ReadOptions<TVariables, TData>
 type Cache_WriteOptions<TResult, TVariables> = cacheModule.Cache_WriteOptions<TResult, TVariables>
 type Cache_ModifyOptions = cacheModule.Cache_ModifyOptions
-type Cache_DiffOptions<TVariables, TData> = cacheModule.Cache_DiffOptions<TVariables, TData>
+type Cache_DiffOptions = cacheModule.Cache_DiffOptions
 type Cache_DiffResult<T> = cacheModule.Cache_DiffResult<T>
 type Cache_EvictOptions = cacheModule.Cache_EvictOptions
 local coreTypesCommonModule = require(script.Parent.Parent.core.types.common)
@@ -85,7 +87,10 @@ type ObjectCanon = objectCanonModule.ObjectCanon
 
 type T_ = any
 type C_ = any
-type Watcher_ = any
+
+-- ROBLOX FIXME: default type generic for Cache_WatchOptions, remove when available
+type Watcher_ = Record<string, any>
+
 type TVariables_ = any
 type TData_ = any
 type TResult_ = any
@@ -117,11 +122,13 @@ export type InMemoryCache = ApolloCache<NormalizedCacheObject> & {
 	makeVar: typeof(makeVar),
 	restore: (self: InMemoryCache, data: NormalizedCacheObject) -> InMemoryCache,
 	extract: (self: InMemoryCache, optimistic: boolean?) -> NormalizedCacheObject,
-	read: (self: InMemoryCache, Cache_ReadOptions<TVariables_, TData_>) -> T_ | nil,
-	write: (self: InMemoryCache, options: Cache_WriteOptions<TResult_, TVariables_>) -> Reference | nil,
+	-- ROBLOX deviation START: adding explicit default types to Cache_ReadOptions, Cache_WriteOptions
+	read: <T>(self: InMemoryCache, options: Cache_ReadOptions<any, any>) -> T | nil,
+	write: (self: InMemoryCache, options: Cache_WriteOptions<any, any>) -> Reference | nil,
 	modify: (self: InMemoryCache, options: Cache_ModifyOptions) -> boolean,
-	diff: (self: InMemoryCache, options: Cache_DiffOptions<TVariables_, TData_>) -> Cache_DiffResult<T_>,
+	diff: <T>(self: InMemoryCache, options: Cache_DiffOptions) -> Cache_DiffResult<T>,
 	watch: (self: InMemoryCache, options: Cache_WatchOptions<Watcher_>) -> (() -> ()),
+	-- ROBLOX deviation END
 	gc: (
 		self: InMemoryCache,
 		options: {
@@ -145,7 +152,7 @@ export type InMemoryCache = ApolloCache<NormalizedCacheObject> & {
 		self: InMemoryCache,
 		update: (cache: InMemoryCache) -> (),
 		optimisticId: (string | nil)?
-	) -> any,
+	) -> (),
 	transformDocument: (self: InMemoryCache, document: DocumentNode) -> DocumentNode,
 }
 
@@ -400,7 +407,7 @@ function InMemoryCache:modify(options: Cache_ModifyOptions): boolean
 	return result
 end
 
-function InMemoryCache:diff(options: Cache_DiffOptions<TVariables_, TData_>): Cache_DiffResult<T_>
+function InMemoryCache:diff(options: Cache_DiffOptions): Cache_DiffResult<T_>
 	return self.storeReader:diffQueryAgainstStore(Object.assign({}, options, {
 		store = options.optimistic and self.optimisticData or self.data,
 		rootId = Boolean.toJSBoolean(options.id) and options.id or "ROOT_QUERY",

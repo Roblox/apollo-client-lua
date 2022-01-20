@@ -27,7 +27,7 @@ local Cache = {}
 Cache.__index = Cache
 
 export type Cache<K, V> = {
-	dispose: (value: V_, key: K_) -> (),
+	dispose: (value: V, key: K) -> (),
 	has: (self: Cache<K, V>, key: K) -> boolean,
 	get: (self: Cache<K, V>, key: K) -> V | nil,
 	set: (self: Cache<K, V>, key: K, value: V) -> V,
@@ -43,8 +43,8 @@ type CachePrivate<K, V> = Cache<K, V> & {
 	getNode: (self: CachePrivate<K, V>, key: K) -> Node<K, V> | nil,
 }
 
-function Cache.new(max_: number?, dispose_: ((value: V_, key: K_) -> ())?): Cache<K_, V_>
-	local max: number, dispose: (value: V_, key: K_) -> () = max_ :: any, dispose_ :: any
+function Cache.new<K, V>(max_: number?, dispose_: ((value: V, key: K) -> ())?): Cache<K, V>
+	local max: number, dispose: (value: V, key: K) -> () = max_ :: any, dispose_ :: any
 	if max == nil then
 		max = math.huge
 	end
@@ -61,7 +61,7 @@ function Cache.new(max_: number?, dispose_: ((value: V_, key: K_) -> ())?): Cach
 	self.max = max
 	self.dispose = dispose
 
-	return (self :: any) :: Cache<K_, V_>
+	return (self :: any) :: Cache<K, V>
 end
 
 function Cache:has(key: K_): boolean

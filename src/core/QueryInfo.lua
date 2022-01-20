@@ -31,7 +31,7 @@ local equal = require(srcWorkspace.jsutils.equal)
 
 local cacheModule = require(srcWorkspace.cache)
 type Cache_DiffResult<T> = cacheModule.Cache_DiffResult<T>
-type Cache_DiffOptions<TVariables, TData> = cacheModule.Cache_DiffOptions<TVariables, TData>
+type Cache_DiffOptions = cacheModule.Cache_DiffOptions
 type Cache_WatchOptions<Watcher> = cacheModule.Cache_WatchOptions<Watcher>
 type ApolloCache<T> = cacheModule.ApolloCache<T>
 
@@ -172,15 +172,11 @@ type QueryInfoPrivate = {
 	cache: ApolloCache<any>,
 	dirty: boolean,
 	notifyTimeout: any?, --NodeJS.Timeout| undefined
-	lastDiff: ({ diff: Cache_DiffResult<any>, options: Cache_DiffOptions<any, any> } | nil)?,
+	lastDiff: ({ diff: Cache_DiffResult<any>, options: Cache_DiffOptions } | nil)?,
 	oqListener: QueryListener,
 	lastWrite: { result: FetchResult<any, any, any>, variables: Record<string, any> | nil, dmCount: number | nil }?,
-	updateLastDiff: (
-		self: QueryInfo,
-		diff: Cache_DiffResult<any> | nil,
-		options: Cache_DiffOptions<any, any>?
-	) -> nil,
-	getDiffOptions: (self: QueryInfo, variables: Record<string, any> | nil) -> Cache_DiffOptions<any, any>,
+	updateLastDiff: (self: QueryInfo, diff: Cache_DiffResult<any> | nil, options: Cache_DiffOptions?) -> nil,
+	getDiffOptions: (self: QueryInfo, variables: Record<string, any> | nil) -> Cache_DiffOptions,
 	shouldNotify: (self: QueryInfo) -> boolean,
 	cancel: (self: QueryInfo) -> any,
 	lastWatch: Cache_WatchOptions<QueryInfo>,
@@ -291,7 +287,7 @@ function QueryInfo:getDiff(variables): Cache_DiffResult<any>
 	return diff
 end
 
-function QueryInfo:updateLastDiff(diff: Cache_DiffResult<any> | nil, options: Cache_DiffOptions<any, any>?)
+function QueryInfo:updateLastDiff(diff: Cache_DiffResult<any> | nil, options: Cache_DiffOptions?)
 	self.lastDiff = Boolean.toJSBoolean(diff)
 			and {
 				diff = diff,
@@ -300,7 +296,7 @@ function QueryInfo:updateLastDiff(diff: Cache_DiffResult<any> | nil, options: Ca
 		or nil
 end
 
-function QueryInfo:getDiffOptions(variables): Cache_DiffOptions<any, any>
+function QueryInfo:getDiffOptions(variables): Cache_DiffOptions
 	if variables == nil then
 		variables = self.variables
 	end

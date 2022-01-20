@@ -1336,8 +1336,8 @@ return function()
 				jestExpect(dirtied:has(bInfo.watch)).toBe(false)
 				jestExpect(aInfo.diffs).toEqual({ { complete = true, result = { a = "ayyyy" } } })
 				jestExpect(abInfo.diffs).toEqual({ { complete = true, result = { a = "ayyyy", b = "beeeee" } } })
-				jestExpect(bInfo.diffs).toEqual({});
-				(cache :: any)["broadcastWatches"](cache)
+				jestExpect(bInfo.diffs).toEqual({})
+				cache["broadcastWatches"](cache)
 				jestExpect(aInfo.diffs).toEqual({ { complete = true, result = { a = "ayyyy" } } })
 				jestExpect(abInfo.diffs).toEqual({ { complete = true, result = { a = "ayyyy", b = "beeeee" } } })
 				jestExpect(bInfo.diffs).toEqual({ { complete = true, result = { b = "beeeee" } } })
@@ -2220,8 +2220,8 @@ return function()
 			jestExpect(bResults).toEqual({ b321, b322 })
 			jestExpect(cache:gc({ resetResultCache = true })).toEqual({})
 			jestExpect(aResults).toEqual({ a123, a124 })
-			jestExpect(bResults).toEqual({ b321, b322 });
-			(cache :: any)["broadcastWatches"](cache)
+			jestExpect(bResults).toEqual({ b321, b322 })
+			cache["broadcastWatches"](cache)
 			jestExpect(aResults).toEqual({ a123, a124 })
 			jestExpect(bResults).toEqual({ b321, b322 })
 		end)
@@ -2485,7 +2485,7 @@ return function()
 
 		it("should forget cache once all watches are cancelled", function()
 			local ref = makeCacheAndVar(false)
-			local cache, nameVar, query = ref.cache :: any, ref.nameVar, ref.query
+			local cache, nameVar, query = ref.cache, ref.nameVar, ref.query
 
 			--[[
 				ROBLOX deviation:
@@ -2555,7 +2555,7 @@ return function()
 
 		it("should recall forgotten vars once cache has watches again", function()
 			local ref = makeCacheAndVar(false)
-			local cache, nameVar, query = ref.cache :: any, ref.nameVar, ref.query
+			local cache, nameVar, query = ref.cache, ref.nameVar, ref.query
 
 			--[[
 				ROBLOX deviation:
@@ -2689,9 +2689,9 @@ return function()
 				},
 			})
 			cache:restore({ ROOT_QUERY = {} })
-			local broadcast = (cache :: any)["broadcastWatches"]
-			local broadcastCount = 0;
-			(cache :: any)["broadcastWatches"] = function(self, ...)
+			local broadcast = cache["broadcastWatches"]
+			local broadcastCount = 0
+			cache["broadcastWatches"] = function(self, ...)
 				broadcastCount += 1
 				return broadcast(self, ...)
 			end
@@ -2761,8 +2761,8 @@ return function()
 			jestExpect(diffs).toEqual({
 				{ complete = true, result = { value = "oyez" } },
 				{ complete = true, result = { value = "oyez, oyez" } },
-			});
-			(cache :: any)["broadcastWatches"](cache)
+			})
+			cache["broadcastWatches"](cache)
 			jestExpect(diffs).toEqual({
 				{ complete = true, result = { value = "oyez" } },
 				{ complete = true, result = { value = "oyez, oyez" } },

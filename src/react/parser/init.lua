@@ -17,9 +17,9 @@ type Map<T, V> = LuauPolyfill.Map<T, V>
 type Array<T> = LuauPolyfill.Array<T>
 
 local DocumentType = {
-	Query = 1,
-	Mutation = 2,
-	Subscription = 3,
+	Query = 0,
+	Mutation = 1,
+	Subscription = 2,
 }
 exports.DocumentType = DocumentType
 export type DocumentType = number
@@ -41,23 +41,15 @@ local function operationName(type_: DocumentType)
 end
 exports.operationName = operationName
 
---[[
-	// This parser is mostly used to saftey check incoming documents.
-]]
+-- This parser is mostly used to saftey check incoming documents.
 local function parser(document: DocumentNode): IDocumentDefinition
-	local cached = (cache :: any):get(document)
+	local cached = cache:get(document)
 	if Boolean.toJSBoolean(cached) then
 		return cached
 	end
 	local variables, type_, name
 	invariant(
-		(function()
-			if Boolean.toJSBoolean(document) then
-				return Boolean.toJSBoolean(document.kind)
-			else
-				return Boolean.toJSBoolean(document)
-			end
-		end)(),
+		Boolean.toJSBoolean(document) and Boolean.toJSBoolean(document.kind),
 		("Argument of %s passed to parser was not a valid GraphQL "):format(tostring(document))
 			.. "DocumentNode. You may need to use 'graphql-tag' or another method "
 			.. "to convert your operation into a document"
@@ -79,11 +71,7 @@ local function parser(document: DocumentNode): IDocumentDefinition
 	end, nil)
 
 	invariant(
-		not Boolean.toJSBoolean(#fragments) and not Boolean.toJSBoolean(#fragments)
-			or Boolean.toJSBoolean(Boolean.toJSBoolean(#queries) and #queries or #mutations) and (Boolean.toJSBoolean(
-				#queries
-			) and #queries or #mutations)
-			or #subscriptions,
+		not (#fragments > 0) or ((#queries > 0) or (#mutations > 0) or (#subscriptions > 0)),
 		"Passing only a fragment to 'graphql' is not yet supported. "
 			.. "You must include a query, subscription or mutation as well"
 	)
@@ -95,21 +83,9 @@ local function parser(document: DocumentNode): IDocumentDefinition
 			.. "You can use 'compose' to join multiple operation types to a component"
 	)
 
-	if Boolean.toJSBoolean(#queries) then
-		type_ = DocumentType.Query
-	else
-		type_ = DocumentType.Mutation
-	end
+	type_ = if #queries > 0 then DocumentType.Query else DocumentType.Mutation
 
-	if
-		Boolean.toJSBoolean((function()
-			if not Boolean.toJSBoolean(#queries) then
-				return not Boolean.toJSBoolean(#mutations)
-			else
-				return not Boolean.toJSBoolean(#queries)
-			end
-		end)())
-	then
+	if not (#queries > 0) and not (#mutations > 0) then
 		type_ = DocumentType.Subscription
 	end
 
@@ -127,11 +103,11 @@ local function parser(document: DocumentNode): IDocumentDefinition
 	if definition.name and definition.name.kind == "Name" then
 		name = definition.name.value
 	else
-		name = "data"
+		name = "data" -- fallback to using data if no name
 	end
 
-	local payload = { name = name, type = type_, variables = variables };
-	(cache :: any):set(document, payload)
+	local payload = { name = name, type = type_, variables = variables }
+	cache:set(document, payload)
 	return payload
 end
 

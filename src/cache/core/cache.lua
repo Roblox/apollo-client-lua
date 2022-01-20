@@ -41,7 +41,7 @@ type DataProxy = dataProxyModule.DataProxy
 local cacheModule = require(script.Parent.types.Cache)
 type Cache_ReadOptions<TVariables, TData> = cacheModule.Cache_ReadOptions<TVariables, TData>
 type Cache_WriteOptions<TResult, TVariables> = cacheModule.Cache_WriteOptions<TResult, TVariables>
-type Cache_DiffOptions<TVariables, TData> = cacheModule.Cache_DiffOptions<TVariables, TData>
+type Cache_DiffOptions = cacheModule.Cache_DiffOptions
 type Cache_WatchOptions<Watcher> = cacheModule.Cache_WatchOptions<Watcher>
 type Cache_DiffResult<T> = cacheModule.Cache_DiffResult<T>
 type Cache_EvictOptions = cacheModule.Cache_EvictOptions
@@ -63,7 +63,7 @@ type _ApolloCache = DataProxy & {
 	-- core API
 	read: (self: _ApolloCache, query: Cache_ReadOptions<TVariables_, T_>) -> T_ | nil,
 	write: (self: _ApolloCache, write: Cache_WriteOptions<TResult_, TVariables_>) -> Reference | nil,
-	diff: (self: _ApolloCache, query: Cache_DiffOptions<any, any>) -> Cache_DiffResult<T_>,
+	diff: (self: _ApolloCache, query: Cache_DiffOptions) -> Cache_DiffResult<T_>,
 	watch: (self: _ApolloCache, watch: Cache_WatchOptions<Record<string, any>>) -> (),
 	reset: (self: _ApolloCache) -> Promise<nil>,
 
@@ -140,7 +140,7 @@ export type ApolloCache<TSerialized> = DataProxy & {
 	-- core API
 	read: (self: ApolloCache<TSerialized>, query: Cache_ReadOptions<TVariables_, T_>) -> T_ | nil,
 	write: (self: ApolloCache<TSerialized>, write: Cache_WriteOptions<TResult_, TVariables_>) -> Reference | nil,
-	diff: (self: ApolloCache<TSerialized>, query: Cache_DiffOptions<any, any>) -> Cache_DiffResult<T_>,
+	diff: (self: ApolloCache<TSerialized>, query: Cache_DiffOptions) -> Cache_DiffResult<T_>,
 	watch: (self: ApolloCache<TSerialized>, watch: Cache_WatchOptions<Record<string, any>>) -> (() -> ()),
 	reset: (self: ApolloCache<TSerialized>) -> Promise<nil>,
 
@@ -245,7 +245,7 @@ end
 function ApolloCache:write(write: Cache_WriteOptions<TResult_, TVariables_>): Reference | nil
 	error("not implemented abstract method")
 end
-function ApolloCache:diff(query: Cache_DiffOptions<any, any>): Cache_DiffResult<T_>
+function ApolloCache:diff(query: Cache_DiffOptions): Cache_DiffResult<T_>
 	error("not implemented abstract method")
 end
 function ApolloCache:watch(watch: Cache_WatchOptions<Record<string, any>>): () -> ()

@@ -20,6 +20,7 @@ local Trie = require(srcWorkspace.wry.trie).Trie
 local Cache = require(script.cache).Cache
 local entryModule = require(script.entry)
 local Entry = entryModule.Entry
+type Entry<TArgs, TValue> = entryModule.Entry<TArgs, TValue>
 type AnyEntry = entryModule.AnyEntry
 local parentEntrySlot = require(script.context).parentEntrySlot
 
@@ -88,15 +89,16 @@ export type OptimisticWrapOptions<TArgs, TKeyArgs, TCacheKey> =
 
 local caches = Set.new()
 
-local function wrap(
-	originalFunction: (...any) -> ...TResult_,
-	options_: OptimisticWrapOptions<TArgs_, TKeyArgs_, any>?,
+-- ROBLOX TODO: add default generics params
+local function wrap<TArgs, TResult, TKeyArgs, TCacheKey>(
+	originalFunction: (...any) -> ...TResult,
+	options_: OptimisticWrapOptions<TArgs, TKeyArgs, any>?,
 	-- ROBLOX deviation: in case we're wrapping a method we need a thisArg to handle `self` properly
 	thisArg: any?
-): OptimisticWrapperFunction<TArgs_, TResult_, TKeyArgs_, TCacheKey_>
-	local options: OptimisticWrapOptions<TArgs_, TKeyArgs_, any> = options_ :: any
+): OptimisticWrapperFunction<TArgs, TResult, TKeyArgs, TCacheKey>
+	local options: OptimisticWrapOptions<TArgs, TKeyArgs, any> = options_ :: any
 	if options == nil then
-		options = {} :: any
+		options = {} :: OptimisticWrapOptions<TArgs, TKeyArgs, any>
 	end
 
 	local cache = Cache.new(Boolean.toJSBoolean(options.max) and options.max or math.pow(2, 16), function(entry)
@@ -118,7 +120,7 @@ local function wrap(
 	-- ROBLOX deviation: function can't be have properties in Lua. Using __call metatable property instead
 	local optimistic = (
 			setmetatable({}, {
-				__call = function(_self, selfOrFirstArg, ...): TResult_
+				__call = function(_self, selfOrFirstArg, ...): TResult
 					-- ROBLOX deviation: there is no implicit arguments param available in Lua
 					local arguments
 					if thisArg ~= nil then
@@ -145,22 +147,22 @@ local function wrap(
 					end
 
 					local entry = cache:get(key)
-					if not Boolean.toJSBoolean(entry) then
+					if entry == nil then
 						entry = Entry.new(originalFunction)
-						cache:set(key, entry);
-						(entry :: any).subscribe = options.subscribe;
+						cache:set(key, entry :: Entry<any, any>);
+						(entry :: Entry<any, any>).subscribe = options.subscribe;
 						-- Give the Entry the ability to trigger cache.delete(key), even though
 						-- the Entry itself does not know about key or cache.
-						(entry :: any).forget = function()
+						(entry :: Entry<any, any>).forget = function()
 							return cache:delete(key)
 						end
 					end
 
-					local value = (entry :: any):recompute(Array.slice(arguments) :: TArgs_)
+					local value = (entry :: Entry<any, any>):recompute((Array.slice(arguments) :: any) :: TArgs)
 
 					-- Move this entry to the front of the least-recently used queue,
 					-- since we just finished computing its value.
-					cache:set(key, entry)
+					cache:set(key, entry :: Entry<any, any>)
 
 					caches:add(cache)
 
@@ -191,7 +193,7 @@ local function wrap(
 					rawset(t, k, v)
 				end,
 			}) :: any
-		) :: OptimisticWrapperFunction<TArgs_, TResult_, TKeyArgs_, TCacheKey_>
+		) :: OptimisticWrapperFunction<TArgs, TResult, TKeyArgs, TCacheKey>
 
 	--[[
 		ROBLOX deviation:

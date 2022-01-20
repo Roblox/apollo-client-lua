@@ -5728,6 +5728,7 @@ return function()
 					end)
 					:andThen(function()
 						-- @ts-ignore
+						-- ROBLOX deviation: cast to any to work as ts-ignore
 						jestExpect((cache :: any).watches.size).toBe(0)
 					end)
 					:andThen(resolve, reject)

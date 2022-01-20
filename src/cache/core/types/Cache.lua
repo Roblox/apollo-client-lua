@@ -57,11 +57,13 @@ type Omit_data_from_DataProxy_WriteOptions<TResult> = { broadcast: boolean?, ove
 export type Cache_WriteOptions<TResult, TVariables> =
 	Omit_id_from_DataProxy_Query<TVariables, TResult> & Omit_data_from_DataProxy_WriteOptions<TResult> & { dataId: string?, result: TResult }
 
-export type Cache_DiffOptions<TVariables, TData> = Cache_ReadOptions<TVariables, TData> & {
+-- ROBLOX deviation START: add explicit default types for Cache_ReadOptions
+export type Cache_DiffOptions = Cache_ReadOptions<any, any> & {
 	-- The DiffOptions interface is currently just an alias for
 	-- ReadOptions, though DiffOptions used to be responsible for
 	-- declaring the returnPartialData option.
 }
+-- ROBLOX deviation END
 
 -- ROBLOX deviation: no generic type parameter declaration with constraints in luau
 -- export interface WatchOptions<
