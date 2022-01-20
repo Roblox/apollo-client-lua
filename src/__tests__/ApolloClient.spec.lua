@@ -54,6 +54,15 @@ local withErrorSpy = testingModule.withErrorSpy
 local typedDocumentNodeModule = require(srcWorkspace.jsutils.typedDocumentNode)
 type TypedDocumentNode<Result, Variables> = typedDocumentNodeModule.TypedDocumentNode<Result, Variables>
 
+-- ROBLOX deviation START: needed for custom tests
+local jest = JestGlobals.jest
+type JestMock = any
+
+local itAsync = testingModule.itAsync
+local invariantModule = require(srcWorkspace.jsutils.invariant)
+local invariant = invariantModule.invariant
+-- ROBLOX deviation END
+
 return function()
 	describe("ApolloClient", function()
 		describe("constructor", function()
@@ -2235,5 +2244,81 @@ return function()
 				jestExpect(#data.widgets).toBe(2)
 			end)
 		end)
+
+		-- ROBLOX deviation START: custom tests
+		describe("refetchQueries", function()
+			local TICK = 1000 / 30
+
+			local originalInvariantDebug = invariant.debug
+			local invariantDebug: JestMock | nil
+
+			beforeEach(function()
+				invariant.debug = jest.fn()
+				invariantDebug = invariant.debug
+			end)
+
+			afterEach(function()
+				invariant.debug = originalInvariantDebug
+				invariantDebug = nil
+			end)
+
+			itAsync(it)("should catch refetchQueries error when not caught explicitely", function(resolve, reject)
+				local client
+				local function refetchQueries()
+					local result = client:refetchQueries({
+						include = "all",
+					})
+
+					result.queries[1]:subscribe({
+						error = function()
+							local ok, err = pcall(function()
+								jestExpect(invariantDebug).toHaveBeenCalledTimes(1)
+								local callFirstArgument = invariantDebug.mock.calls[1][1]
+								jestExpect(callFirstArgument).toMatch(
+									"In client.refetchQueries, Promise.all promise rejected with error"
+								)
+								jestExpect(callFirstArgument).toMatch("refetch failed")
+							end)
+							if not ok then
+								reject(err)
+							else
+								resolve()
+							end
+						end,
+					})
+				end
+
+				local linkFn = jest.fn().mockImplementation(function()
+					return Observable.new(function(observer)
+						setTimeout(function()
+							observer:error(Error.new("refetch failed"))
+						end, TICK)
+					end)
+				end).mockImplementationOnce(function()
+					setTimeout(refetchQueries, TICK)
+					return Observable.of()
+				end)
+
+				client = ApolloClient.new({
+					link = ApolloLink.new(linkFn),
+					cache = InMemoryCache.new(),
+				})
+
+				local query = gql([[
+					query someData {
+						foo {
+						bar
+						}
+					}
+				]])
+				local observable = client:watchQuery({
+					query = query,
+					fetchPolicy = "network-only",
+				})
+
+				observable:subscribe({})
+			end)
+		end)
+		-- ROBLOX deviation END
 	end)
 end

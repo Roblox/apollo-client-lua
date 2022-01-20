@@ -713,7 +713,7 @@ function ApolloClient:refetchQueries(options: RefetchQueriesOptions<TCache_, TRe
 	-- result.queries and result.results instead, you shouldn't have to worry
 	-- about preventing uncaught rejections for the Promise.all result.
 	result:catch(function(error_)
-		invariant.debug(("In client.refetchQueries, Promise.all promise rejected with error %s"):format(error_))
+		invariant.debug(("In client.refetchQueries, Promise.all promise rejected with error %s"):format(error_.message))
 	end)
 
 	return result
