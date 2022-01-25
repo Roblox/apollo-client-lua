@@ -23,12 +23,6 @@ type Record<T, U> = { [T]: U }
 
 local HttpService = game:GetService("HttpService")
 
---[[
-  ROBLOX deviation: no generic params for functions are supported.
-  T_, is placeholder for generic T param
-]]
-type T_ = any
-
 local exports = {}
 local trieModule = require(srcWorkspace.wry.trie)
 local Trie = trieModule.Trie
@@ -47,10 +41,11 @@ local resetCanonicalStringify
 local stringifyCanon: ObjectCanon
 local stringifyCache: WeakMap<Object, string>
 
-local function shallowCopy(value: T_): T_
+local function shallowCopy<T>(value: T): T
 	if isObjectOrArray(value) then
 		if Array.isArray(value) then
-			return (Array.slice(value, 1) :: any) :: T_
+			-- ROBLOX FIXME Luau: There's no relationtioship betwwen Array<any> and T, multiple casts are required
+			return (Array.slice((value :: any) :: Array<any>, 1) :: any) :: T
 		else
 			-- ROBLOX TODO: handle proto?
 			return Object.assign(
@@ -151,7 +146,8 @@ function ObjectCanon.new(): ObjectCanon
 	self.known = Set.new()
 	self.pool = Trie.new(canUseWeakMap)
 	self.passes = WeakMap.new()
-	self.keysByJSON = Map.new(nil)
+	-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+	self.keysByJSON = Map.new(nil) :: Map<string, SortedKeysInfo>
 	-- This has to come last because it depends on keysByJSON.
 	self.empty = self:admit({})
 

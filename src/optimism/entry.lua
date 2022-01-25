@@ -127,7 +127,8 @@ function Entry.new<TArgs, TValue>(fn: (...any) -> TValue): Entry<TArgs, TValue>
 	local self = setmetatable({}, Entry)
 
 	self.parents = Set.new()
-	self.childValues = Map.new(nil)
+	-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+	self.childValues = Map.new(nil) :: Map<AnyEntry, Value<any>>
 
 	self.dirtyChildren = nil
 	self.dirty = true

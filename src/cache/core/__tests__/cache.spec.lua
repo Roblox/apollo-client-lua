@@ -46,18 +46,27 @@ return function()
 	local storeUtilsModule = require(script.Parent.Parent.Parent.Parent.utilities.graphql.storeUtils)
 	type Reference = storeUtilsModule.Reference
 
+	-- ROBLOX FIXME: remove if better solution is found
+	type FIX_ANALYZE = any
+
 	type TestCache = ApolloCache<any> & {
-		diff: (self: TestCache, query: Cache_DiffOptions) -> DataProxy_DiffResult<T_>,
+		diff: <T>(self: TestCache, query: Cache_DiffOptions) -> DataProxy_DiffResult<T>,
 		evict: (self: TestCache) -> boolean,
 		extract: (self: TestCache, optimistic: boolean) -> any,
-		performTransaction: (self: TestCache, transaction: (c: ApolloCache<any>) -> ()) -> (),
-		read: (self: TestCache, query: Cache_ReadOptions<TVariables_, any>) -> T_ | nil,
-		recordOptimisticTransaction: (self: TestCache, transaction: (c: ApolloCache<any>) -> (), id: string) -> (),
+		performTransaction: (self: TestCache, transaction: <TSerialized>(c: ApolloCache<TSerialized>) -> ()) -> (),
+		-- ROBLOX TODO: add generic default type
+		read: <T, TVariables>(self: TestCache, query: Cache_ReadOptions<TVariables, any>) -> T | nil,
+		recordOptimisticTransaction: (
+			self: TestCache,
+			transaction: <TSerialized>(c: ApolloCache<TSerialized>) -> (),
+			id: string
+		) -> (),
 		removeOptimistic: (self: TestCache, id: string) -> (),
 		reset: (self: TestCache) -> Promise<nil>,
 		restore: (self: TestCache, serializedState: any) -> ApolloCache<any>,
 		watch: (self: TestCache, watch: Cache_WatchOptions<Record<string, any>>) -> (() -> ()),
-		write: (self: TestCache, _: Cache_WriteOptions<TResult_, TVariables_>) -> Reference | nil,
+		-- ROBLOX TODO: add generic default types
+		write: <TResult, TVariables>(self: TestCache, _: Cache_WriteOptions<TResult, TVariables>) -> Reference | nil,
 	}
 
 	local TestCache = setmetatable({}, { __index = ApolloCache })
@@ -136,10 +145,10 @@ return function()
 
 			it("defaults optimistic to false", function()
 				local test = TestCache.new()
-				test.read = function(_self: any, ref)
+				test.read = function(_self: TestCache, ref)
 					local optimistic = ref.optimistic
 					return optimistic :: any
-				end
+				end :: FIX_ANALYZE
 
 				jestExpect(test:readQuery({ query = query })).toBe(false)
 				jestExpect(test:readQuery({ query = query }, true)).toBe(true)
@@ -167,10 +176,10 @@ return function()
 
 			it("defaults optimistic to false", function()
 				local test = TestCache.new()
-				test.read = function(_self: any, ref)
+				test.read = function(_self: TestCache, ref)
 					local optimistic = ref.optimistic
 					return optimistic :: any
-				end
+				end :: FIX_ANALYZE
 				local fragment = {
 					id = "frag",
 					fragment = gql([[

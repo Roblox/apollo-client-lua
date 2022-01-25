@@ -12,7 +12,6 @@ type Array<T> = LuauPolyfill.Array<T>
 type Object = LuauPolyfill.Object
 type Record<T, U> = { [T]: U }
 type Function = (...any) -> any
-type Map<K, V> = { [K]: V }
 
 local exports = {}
 

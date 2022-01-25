@@ -12,7 +12,6 @@ local Object = LuauPolyfill.Object
 local setTimeout = LuauPolyfill.setTimeout
 
 type Array<T> = LuauPolyfill.Array<T>
-type Map<T, U> = LuauPolyfill.Map<T, U>
 type Object = LuauPolyfill.Object
 type Promise<T> = LuauPolyfill.Promise<T>
 

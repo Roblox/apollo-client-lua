@@ -79,11 +79,13 @@ exports.CacheWriteBehavior = CacheWriteBehavior
 
 export type CacheWriteBehavior = number
 
-local destructiveMethodCounts = (function()
+local destructiveMethodCounts: MapLike<ApolloCache<any>, number> = (function()
 	if canUseWeakMap then
-		return (WeakMap.new() :: any) :: MapLike<any, any>
+		-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+		return (WeakMap.new() :: any) :: MapLike<ApolloCache<any>, number>
 	else
-		return (Map.new(nil) :: any) :: MapLike<any, any>
+		-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+		return (Map.new(nil) :: any) :: MapLike<ApolloCache<any>, number>
 	end
 end)()
 
@@ -174,7 +176,11 @@ type QueryInfoPrivate = {
 	notifyTimeout: any?, --NodeJS.Timeout| undefined
 	lastDiff: ({ diff: Cache_DiffResult<any>, options: Cache_DiffOptions } | nil)?,
 	oqListener: QueryListener,
-	lastWrite: { result: FetchResult<any, any, any>, variables: Record<string, any> | nil, dmCount: number | nil }?,
+	lastWrite: {
+		result: FetchResult<any, Record<string, any>, Record<string, any>>,
+		variables: Record<string, any> | nil,
+		dmCount: number | nil,
+	}?,
 	updateLastDiff: (self: QueryInfo, diff: Cache_DiffResult<any> | nil, options: Cache_DiffOptions?) -> nil,
 	getDiffOptions: (self: QueryInfo, variables: Record<string, any> | nil) -> Cache_DiffOptions,
 	shouldNotify: (self: QueryInfo) -> boolean,
@@ -524,7 +530,8 @@ function QueryInfo:markResult(
 					self.lastWrite = {
 						result = result,
 						variables = options.variables,
-						dmCount = destructiveMethodCounts:get(self.cache),
+						-- ROBLOX FIXME: need to add explicit cast to ApolloCache<any>
+						dmCount = destructiveMethodCounts:get(self.cache :: ApolloCache<any>),
 					}
 				else
 					-- If result is the same as the last result we received from

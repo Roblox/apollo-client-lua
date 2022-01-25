@@ -156,7 +156,12 @@ function StoreWriter:writeToStore(store: NormalizedCache, writeOpts: Cache_Write
 		varString = canonicalStringify(variables),
 		fragmentMap = createFragmentMap(getFragmentDefinitions(query)),
 		overwrite = Boolean.toJSBoolean(overwrite),
-		incomingById = Map.new(nil),
+		-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+		incomingById = Map.new(nil) :: Map<string, {
+			fields: StoreObject,
+			mergeTree: MergeTree,
+			selections: Set<SelectionNode>,
+		}>,
 		clientOnly = false,
 	}
 

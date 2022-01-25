@@ -86,19 +86,19 @@ local function recallCache(cache: ApolloCache<any>)
 end
 exports.recallCache = recallCache
 
-local function makeVar(value: T_): ReactiveVar<T_>
+local function makeVar<T>(value: T): ReactiveVar<T>
 	local caches: Set<ApolloCache<any>> = Set.new()
-	local listeners: Set<ReactiveListener<T_>> = Set.new()
-	local rv: ReactiveVar<T_>
+	local listeners: Set<ReactiveListener<T>> = Set.new()
+	local rv: ReactiveVar<T>
 	-- ROBLOX deviation: predefine function
 	local attach
 
 	rv = (
 			setmetatable({}, {
-				__call = function(_self: any, arg: T_?): ...T_?
-					local arguments = { arg }
-					local newValue = arguments[1]
-					if #arguments > 0 then
+				__call = function(_self: any, ...: T?): ...T?
+					if select("#", ...) >= 1 then
+						local arguments = { ... }
+						local newValue = arguments[1] :: T
 						if value ~= newValue then
 							value = newValue
 							-- ROBLOX deviation: can't use Array.forEach on a Set in Lua
@@ -132,7 +132,7 @@ local function makeVar(value: T_): ReactiveVar<T_>
 					return value
 				end,
 			}) :: any
-		) :: ReactiveVar<T_>
+		) :: ReactiveVar<T>
 
 	rv.onNextChange = function(_self, listener)
 		listeners:add(listener)

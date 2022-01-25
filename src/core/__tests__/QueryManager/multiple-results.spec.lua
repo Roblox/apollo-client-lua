@@ -27,8 +27,15 @@ return function()
 	).MockSubscriptionLink
 
 	-- core
-	local QueryManager = require(script.Parent.Parent.Parent.QueryManager).QueryManager
+	local QueryManagerModule = require(script.Parent.Parent.Parent.QueryManager)
+	local QueryManager = QueryManagerModule.QueryManager
+	type QueryManager<TStore> = QueryManagerModule.QueryManager<TStore>
 	local GraphQLError = require(rootWorkspace.GraphQL).GraphQLError
+
+	-- ROBLOX deviation START: importing NormalizedCacheObject for explicit cast
+	local InMemoryCacheTypesModule = require(script.Parent.Parent.Parent.Parent.cache.inmemory.types)
+	type NormalizedCacheObject = InMemoryCacheTypesModule.NormalizedCacheObject
+	-- ROBLOX deviation END
 
 	-- ROBLOX deviation: creating a factory function to create a callable table `done` with fail property function
 	local function createDone(resolve, reject)
@@ -74,10 +81,13 @@ return function()
 				}
 
 				local link = MockSubscriptionLink.new()
-				local queryManager = QueryManager.new({
-					cache = InMemoryCache.new({ addTypename = false }),
-					link = link,
-				})
+				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
+				local queryManager = (
+						QueryManager.new({
+							cache = InMemoryCache.new({ addTypename = false }),
+							link = link,
+						}) :: any
+					) :: QueryManager<NormalizedCacheObject>
 
 				local observable = queryManager:watchQuery({
 					query = query,
@@ -137,10 +147,13 @@ return function()
 				}
 
 				local link = MockSubscriptionLink.new()
-				local queryManager = QueryManager.new({
-					cache = InMemoryCache.new({ addTypename = false }),
-					link = link,
-				})
+				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
+				local queryManager = (
+						QueryManager.new({
+							cache = InMemoryCache.new({ addTypename = false }),
+							link = link,
+						}) :: any
+					) :: QueryManager<NormalizedCacheObject>
 
 				local observable = queryManager:watchQuery({
 					query = query,
@@ -218,10 +231,13 @@ return function()
 					},
 				}
 				local link = MockSubscriptionLink.new()
-				local queryManager = QueryManager.new({
-					cache = InMemoryCache.new({ addTypename = false }),
-					link = link,
-				})
+				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
+				local queryManager = (
+						QueryManager.new({
+							cache = InMemoryCache.new({ addTypename = false }),
+							link = link,
+						}) :: any
+					) :: QueryManager<NormalizedCacheObject>
 
 				local observable = queryManager:watchQuery({
 					query = query,
@@ -301,10 +317,13 @@ return function()
 					},
 				}
 				local link = MockSubscriptionLink.new()
-				local queryManager = QueryManager.new({
-					cache = InMemoryCache.new({ addTypename = false }),
-					link = link,
-				})
+				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
+				local queryManager = (
+						QueryManager.new({
+							cache = InMemoryCache.new({ addTypename = false }),
+							link = link,
+						}) :: any
+					) :: QueryManager<NormalizedCacheObject>
 
 				local observable = queryManager:watchQuery({
 					query = query,
@@ -377,10 +396,13 @@ return function()
 				}
 
 				local link = MockSubscriptionLink.new()
-				local queryManager = QueryManager.new({
-					cache = InMemoryCache.new({ addTypename = false }),
-					link = link,
-				})
+				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
+				local queryManager = (
+						QueryManager.new({
+							cache = InMemoryCache.new({ addTypename = false }),
+							link = link,
+						}) :: any
+					) :: QueryManager<NormalizedCacheObject>
 
 				local observable = queryManager:watchQuery({
 					query = query,

@@ -164,13 +164,16 @@ return function()
 				queryDeduplication = false
 			end
 
-			return QueryManager.new({
-				link = link,
-				cache = InMemoryCache.new(Object.assign({}, { addTypename = false }, config)),
-				clientAwareness = clientAwareness,
-				queryDeduplication = queryDeduplication,
-				onBroadcast = function(_self) end,
-			} :: FIX_ANALYZE)
+			-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
+			return (
+					QueryManager.new({
+						link = link,
+						cache = InMemoryCache.new(Object.assign({}, { addTypename = false }, config)),
+						clientAwareness = clientAwareness,
+						queryDeduplication = queryDeduplication,
+						onBroadcast = function(_self) end,
+					} :: FIX_ANALYZE) :: any
+				) :: QueryManager<NormalizedCacheObject>
 		end
 
 		-- Helper method that sets up a mockQueryManager and then passes on the
@@ -603,10 +606,13 @@ return function()
 				end)
 			end)
 
-			local mockedQueryManger = QueryManager.new({
-				link = mockedSingleLink,
-				cache = InMemoryCache.new({ addTypename = false }),
-			})
+			-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
+			local mockedQueryManger = (
+					QueryManager.new({
+						link = mockedSingleLink,
+						cache = InMemoryCache.new({ addTypename = false }),
+					}) :: any
+				) :: QueryManager<NormalizedCacheObject>
 
 			local observableQuery = mockedQueryManger:watchQuery({
 				query = request.query,
@@ -2193,14 +2199,14 @@ return function()
 
 				-- I'm not sure the waiting 60 here really is required, but the test used to do it
 				return Promise.all({
-					observableToPromise({ observable = observable1, wait = 60 }, function(result)
+					observableToPromise({ observable = observable1 :: FIX_ANALYZE, wait = 60 }, function(result)
 						jestExpect(stripSymbols(result)).toEqual({
 							data = data1,
 							loading = false,
 							networkStatus = NetworkStatus.ready,
 						})
 					end),
-					observableToPromise({ observable = observable2, wait = 60 }, function(result)
+					observableToPromise({ observable = observable2 :: FIX_ANALYZE, wait = 60 }, function(result)
 						jestExpect(stripSymbols(result)).toEqual({
 							data = data2,
 							loading = false,
@@ -2276,7 +2282,7 @@ return function()
 
 				return Promise.all({
 					observableToPromise({
-						observable = observable1,
+						observable = observable1 :: FIX_ANALYZE,
 					}, function(result)
 						jestExpect(result).toEqual({
 							data = {},
@@ -2292,7 +2298,7 @@ return function()
 						})
 					end),
 					observableToPromise({
-						observable = observable2,
+						observable = observable2 :: FIX_ANALYZE,
 					}, function(result)
 						jestExpect(result).toEqual({
 							data = data2,
@@ -2632,10 +2638,10 @@ return function()
 			})
 
 			return Promise.all({
-				observableToPromise({ observable = observableWithoutId }, function(result)
+				observableToPromise({ observable = observableWithoutId :: FIX_ANALYZE }, function(result)
 					return jestExpect(stripSymbols(result.data)).toEqual(dataWithoutId)
 				end),
-				observableToPromise({ observable = observableWithId }, function(result)
+				observableToPromise({ observable = observableWithId :: FIX_ANALYZE }, function(result)
 					return jestExpect(stripSymbols(result.data)).toEqual(dataWithId)
 				end),
 			}):andThen(resolve, reject)
@@ -2736,14 +2742,16 @@ return function()
 						age = "32",
 					},
 				}
-				local queryManager = QueryManager.new({
-					link = mockSingleLink(
-						{ request = { query = queryA }, result = { data = dataA } },
-						{ request = { query = queryB }, result = { data = dataB }, delay = 20 }
-					):setOnError(reject),
-					cache = InMemoryCache.new({}),
-					ssrMode = true,
-				})
+				local queryManager = (
+						QueryManager.new({
+							link = mockSingleLink(
+								{ request = { query = queryA }, result = { data = dataA } },
+								{ request = { query = queryB }, result = { data = dataB }, delay = 20 }
+							):setOnError(reject),
+							cache = InMemoryCache.new({}),
+							ssrMode = true,
+						}) :: any
+					) :: QueryManager<NormalizedCacheObject>
 
 				local observableA = queryManager:watchQuery({
 					query = queryA,
@@ -2753,7 +2761,7 @@ return function()
 				})
 
 				return Promise.all({
-					observableToPromise({ observable = observableA }, function()
+					observableToPromise({ observable = observableA :: FIX_ANALYZE }, function()
 						jestExpect(stripSymbols(getCurrentQueryResult(observableA))).toEqual({
 							data = dataA,
 							partial = false,
@@ -2763,7 +2771,7 @@ return function()
 							partial = true,
 						})
 					end),
-					observableToPromise({ observable = observableB }, function()
+					observableToPromise({ observable = observableB :: FIX_ANALYZE }, function()
 						jestExpect(stripSymbols(getCurrentQueryResult(observableA))).toEqual({
 							data = dataA,
 							partial = false,
@@ -2870,7 +2878,7 @@ return function()
 				})
 				local observable = queryManager:watchQuery({
 					query = query,
-					variables = variables,
+					variables = variables :: FIX_ANALYZE,
 					pollInterval = 50,
 					notifyOnNetworkStatusChange = false,
 				})
@@ -2907,24 +2915,27 @@ return function()
 					},
 				}
 
-				local queryManager = QueryManager.new({
-					link = mockSingleLink({
-						request = { query = query, variables = variables },
-						result = { data = data1 },
-					}, {
-						request = { query = query, variables = variables },
-						result = { data = data2 },
-					}, {
-						request = { query = query, variables = variables },
-						result = { data = data2 },
-					}):setOnError(reject),
-					cache = InMemoryCache.new({ addTypename = false }),
-					ssrMode = true,
-				})
+				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
+				local queryManager = (
+						QueryManager.new({
+							link = mockSingleLink({
+								request = { query = query, variables = variables },
+								result = { data = data1 },
+							}, {
+								request = { query = query, variables = variables },
+								result = { data = data2 },
+							}, {
+								request = { query = query, variables = variables },
+								result = { data = data2 },
+							}):setOnError(reject),
+							cache = InMemoryCache.new({ addTypename = false }),
+							ssrMode = true,
+						}) :: any
+					) :: QueryManager<NormalizedCacheObject>
 
 				local observable = queryManager:watchQuery({
 					query = query,
-					variables = variables,
+					variables = variables :: FIX_ANALYZE,
 					-- ROBLOX deviation: using multiple of TICK for timeout as it looks like the minimum value to ensure the correct order of execution
 					pollInterval = 10 * TICK,
 					notifyOnNetworkStatusChange = false,
@@ -3413,10 +3424,10 @@ return function()
 				local observable2 = queryManager:watchQuery({ query = query2 })
 
 				return Promise.all({
-					observableToPromise({ observable = observable }, function(result)
+					observableToPromise({ observable = observable :: FIX_ANALYZE }, function(result)
 						return jestExpect(stripSymbols(result.data)).toEqual(data)
 					end),
-					observableToPromise({ observable = observable2 }, function(result)
+					observableToPromise({ observable = observable2 :: FIX_ANALYZE }, function(result)
 						return jestExpect(stripSymbols(result.data)).toEqual(data2)
 					end),
 				})
@@ -3501,7 +3512,7 @@ return function()
 				local observable = queryManager:watchQuery({ query = query })
 
 				-- wait just to make sure the observable doesn't fire again
-				return observableToPromise({ observable = observable, wait = 0 }, function(result)
+				return observableToPromise({ observable = observable :: FIX_ANALYZE, wait = 0 }, function(result)
 					jestExpect(stripSymbols(result.data)).toEqual(data)
 					jestExpect(timesFired).toBe(1)
 					-- reset the store after data has returned
@@ -3544,7 +3555,7 @@ return function()
 				})
 
 				queryManager = createQueryManager({ link = link })
-				observable = queryManager:watchQuery({ query = query })
+				observable = (queryManager :: FIX_ANALYZE):watchQuery({ query = query })
 
 				observableToPromise({ observable = observable, wait = 0 }, function(result)
 					return jestExpect(stripSymbols(result.data)).toEqual(data)
@@ -3599,7 +3610,7 @@ return function()
 				})
 
 				-- wait to make sure store reset happened
-				return observableToPromise({ observable = observable, wait = 20 }, function(result)
+				return observableToPromise({ observable = observable :: FIX_ANALYZE, wait = 20 }, function(result)
 					jestExpect(stripSymbols(result.data)).toEqual(data)
 					jestExpect(timesFired).toBe(1)
 					queryManager:resetStore():catch(reject)
@@ -3741,7 +3752,7 @@ return function()
 
 					local refetchCount = 0
 
-					local obs = queryManager:watchQuery(options)
+					local obs = queryManager:watchQuery(options :: FIX_ANALYZE)
 					obs:subscribe({})
 					obs.refetch = function()
 						refetchCount += 1
@@ -3780,7 +3791,7 @@ return function()
 
 					local refetchCount = 0
 
-					local obs = queryManager:watchQuery(options)
+					local obs = queryManager:watchQuery(options :: FIX_ANALYZE)
 					obs:subscribe({})
 					obs.refetch = function()
 						refetchCount += 1
@@ -3819,7 +3830,7 @@ return function()
 
 					local refetchCount = 0
 
-					local obs = queryManager:watchQuery(options)
+					local obs = queryManager:watchQuery(options :: FIX_ANALYZE)
 
 					obs.refetch = function()
 						refetchCount += 1
@@ -3944,10 +3955,10 @@ return function()
 				local observable2 = queryManager:watchQuery({ query = query2 })
 
 				return Promise.all({
-					observableToPromise({ observable = observable }, function(result)
+					observableToPromise({ observable = observable :: FIX_ANALYZE }, function(result)
 						return jestExpect(stripSymbols(result.data)).toEqual(data)
 					end),
-					observableToPromise({ observable = observable2 }, function(result)
+					observableToPromise({ observable = observable2 :: FIX_ANALYZE }, function(result)
 						return jestExpect(stripSymbols(result.data)).toEqual(data2)
 					end),
 				})
@@ -4018,7 +4029,7 @@ return function()
 				local observable = queryManager:watchQuery({ query = query })
 
 				-- wait just to make sure the observable doesn't fire again
-				return observableToPromise({ observable = observable, wait = 0 }, function(result)
+				return observableToPromise({ observable = observable :: FIX_ANALYZE, wait = 0 }, function(result)
 					jestExpect(stripSymbols(result.data)).toEqual(data)
 					jestExpect(timesFired).toBe(1)
 					-- refetch the observed queries after data has returned
@@ -4064,7 +4075,7 @@ return function()
 				})
 
 				queryManager = createQueryManager({ link = link })
-				observable = queryManager:watchQuery({ query = query })
+				observable = (queryManager :: FIX_ANALYZE):watchQuery({ query = query })
 
 				observableToPromise({ observable = observable, wait = 0 }, function(result)
 					return jestExpect(stripSymbols(result.data)).toEqual(data)
@@ -4118,7 +4129,7 @@ return function()
 
 				-- wait to make sure store reset happened
 				return observableToPromise({
-					observable = observable,
+					observable = observable :: FIX_ANALYZE,
 					wait = 20,
 				}, function(result)
 					jestExpect(stripSymbols(result.data)).toEqual(data)
@@ -4218,7 +4229,7 @@ return function()
 
 					local refetchCount = 0
 
-					local obs = queryManager:watchQuery(options)
+					local obs = queryManager:watchQuery(options :: FIX_ANALYZE)
 					obs:subscribe({})
 					obs.refetch = function()
 						refetchCount += 1
@@ -4258,7 +4269,7 @@ return function()
 
 					local refetchCount = 0
 
-					local obs = queryManager:watchQuery(options)
+					local obs = queryManager:watchQuery(options :: FIX_ANALYZE)
 					obs:subscribe({})
 					obs.refetch = function()
 						refetchCount += 1
@@ -4298,7 +4309,7 @@ return function()
 
 					local refetchCount = 0
 
-					local obs = queryManager:watchQuery(options)
+					local obs = queryManager:watchQuery(options :: FIX_ANALYZE)
 					obs:subscribe({})
 					obs.refetch = function()
 						refetchCount += 1
@@ -4336,7 +4347,7 @@ return function()
 
 				local refetchCount = 0
 
-				local obs = queryManager:watchQuery(options)
+				local obs = queryManager:watchQuery(options :: FIX_ANALYZE)
 				obs.refetch = function()
 					refetchCount += 1
 					return NULL :: any
@@ -4462,10 +4473,10 @@ return function()
 				local observable2 = queryManager:watchQuery({ query = query2 })
 
 				return Promise.all({
-					observableToPromise({ observable = observable }, function(result)
+					observableToPromise({ observable = observable :: FIX_ANALYZE }, function(result)
 						return jestExpect(stripSymbols(result.data)).toEqual(data)
 					end),
-					observableToPromise({ observable = observable2 }, function(result)
+					observableToPromise({ observable = observable2 :: FIX_ANALYZE }, function(result)
 						return jestExpect(stripSymbols(result.data)).toEqual(data2)
 					end),
 				})
@@ -5767,7 +5778,7 @@ return function()
 						query = query,
 						fetchPolicy = "no-cache",
 					})
-					observableToPromise({ observable = observable }, function(result)
+					observableToPromise({ observable = observable :: FIX_ANALYZE }, function(result)
 						jestExpect(stripSymbols(result.data)).toEqual(data)
 						local currentResult = getCurrentQueryResult(observable)
 						jestExpect(currentResult.data).toEqual(data)
@@ -5818,7 +5829,7 @@ return function()
 						fetchPolicy = "no-cache",
 					})
 
-					observableToPromise({ observable = observable }, function(result)
+					observableToPromise({ observable = observable :: FIX_ANALYZE }, function(result)
 						local context = (link.operation :: any):getContext()
 						jestExpect(context.clientAwareness).toBeDefined()
 						jestExpect(context.clientAwareness).toEqual(clientAwareness)

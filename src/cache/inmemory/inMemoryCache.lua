@@ -147,7 +147,7 @@ export type InMemoryCache = ApolloCache<NormalizedCacheObject> & {
 	evict: (self: InMemoryCache, options: Cache_EvictOptions) -> boolean,
 	reset: (self: InMemoryCache) -> Promise<nil>,
 	removeOptimistic: (self: InMemoryCache, idToRemove: string) -> (),
-	batch: (self: InMemoryCache, options: Cache_BatchOptions<C_>) -> (),
+	batch: (self: InMemoryCache, options: Cache_BatchOptions<InMemoryCache>) -> (),
 	performTransaction: (
 		self: InMemoryCache,
 		update: (cache: InMemoryCache) -> (),
@@ -186,7 +186,8 @@ function InMemoryCache.new(config: InMemoryCacheConfig?): InMemoryCache
 	end
 
 	self.watches = Set.new()
-	self.typenameDocumentCache = Map.new(nil)
+	-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+	self.typenameDocumentCache = Map.new(nil) :: Map<DocumentNode, DocumentNode>
 	self.makeVar = makeVar
 	self.txCount = 0
 

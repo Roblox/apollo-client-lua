@@ -15,11 +15,9 @@ local useRef = reactModule.useRef
 local useEffect = reactModule.useEffect
 local graphQLModule = require(rootWorkspace.GraphQL)
 type DocumentNode = graphQLModule.DocumentNode
---[[
-	ROBLOX deviation: we're implementing TypedDocumentNode inline instead of importing it from a library
-	original: export { TypedDocumentNode } from '@graphql-typed-document-node/core';
-]]
-type TypedDocumentNode<Result, Variables> = DocumentNode & { __apiType: ((Variables) -> Result)? }
+
+local typedDocumentNodeModule = require(srcWorkspace.jsutils.typedDocumentNode)
+type TypedDocumentNode<Result, Variables> = typedDocumentNodeModule.TypedDocumentNode<Result, Variables>
 
 local typesModule = require(script.Parent.Parent.types.types)
 type MutationHookOptions_<TData, TVariables, TContext> = typesModule.MutationHookOptions_<TData, TVariables, TContext>

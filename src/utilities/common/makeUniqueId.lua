@@ -5,8 +5,10 @@ local rootWorkspace = srcWorkspace.Parent
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Boolean = LuauPolyfill.Boolean
 local Map = LuauPolyfill.Map
+type Map<K, V> = LuauPolyfill.Map<K, V>
 
-local prefixCounts = Map.new(nil)
+-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+local prefixCounts = Map.new(nil) :: Map<string, number>
 local alphabet = {
 	"0",
 	"1",
@@ -62,7 +64,7 @@ local function makeUniqueId(prefix: string)
 	local suffix = uuid()
 	local count = Boolean.toJSBoolean(prefixCounts:get(prefix)) and prefixCounts:get(prefix) or 1
 	prefixCounts:set(prefix, count + 1)
-	return ("%s:%s:%s"):format(prefix, count, suffix)
+	return ("%s:%s:%s"):format(prefix, tostring(count), suffix)
 end
 exports.uuid = uuid
 exports.makeUniqueId = makeUniqueId

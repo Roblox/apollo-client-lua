@@ -59,88 +59,51 @@ type _Transaction = (c: _ApolloCache) -> ()
 export type Transaction<T> = (c: _ApolloCache) -> ()
 -- ROBLOX FIXME: this is a workaround for the 'recursive type with different args' error, remove this once that's fixed
 type _ApolloCache = DataProxy & {
-	-- required to implement
-	-- core API
-	read: (self: _ApolloCache, query: Cache_ReadOptions<TVariables_, T_>) -> T_ | nil,
-	write: (self: _ApolloCache, write: Cache_WriteOptions<TResult_, TVariables_>) -> Reference | nil,
-	diff: (self: _ApolloCache, query: Cache_DiffOptions) -> Cache_DiffResult<T_>,
+	read: <T, TVariables>(self: _ApolloCache, query: Cache_ReadOptions<TVariables, T>) -> T | nil,
+	write: <TResult, TVariables>(self: _ApolloCache, write: Cache_WriteOptions<TResult, TVariables>) -> Reference | nil,
+	diff: <T>(self: _ApolloCache, query: Cache_DiffOptions) -> Cache_DiffResult<T>,
 	watch: (self: _ApolloCache, watch: Cache_WatchOptions<Record<string, any>>) -> (),
 	reset: (self: _ApolloCache) -> Promise<nil>,
-
-	-- Remove whole objects from the cache by passing just options.id, or
-	-- specific fields by passing options.field and/or options.args. If no
-	-- options.args are provided, all fields matching options.field (even
-	-- those with arguments) will be removed. Returns true iff any data was
-	-- removed from the cache.
 	evict: (self: _ApolloCache, options: Cache_EvictOptions) -> boolean,
-
-	-- intializer / offline / ssr API
-	--[[*
-		* Replaces existing state in the cache (if any) with the values expressed by
-		* `serializedState`.
-		*
-		* Called when hydrating a cache (server side rendering, or offline storage),
-		* and also (potentially) during hot reloads.
-	]]
 	restore: (self: _ApolloCache, serializedState: TSerialized_) -> _ApolloCache,
-
-	--[[*
-		* Exposes the cache's complete state, in a serializable format for later restoration.
-	]]
 	extract: (self: _ApolloCache, optimistic: boolean?) -> any,
-
-	-- Optimistic API
-
 	removeOptimistic: (self: _ApolloCache, id: string) -> (),
-
-	-- Transactional API
-
-	-- The batch method is intended to replace/subsume both performTransaction
-	-- and recordOptimisticTransaction, but performTransaction came first, so we
-	-- provide a default batch implementation that's just another way of calling
-	-- performTransaction. Subclasses of ApolloCache (such as InMemoryCache) can
-	-- override the batch method to do more interesting things with its options.
 	batch: (self: _ApolloCache, options: Cache_BatchOptions<_ApolloCache>) -> (),
 	performTransaction: (self: _ApolloCache, transaction: _Transaction, optimisticId: string) -> (),
 	recordOptimisticTransaction: (self: _ApolloCache, transaction: _Transaction, optimisticId: string) -> (),
-
-	-- Optional API
-
 	transformDocument: (self: _ApolloCache, document: DocumentNode) -> DocumentNode,
 	identify: (self: _ApolloCache, object: StoreObject | Reference) -> string | nil,
 	gc: (self: _ApolloCache) -> Array<string>,
 	modify: (self: _ApolloCache, options: Cache_ModifyOptions) -> boolean,
-
-	-- Experimental API
-
 	transformForLink: (self: _ApolloCache, document: DocumentNode) -> DocumentNode,
-
-	-- DataProxy API
-	--[[*
-		*
-		* @param options
-		* @param optimistic
-	]]
-	readQuery: (
+	readQuery: <QueryType, TVariables>(
 		self: _ApolloCache,
-		options: Cache_ReadQueryOptions<QueryType_, TVariables_>,
+		options: Cache_ReadQueryOptions<QueryType, TVariables>,
 		optimistic: boolean?
-	) -> QueryType_ | nil,
-	readFragment: (
+	) -> QueryType | nil,
+	readFragment: <FragmentType, TVariables>(
 		self: _ApolloCache,
-		options: Cache_ReadFragmentOptions<FragmentType_, TVariables_>,
+		options: Cache_ReadFragmentOptions<FragmentType, TVariables>,
 		optimistic: boolean?
-	) -> FragmentType_ | nil,
-	writeQuery: (self: _ApolloCache, Cache_WriteQueryOptions<TData_, TVariables_>) -> Reference | nil,
-	writeFragment: (self: _ApolloCache, Cache_WriteFragmentOptions<TData_, TVariables_>) -> Reference | nil,
+	) -> FragmentType | nil,
+	writeQuery: <TData, TVariables>(self: _ApolloCache, Cache_WriteQueryOptions<TData, TVariables>) -> Reference | nil,
+	writeFragment: <TData, TVariables>(
+		self: _ApolloCache,
+		Cache_WriteFragmentOptions<TData, TVariables>
+	) -> Reference | nil,
 }
 
 export type ApolloCache<TSerialized> = DataProxy & {
 	-- required to implement
 	-- core API
-	read: (self: ApolloCache<TSerialized>, query: Cache_ReadOptions<TVariables_, T_>) -> T_ | nil,
-	write: (self: ApolloCache<TSerialized>, write: Cache_WriteOptions<TResult_, TVariables_>) -> Reference | nil,
-	diff: (self: ApolloCache<TSerialized>, query: Cache_DiffOptions) -> Cache_DiffResult<T_>,
+	-- ROBLOX FIXME: missing default generic types
+	read: <T, TVariables>(self: ApolloCache<TSerialized>, query: Cache_ReadOptions<TVariables, T>) -> T | nil,
+	-- ROBLOX FIXME: missing default generic types
+	write: <TResult, TVariables>(
+		self: ApolloCache<TSerialized>,
+		write: Cache_WriteOptions<TResult, TVariables>
+	) -> Reference | nil,
+	diff: <T>(self: ApolloCache<TSerialized>, query: Cache_DiffOptions) -> Cache_DiffResult<T>,
 	watch: (self: ApolloCache<TSerialized>, watch: Cache_WatchOptions<Record<string, any>>) -> (() -> ()),
 	reset: (self: ApolloCache<TSerialized>) -> Promise<nil>,
 
@@ -214,29 +177,39 @@ export type ApolloCache<TSerialized> = DataProxy & {
 		* @param options
 		* @param optimistic
 	]]
-	readQuery: (
+	-- ROBLOX FIXME: missing default generic types
+	readQuery: <QueryType, TVariables>(
 		self: ApolloCache<TSerialized>,
-		options: Cache_ReadQueryOptions<QueryType_, TVariables_>,
+		options: Cache_ReadQueryOptions<QueryType, TVariables>,
 		optimistic: boolean?
-	) -> QueryType_ | nil,
-	readFragment: (
+	) -> QueryType | nil,
+	-- ROBLOX FIXME: missing default generic types
+	readFragment: <FragmentType, TVariables>(
 		self: ApolloCache<TSerialized>,
-		options: Cache_ReadFragmentOptions<FragmentType_, TVariables_>,
+		options: Cache_ReadFragmentOptions<FragmentType, TVariables>,
 		optimistic: boolean?
-	) -> FragmentType_ | nil,
-	writeQuery: (self: ApolloCache<TSerialized>, Cache_WriteQueryOptions<TData_, TVariables_>) -> Reference | nil,
-	writeFragment: (self: ApolloCache<TSerialized>, Cache_WriteFragmentOptions<TData_, TVariables_>) -> Reference | nil,
+	) -> FragmentType | nil,
+	-- ROBLOX FIXME: missing default generic types
+	writeQuery: <TData, TVariables>(
+		self: ApolloCache<TSerialized>,
+		Cache_WriteQueryOptions<TData, TVariables>
+	) -> Reference | nil,
+	-- ROBLOX FIXME: missing default generic types
+	writeFragment: <TData, TVariables>(
+		self: ApolloCache<TSerialized>,
+		Cache_WriteFragmentOptions<TData, TVariables>
+	) -> Reference | nil,
 }
 local ApolloCache = {}
 ApolloCache.__index = ApolloCache
-function ApolloCache.new(): ApolloCache<any>
+function ApolloCache.new<TSerialized>(): ApolloCache<TSerialized>
 	local self = setmetatable({}, ApolloCache)
 
 	-- Make sure we compute the same (===) fragment query document every
 	-- time we receive the same fragment in readFragment.
 	self.getFragmentDoc = wrap(getFragmentQueryDocument)
 
-	return (self :: any) :: ApolloCache<any>
+	return (self :: any) :: ApolloCache<TSerialized>
 end
 
 function ApolloCache:read(query: Cache_ReadOptions<TVariables_, T_>): T_ | nil

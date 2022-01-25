@@ -24,6 +24,7 @@ return function()
 
 	local String = LuauPolyfill.String
 	type Array<T> = LuauPolyfill.Array<T>
+	type Map<K, V> = LuauPolyfill.Map<K, V>
 	type Record<T, U> = { [T]: U }
 
 	local isCallable = require(srcWorkspace.luaUtils.isCallable)
@@ -1209,7 +1210,8 @@ return function()
 				local aInfo = watch(cache, aQuery)
 				local abInfo = watch(cache, abQuery)
 				local bInfo = watch(cache, bQuery)
-				local dirtied = Map.new(nil)
+				-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+				local dirtied = Map.new(nil) :: Map<Cache_WatchOptions<Record<string, any>>, Cache_DiffResult<any>>
 				cache:batch({
 					update = function(_self, cache)
 						cache:writeQuery({ query = aQuery, data = { a = "ay" } })
@@ -1270,7 +1272,8 @@ return function()
 				local aInfo = watch(cache, aQuery)
 				local abInfo = watch(cache, abQuery)
 				local bInfo = watch(cache, bQuery)
-				local dirtied = Map.new(nil)
+				-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+				local dirtied = Map.new(nil) :: Map<Cache_WatchOptions<Record<string, any>>, Cache_DiffResult<any>>
 				cache:batch({
 					update = function(_self, cache)
 						cache:modify({
@@ -1313,7 +1316,8 @@ return function()
 				jestExpect(aInfo.diffs).toEqual({})
 				jestExpect(abInfo.diffs).toEqual({})
 				jestExpect(bInfo.diffs).toEqual({})
-				local dirtied = Map.new(nil)
+				-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+				local dirtied = Map.new(nil) :: Map<Cache_WatchOptions<Record<string, any>>, Cache_DiffResult<any>>
 				cache:batch({
 					update = function(_self, cache)
 						cache:modify({

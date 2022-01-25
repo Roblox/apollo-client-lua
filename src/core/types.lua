@@ -8,6 +8,7 @@ type Array<T> = LuauPolyfill.Array<T>
 type Record<T, U> = { [T]: U }
 type Error = LuauPolyfill.Error
 type Object = LuauPolyfill.Object
+type Map<K, V> = LuauPolyfill.Map<K, V>
 
 local GraphQL = require(rootWorkspace.GraphQL)
 type DocumentNode = GraphQL.DocumentNode
@@ -17,9 +18,6 @@ type ExecutionResult = GraphQL.ExecutionResult
 -- ROBLOX deviation: need to define Promise type for use below
 local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
 type Promise<T> = PromiseTypeModule.Promise<T>
-
--- ROBLOX deviation: need to define Map type for use below
-type Map<T, U> = { [any]: any }
 
 local cacheModule = require(script.Parent.Parent.cache)
 type ApolloCache<TSerialized> = cacheModule.ApolloCache<TSerialized>

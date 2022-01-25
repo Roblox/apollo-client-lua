@@ -324,8 +324,10 @@ function Policies.new(
 
 	self.typePolicies = {}
 	self.toBeAdded = {}
-	self.supertypeMap = Map.new(nil)
-	self.fuzzySubtypes = Map.new(nil)
+	-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+	self.supertypeMap = Map.new(nil) :: Map<string, Set<string>>
+	-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+	self.fuzzySubtypes = Map.new(nil) :: Map<string, RegExp>
 
 	self.cache = nil
 	self.rootIdsByTypename = {}

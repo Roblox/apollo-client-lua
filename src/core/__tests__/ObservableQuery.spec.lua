@@ -91,15 +91,17 @@ return function()
 
 		local error_ = GraphQLError.new("is offline.", nil, nil, nil, { "people_one" })
 
-		local function createQueryManager(ref: { link: ApolloLink })
+		local function createQueryManager(ref: { link: ApolloLink }): QueryManager<NormalizedCacheObject>
 			local link = ref.link
-			return QueryManager.new({
-				link = link,
-				assumeImmutableResults = true,
-				cache = InMemoryCache.new({
-					addTypename = false,
-				}),
-			})
+			return (
+					QueryManager.new({
+						link = link,
+						assumeImmutableResults = true,
+						cache = InMemoryCache.new({
+							addTypename = false,
+						}),
+					}) :: any
+				) :: QueryManager<NormalizedCacheObject>
 		end
 
 		describe("setOptions", function()

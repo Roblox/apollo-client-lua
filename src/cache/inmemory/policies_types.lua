@@ -8,7 +8,6 @@ local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 type Array<T> = LuauPolyfill.Array<T>
 type Object = LuauPolyfill.Object
 type Set<T> = LuauPolyfill.Set<T>
-type Map<K, V> = LuauPolyfill.Map<K, V>
 type Function = (...any) -> ...any
 type Record<T, U> = { [T]: U }
 type ReturnType<T> = any

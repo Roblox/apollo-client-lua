@@ -21,6 +21,8 @@ local HttpService = game:GetService("HttpService")
 type Array<T> = LuauPolyfill.Array<T>
 type Map<T, V> = LuauPolyfill.Map<T, V>
 type Object = LuauPolyfill.Object
+type Set<T> = LuauPolyfill.Set<T>
+type WeakMap<T, V> = LuauPolyfill.WeakMap<T, V>
 type Error = { name: string, message: string, stack: string? }
 type Record<T, U> = { [T]: U }
 local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
@@ -146,8 +148,6 @@ type TransformCacheEntry = {
 
 local QueryManager = {}
 QueryManager.__index = QueryManager
-
--- ROBLOX TODO: add generics for markMutationResult, markMutationOptimistic, watchQuery, startGraphQLSubscription
 export type QueryManager<TStore> = {
 	cache: ApolloCache<TStore>,
 	link: ApolloLink,
@@ -155,22 +155,22 @@ export type QueryManager<TStore> = {
 	ssrMode: boolean,
 	mutationStore: { [string]: MutationStoreValue }?,
 	stop: (self: QueryManager<TStore>) -> (),
-	mutate: (
+	mutate: <TData, TVariables, TContext, TCache>(
 		self: QueryManager<TStore>,
-		ref: MutationOptions<TData_, TVariables_, TContext_, TCache_>
-	) -> Promise<FetchResult<any, any, any>>,
-	markMutationResult: (
+		ref: MutationOptions<TData, TVariables, TContext, TCache>
+	) -> Promise<FetchResult<TData, Record<string, any>, Record<string, any>>>,
+	markMutationResult: <TData, TVariables, TContext, TCache>(
 		self: QueryManager<TStore>,
 		mutation: {
 			mutationId: string,
-			result: FetchResult<TData_, any, any>,
+			result: FetchResult<TData, Record<string, any>, Record<string, any>>,
 			document: DocumentNode,
-			variables: TVariables_?,
+			variables: TVariables?,
 			fetchPolicy: string?,
 			errorPolicy: ErrorPolicy,
-			context: TContext_?,
-			updateQueries: UpdateQueries<TData_>,
-			update: MutationUpdaterFunction<TData_, TVariables_, TContext_, TCache_>?,
+			context: TContext?,
+			updateQueries: UpdateQueries<TData>,
+			update: MutationUpdaterFunction<TData, TVariables, TContext, TCache>?,
 			awaitRefetchQueries: boolean?,
 			refetchQueries: InternalRefetchQueriesInclude?,
 			removeOptimistic: string,
@@ -178,19 +178,19 @@ export type QueryManager<TStore> = {
 			keepRootFields: boolean,
 		},
 		cache: ApolloCache<TStore>
-	) -> Promise<FetchResult<TData_, any, any>>,
-	markMutationOptimistic: (
+	) -> Promise<FetchResult<TData, Record<string, any>, Record<string, any>>>,
+	markMutationOptimistic: <TData, TVariables, TContext, TCache>(
 		self: QueryManager<TStore>,
 		optimisticResponse: any,
 		mutation: {
 			mutationId: string,
 			document: DocumentNode,
-			variables: TVariables_,
+			variables: TVariables,
 			fetchPolicy: string,
 			errorPolicy: ErrorPolicy,
-			context: TContext_,
-			updateQueries: UpdateQueries<TData_>,
-			update: MutationUpdaterFunction<TData_, TVariables_, TContext_, TCache_>,
+			context: TContext,
+			updateQueries: UpdateQueries<TData>,
+			update: MutationUpdaterFunction<TData, TVariables, TContext, TCache>,
 			keepRootFields: boolean,
 		}
 	) -> (),
@@ -203,14 +203,17 @@ export type QueryManager<TStore> = {
 	getQueryStore: (self: QueryManager<TStore>) -> Record<string, QueryStoreValue>,
 	resetErrors: (self: QueryManager<TStore>, queryId: string) -> (),
 	transform: (self: QueryManager<TStore>, document: DocumentNode) -> TransformCacheEntry,
-	watchQuery: (self: QueryManager<TStore>, options: WatchQueryOptions<any, any>) -> ObservableQuery<any, any>,
-	-- ROBLOX deviation: missing default generic <TVars = OperationVariables>
+	-- ROBLOX TODO: missing default generic <TVariables = OperationVariables>
+	watchQuery: <T, TVariables>(
+		self: QueryManager<TStore>,
+		options: WatchQueryOptions<TVariables, T>
+	) -> ObservableQuery<T, TVariables>,
+	-- ROBLOX TODO: missing default generic <TVars = OperationVariables>
 	query: <TData, TVars>(
 		self: QueryManager<TStore>,
 		options: QueryOptions<TVars, TData>,
 		queryId: string?
 	) -> Promise<ApolloQueryResult<TData>>,
-	-- ROBLOX deviation END
 	generateQueryId: (self: QueryManager<TStore>) -> string,
 	generateRequestId: (self: QueryManager<TStore>) -> number,
 	generateMutationId: (self: QueryManager<TStore>) -> string,
@@ -226,10 +229,11 @@ export type QueryManager<TStore> = {
 		includeStandby: boolean?
 	) -> Promise<Array<ApolloQueryResult<any>>>,
 	setObservableQuery: (self: QueryManager<TStore>, observableQuery: ObservableQuery<any, any>) -> (),
-	startGraphQLSubscription: (
+	-- ROBLOX TODO: missing default generic <T = any>
+	startGraphQLSubscription: <T>(
 		self: QueryManager<TStore>,
 		ref: SubscriptionOptions<OperationVariables, any>
-	) -> Observable<FetchResult<T_, Record<string, any>, Record<string, any>>>,
+	) -> Observable<FetchResult<T, Record<string, any>, Record<string, any>>>,
 	stopQuery: (self: QueryManager<TStore>, queryId: string) -> (),
 	removeQuery: (self: QueryManager<TStore>, queryId: string) -> (),
 	broadcastQueries: (self: QueryManager<TStore>) -> (),
@@ -326,22 +330,27 @@ function QueryManager.new<TStore>(
 
 	-- All the queries that the QueryManager is currently managing (not
 	-- including mutations and subscriptions).
-	self.queries = Map.new(nil)
+	-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+	self.queries = Map.new(nil) :: Map<string, ObservableQuery<any, OperationVariables>>
 
 	-- Maps from queryId strings to Promise rejection functions for
 	-- currently active queries and fetches.
-	self.fetchCancelFns = Map.new(nil)
+	-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+	self.fetchCancelFns = Map.new(nil) :: Map<string, (error: any) -> any>
 
 	if canUseWeakMap then
-		self.transformCache = WeakMap.new()
+		-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+		self.transformCache = WeakMap.new() :: WeakMap<DocumentNode, TransformCacheEntry>
 	else
-		self.transformCache = Map.new(nil)
+		-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+		self.transformCache = Map.new(nil) :: Map<DocumentNode, TransformCacheEntry>
 	end
 
 	self.queryIdCounter = 1
 	self.requestIdCounter = 1
 	self.mutationIdCounter = 1
-	self.inFlightLinkObservables = Map.new(nil)
+	self.inFlightLinkObservables =
+		Map.new(nil) :: Map<DocumentNode, Map<string, Observable<FetchResult<{ [string]: any }, Record<string, any>, Record<string, any>>>>>
 
 	self.cache = cache
 	self.link = link
@@ -998,9 +1007,12 @@ function QueryManager:getObservableQueries(
 		include = "active"
 	end
 
-	local queries = Map.new(nil)
-	local queryNamesAndDocs = Map.new(nil)
-	local legacyQueryOptions = Set.new()
+	-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+	local queries = Map.new(nil) :: Map<string, ObservableQuery<any, OperationVariables>>
+	-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+	local queryNamesAndDocs = Map.new(nil) :: Map<string | DocumentNode, boolean>
+	-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Set type
+	local legacyQueryOptions = Set.new() :: Set<QueryOptions<OperationVariables, any>>
 
 	if Array.isArray(include) then
 		Array.forEach(include :: Array<any>, function(desc)
@@ -1464,7 +1476,12 @@ function QueryManager:refetchQueries(
 		end
 	end
 
-	local includedQueriesById = Map.new(nil)
+	-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+	local includedQueriesById = Map.new(nil) :: Map<string, {
+		oq: ObservableQuery<any, OperationVariables>,
+		lastDiff: Cache_DiffResult<any>?,
+		diff: Cache_DiffResult<any>?,
+	}>
 
 	if Boolean.toJSBoolean(include) then
 		-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
@@ -1476,7 +1493,9 @@ function QueryManager:refetchQueries(
 		end)
 	end
 
-	local results: InternalRefetchQueriesMap<TResult_> = Map.new(nil)
+	-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+	local results: InternalRefetchQueriesMap<TResult_> =
+		Map.new(nil) :: Map<ObservableQuery<any, OperationVariables>, InternalRefetchQueriesResult<TResult_>>
 
 	if Boolean.toJSBoolean(updateCache) then
 		self.cache:batch({
@@ -1577,23 +1596,37 @@ function QueryManager:refetchQueries(
 
 	if Boolean.toJSBoolean(includedQueriesById.size) then
 		-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-		mapForEach(includedQueriesById, function(ref__, queryId)
+		mapForEach(includedQueriesById, function(
+			ref__: {
+				oq: ObservableQuery<any, OperationVariables>,
+				lastDiff: Cache_DiffResult<any>?,
+				diff: Cache_DiffResult<any>?,
+			},
+			queryId: string
+		)
 			local oq, lastDiff, diff = ref__.oq, ref__.lastDiff, ref__.diff
 			local result: TResult_ | boolean | Promise<ApolloQueryResult<any>> | nil
 
 			-- If onQueryUpdated is provided, we want to use it for all included
 			-- queries, even the QueryOptions ones.
-			if onQueryUpdated then
-				if not Boolean.toJSBoolean(diff) then
-					local info = oq["queryInfo"]
+			if onQueryUpdated ~= nil then
+				if diff == nil then
+					-- ROBLOX deviation: cast to any to access private property
+					local info: QueryInfo = (oq :: any)["queryInfo"]
 					info:reset() -- Force info.getDiff() to read from cache.
 					diff = info:getDiff()
 				end
-				result = ((onQueryUpdated :: any) :: OnQueryUpdated<TResult_>)(oq, diff, lastDiff)
+				-- ROBLOX FIXME Luau:: cast explicitly even if we now that onQuertUpdate and diff are not nil from previous checks/assignments
+				result = ((onQueryUpdated :: any) :: OnQueryUpdated<TResult_>)(
+					ref,
+					oq,
+					(diff :: any) :: Cache_DiffResult<any>,
+					lastDiff
+				)
 			end
 
 			-- Otherwise, we fall back to refetching.
-			if not Boolean.toJSBoolean(onQueryUpdated) or result == true then
+			if onQueryUpdated == nil or result == true then
 				result = oq:refetch()
 			end
 

@@ -30,11 +30,18 @@ return function()
 	).MockSubscriptionLink
 
 	-- core
-	local QueryManager = require(script.Parent.Parent.Parent.QueryManager).QueryManager
+	local QueryManagerModule = require(script.Parent.Parent.Parent.QueryManager)
+	local QueryManager = QueryManagerModule.QueryManager
+	type QueryManager<TStore> = QueryManagerModule.QueryManager<TStore>
 	local observableQueryModule = require(script.Parent.Parent.Parent.ObservableQuery_types)
 	type ObservableQuery__ = observableQueryModule.ObservableQuery__
 	local observableModule = require(script.Parent.Parent.Parent.Parent.utilities.observables.Observable)
 	type Subscription = observableModule.ObservableSubscription
+
+	-- ROBLOX deviation START: required for explicit casting
+	local inMemoryCacheTypesModule = require(script.Parent.Parent.Parent.Parent.cache.inmemory.types)
+	type NormalizedCacheObject = inMemoryCacheTypesModule.NormalizedCacheObject
+	-- ROBLOX deviation END
 
 	-- ROBLOX deviation: creating a factory function to create a callable table `done` with fail property function
 	local function createDone(resolve, reject)
@@ -72,10 +79,14 @@ return function()
 				}
 
 				local link = MockSubscriptionLink.new()
-				local queryManager = QueryManager.new({
-					cache = InMemoryCache.new({ addTypename = false }),
-					link = link,
-				})
+
+				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
+				local queryManager = (
+						QueryManager.new({
+							cache = InMemoryCache.new({ addTypename = false }),
+							link = link,
+						}) :: any
+					) :: QueryManager<NormalizedCacheObject>
 
 				-- step 1, get some data
 				local observable = queryManager:watchQuery({

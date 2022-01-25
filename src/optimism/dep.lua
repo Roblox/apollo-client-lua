@@ -8,7 +8,7 @@ local Map = LuauPolyfill.Map
 local Boolean = LuauPolyfill.Boolean
 local Set = LuauPolyfill.Set
 local Array = LuauPolyfill.Array
-
+type Map<K, V> = LuauPolyfill.Map<K, V>
 --[[
   ROBLOX deviation: no generic params for functions are supported.
   TKey_, is placeholder for generic TKey param
@@ -55,11 +55,12 @@ export type Dep<TKey> = depTypesModule.Dep<TKey>
 -- ROBLOX deviation: no TSIndexedAccessType equivalent in Lua
 type Dep_Subscribe = any
 
-local function dep(options: { subscribe: Dep_Subscribe }?)
-	local depsByKey = Map.new(nil)
+local function dep<TKey>(options: { subscribe: Dep_Subscribe }?)
+	-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+	local depsByKey = Map.new(nil) :: Map<TKey, Dep<TKey>>
 	local subscribe
-	if Boolean.toJSBoolean(options) then
-		subscribe = (options :: any).subscribe
+	if options ~= nil then
+		subscribe = options.subscribe
 	else
 		subscribe = options
 	end

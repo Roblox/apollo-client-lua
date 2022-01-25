@@ -54,7 +54,8 @@ function Cache.new<K, V>(max_: number?, dispose_: ((value: V, key: K) -> ())?): 
 
 	local self = setmetatable({}, Cache)
 
-	self.map = Map.new(nil)
+	-- ROBLOX TODO: Luau doesnt support explicit generic params, so we cast to the expected Map type
+	self.map = Map.new(nil) :: Map<K, Node<K, V>>
 	self.newest = nil
 	self.oldest = nil
 

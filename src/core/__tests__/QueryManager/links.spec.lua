@@ -26,6 +26,12 @@ return function()
 	type Subscription = observableModule.ObservableSubscription
 	local ApolloLink = require(script.Parent.Parent.Parent.Parent.link.core).ApolloLink
 	local InMemoryCache = require(script.Parent.Parent.Parent.Parent.cache.inmemory.inMemoryCache).InMemoryCache
+
+	-- ROBLOX deviation START: NormalizedCacheObject required for explicit cast
+	local InMemoryCacheTypesModule = require(script.Parent.Parent.Parent.Parent.cache.inmemory.types)
+	type NormalizedCacheObject = InMemoryCacheTypesModule.NormalizedCacheObject
+	-- ROBLOX deviation END
+
 	local stripSymbols = require(script.Parent.Parent.Parent.Parent.utilities.testing.stripSymbols).stripSymbols
 
 	-- mocks
@@ -34,7 +40,9 @@ return function()
 	).MockSubscriptionLink
 
 	-- core
-	local QueryManager = require(script.Parent.Parent.Parent.QueryManager).QueryManager
+	local QueryManagerModule = require(script.Parent.Parent.Parent.QueryManager)
+	local QueryManager = QueryManagerModule.QueryManager
+	type QueryManager<TStore> = QueryManagerModule.QueryManager<TStore>
 	local coreModule = require(script.Parent.Parent.Parent.Parent.core)
 	local coreLinkModule = require(script.Parent.Parent.Parent.Parent.link.core)
 	type NextLink = coreLinkModule.NextLink
@@ -95,10 +103,13 @@ return function()
 
 				local link = ApolloLink.from({ evictionLink :: any, mockLink })
 
-				local queryManager = QueryManager.new({
-					cache = InMemoryCache.new({ addTypename = false }),
-					link = link,
-				})
+				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
+				local queryManager = (
+						QueryManager.new({
+							cache = InMemoryCache.new({ addTypename = false }),
+							link = link,
+						}) :: any
+					) :: QueryManager<NormalizedCacheObject>
 
 				local observable = queryManager:watchQuery({ query = query, variables = {} })
 
@@ -139,10 +150,14 @@ return function()
 				}
 
 				local link = MockSubscriptionLink.new()
-				local queryManager = QueryManager.new({
-					cache = InMemoryCache.new({ addTypename = false }),
-					link = link,
-				})
+
+				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
+				local queryManager = (
+						QueryManager.new({
+							cache = InMemoryCache.new({ addTypename = false }),
+							link = link,
+						}) :: any
+					) :: QueryManager<NormalizedCacheObject>
 
 				local observable = queryManager:watchQuery({
 					query = query,
@@ -230,10 +245,13 @@ return function()
 
 				local link = MockSubscriptionLink.new()
 
-				local queryManager = QueryManager.new({
-					cache = InMemoryCache.new({ addTypename = false }),
-					link = link,
-				})
+				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
+				local queryManager = (
+						QueryManager.new({
+							cache = InMemoryCache.new({ addTypename = false }),
+							link = link,
+						}) :: any
+					) :: QueryManager<NormalizedCacheObject>
 
 				local observable = queryManager:watchQuery({ query = query, variables = {} })
 
@@ -334,10 +352,13 @@ return function()
 
 				local link = ApolloLink.from({ evictionLink :: any, mockLink })
 
-				local queryManager = QueryManager.new({
-					cache = InMemoryCache.new({ addTypename = false }),
-					link = link,
-				})
+				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
+				local queryManager = (
+						QueryManager.new({
+							cache = InMemoryCache.new({ addTypename = false }),
+							link = link,
+						}) :: any
+					) :: QueryManager<NormalizedCacheObject>
 
 				queryManager:mutate({ mutation = mutation })
 
@@ -381,10 +402,13 @@ return function()
 
 				local link = ApolloLink.from({ evictionLink :: any, mockLink })
 
-				local queryManager = QueryManager.new({
-					cache = InMemoryCache.new({ addTypename = false }),
-					link = link,
-				})
+				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
+				local queryManager = (
+						QueryManager.new({
+							cache = InMemoryCache.new({ addTypename = false }),
+							link = link,
+						}) :: any
+					) :: QueryManager<NormalizedCacheObject>
 
 				queryManager:mutate({ mutation = mutation, context = { planet = "Tatooine" } })
 
