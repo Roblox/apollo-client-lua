@@ -452,34 +452,40 @@ return function()
 				return Observable.of({ data = bookData })
 			end)
 
-			local queryManager = QueryManager.new({
-				link = link,
-				cache = InMemoryCache.new({
-					typePolicies = {
-						Query = {
-							fields = {
-								book = function(_self, _, ref_: FieldFunctionOptions<Record<string, any>, Record<string, any>>): any
-									local args_ = ref_.args
-									if not Boolean.toJSBoolean(args_) then
-										error(Error.new("arg must never be null"))
-									end
-									local args = args_ :: Record<string, any>
-									local ref = ref_:toReference({ __typename = "Book", id = args.id })
-									if not Boolean.toJSBoolean(ref) then
-										error(Error.new("ref must never be null"))
-									end
-									jestExpect(ref).toEqual({ __ref = ("Book:%s"):format(args.id) })
-									local found = Array.find(ref_:readField("books"), function(book)
-										return book.__ref == ref.__ref
-									end)
-									jestExpect(found).toBeTruthy()
-									return found
-								end,
-							} :: any,
-						},
-					},
-				}),
-			})
+			local queryManager = (
+					QueryManager.new({
+						link = link,
+						cache = InMemoryCache.new({
+							typePolicies = {
+								Query = {
+									fields = {
+										book = function(
+											_self,
+											_,
+											ref_: FieldFunctionOptions<Record<string, any>, Record<string, any>>
+										): any
+											local args_ = ref_.args
+											if not Boolean.toJSBoolean(args_) then
+												error(Error.new("arg must never be null"))
+											end
+											local args = args_ :: Record<string, any>
+											local ref = ref_:toReference({ __typename = "Book", id = args.id })
+											if not Boolean.toJSBoolean(ref) then
+												error(Error.new("ref must never be null"))
+											end
+											jestExpect(ref).toEqual({ __ref = ("Book:%s"):format(args.id) })
+											local found = Array.find(ref_:readField("books"), function(book)
+												return book.__ref == ref.__ref
+											end)
+											jestExpect(found).toBeTruthy()
+											return found
+										end,
+									} :: any,
+								},
+							},
+						}),
+					}) :: any
+				) :: QueryManager<NormalizedCacheObject>
 
 			queryManager:query({ query = query }):expect()
 

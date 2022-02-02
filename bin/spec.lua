@@ -3,7 +3,7 @@ local Root = game:GetService("ReplicatedStorage")
 
 local Packages = Root.Packages
 -- Load JestGlobals source into Packages folder so it's next to Roact as expected
-local TestEZ = require(Root.Packages.Dev.TestEZ)
+local TestEZ = require(Root.Packages.Dev.JestGlobals).TestEZ
 
 -- Run all tests, collect results, and report to stdout.
 local result = TestEZ.TestBootstrap:run(

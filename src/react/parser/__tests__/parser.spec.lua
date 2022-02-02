@@ -10,6 +10,7 @@ return function()
 	local parser = ParentModule.parser
 	local DocumentType = ParentModule.DocumentType
 	type OperationDefinition = any
+
 	describe("parser", function()
 		it("should error if both a query and a mutation is present", function()
 			local query = gql([[
@@ -174,7 +175,7 @@ return function()
         }
       }
     ]])
-			local definition = query.definitions[1]
+			local definition = query.definitions[1] :: OperationDefinition
 			jestExpect(parser(query).variables).toEqual(definition.variableDefinitions)
 			local mutation = gql([[
 
@@ -184,7 +185,7 @@ return function()
         }
       }
     ]])
-			definition = mutation.definitions[1]
+			definition = mutation.definitions[1] :: OperationDefinition
 			jestExpect(parser(mutation).variables).toEqual(definition.variableDefinitions)
 			local subscription = gql([[
 
@@ -194,9 +195,10 @@ return function()
         }
       }
     ]])
-			definition = subscription.definitions[1]
+			definition = subscription.definitions[1] :: OperationDefinition
 			jestExpect(parser(subscription).variables).toEqual(definition.variableDefinitions)
 		end)
+
 		it("should not error if the operation has no variables", function()
 			local query = gql([[
 
@@ -206,7 +208,7 @@ return function()
         }
       }
     ]])
-			local definition = query.definitions[1]
+			local definition = query.definitions[1] :: OperationDefinition
 			jestExpect(parser(query).variables).toEqual(definition.variableDefinitions)
 			local mutation = gql([[
 
@@ -216,7 +218,7 @@ return function()
         }
       }
     ]])
-			definition = mutation.definitions[1]
+			definition = mutation.definitions[1] :: OperationDefinition
 			jestExpect(parser(mutation).variables).toEqual(definition.variableDefinitions)
 			local subscription = gql([[
 
@@ -226,7 +228,7 @@ return function()
         }
       }
     ]])
-			definition = subscription.definitions[1]
+			definition = subscription.definitions[1] :: OperationDefinition
 			jestExpect(parser(subscription).variables).toEqual(definition.variableDefinitions)
 		end)
 	end)

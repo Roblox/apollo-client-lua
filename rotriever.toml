@@ -9,7 +9,7 @@ React = { git = "https://github.com/roblox/roact-alignment.git", package = "Reac
 Shared = { git = "https://github.com/roblox/roact-alignment.git", package = "Shared" }
 ReactRoblox = { git = "https://github.com/roblox/roact-alignment.git", package = "ReactRoblox" }
 GraphQL = { git = "https://github.com/Roblox/graphql-lua.git", rev = "c511c9a3" }
-GraphQLTag = "github.com/Roblox/graphql-tag-lua@2.12.3"
+GraphQLTag = "github.com/Roblox/graphql-tag-lua@2.12.4"
 LuauPolyfill = "github.com/roblox/luau-polyfill@0.2.6"
 ZenObservable = "github.com/roblox/zen-observable-lua@0.8.15"
 Promise = "github.com/evaera/roblox-lua-promise@3.1.0"
@@ -18,7 +18,6 @@ RobloxRequests = "github.com/thisdot/roblox-requests@0.1.0"
 
 [dev_dependencies]
 JestGlobals = "github.com/roblox/jest-roblox@=2.3.0"
-TestEZ = "github.com/roblox/jest-roblox@2.3.0"
 ReactReconciler = { git = "https://github.com/roblox/roact-alignment.git", package = "ReactReconciler" }
 RoactCompat = { git = "https://github.com/roblox/roact-alignment.git", package = "RoactCompat" }
 Scheduler = { git = "https://github.com/roblox/roact-alignment.git", package = "Scheduler" }

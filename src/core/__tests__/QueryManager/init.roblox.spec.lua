@@ -5713,10 +5713,10 @@ return function()
 				):setOnError(reject)
 				local cache = InMemoryCache.new()
 
-				local queryManager = QueryManager.new({
+				local queryManager = (QueryManager.new({
 					link = link,
 					cache = cache,
-				})
+				}) :: any) :: QueryManager<NormalizedCacheObject>
 
 				return queryManager
 					:query({ query = query1 })
