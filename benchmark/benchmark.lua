@@ -183,7 +183,7 @@ function Suite:run(...)
 	end):expect()
 end
 
-Benchmark.options = {}
+Benchmark.options = {} :: BenchmarkOptions
 Benchmark.Suite = Suite
 Benchmark.defaultOptions = {
 	async = false,
