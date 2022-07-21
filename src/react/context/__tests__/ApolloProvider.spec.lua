@@ -2,7 +2,7 @@
 
 return function()
 	local srcWorkspace = script.Parent.Parent.Parent.Parent
-	local rootWorkspace = srcWorkspace.Parent.Parent.Packages
+	local rootWorkspace = srcWorkspace.Parent
 
 	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
 	local jestExpect = JestGlobals.expect

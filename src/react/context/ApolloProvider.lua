@@ -2,12 +2,11 @@
 
 local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
-local packagesWorkspace = rootWorkspace.Parent.Packages
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 type Array<T> = LuauPolyfill.Array<T>
 
-local React = require(packagesWorkspace.React)
+local React = require(rootWorkspace.React)
 local getApolloContext = require(script.Parent.ApolloContext).getApolloContext
 local invariant = require(srcWorkspace.jsutils.invariant).invariant
 
