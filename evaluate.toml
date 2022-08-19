@@ -1,0 +1,18 @@
+[runner]
+program = "roblox-cli"
+args = "run --load.model ${Project} --run ${Benchmark} --lua.globals=__CI__=true --fastFlags.overrides \"FIntScriptProfilerFrequency=1000000\" \"DebugScriptProfilerEnabled=true\" ${Dev}"
+dev = "--lua.globals=__DEV__=true"
+
+[project]
+file-glob = "bin/*benchmark.lua"
+
+[results]
+output-pattern = "${Metric} x ${Value} ${Unit} ±${Deviation}% (${Samples} runs sampled)"
+
+Metric.type = "static"
+Value.type = "average"
+Unit.type = "static"
+Deviation.type = "average"
+Deviation.prefix = "±"
+Deviation.suffix = "%"
+Samples.type = "sum"
