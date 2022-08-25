@@ -8,10 +8,8 @@ local Error = LuauPolyfill.Error
 local Object = LuauPolyfill.Object
 local Promise = require(rootWorkspace.Promise)
 
-local Shared = require(rootWorkspace.Shared)
-type ReactElement = Shared.ReactElement
-
 local React = require(rootWorkspace.React)
+type ReactElement<P, T> = React.ReactElement<P, T>
 local ReactRoblox = require(rootWorkspace.ReactRoblox)
 
 -- ROBLOX deviation: not converting react-dom
@@ -107,7 +105,7 @@ type RenderOptions = {
 local rootInstance: Instance?
 
 local function render(ui: any, renderOptions: RenderOptions?)
-	local assertedRenderOptions = (renderOptions :: RenderOptions)
+	local assertedRenderOptions = renderOptions :: RenderOptions
 	local container = assertedRenderOptions and assertedRenderOptions.container
 	-- ROBLOX deviation: we aren't using baseElement for querying yet
 	-- local baseElement = assertedRenderOptions.baseElement or container
@@ -135,11 +133,11 @@ local function render(ui: any, renderOptions: RenderOptions?)
 
 	table.insert(mountedContainers, container)
 
-	local wrapUiIfNeeded = function(innerElement)
-		if WrapperComponent then
-			return React.createElement(WrapperComponent, nil, innerElement)
+	local function wrapUiIfNeeded(innerElement): any
+		if WrapperComponent ~= nil then
+			return React.createElement(WrapperComponent :: any, nil, innerElement) :: any
 		else
-			return innerElement
+			return innerElement :: any
 		end
 	end
 
@@ -223,10 +221,10 @@ local function cleanup()
 end
 exports.cleanup = cleanup
 
-Object.assign(exports, require(srcWorkspace.testUtils.dom))
+Object.assign(exports, domModule)
 
 -- ROBLOX deviation: not converting fireEvent
 -- exports.fireEvent = fireEvent
 exports.act = act
 
-return exports
+return exports :: typeof(exports) & typeof(domModule)

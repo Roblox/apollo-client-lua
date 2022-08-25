@@ -6,6 +6,8 @@ local Promise = require(rootWorkspace.Promise)
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Boolean, Object = LuauPolyfill.Boolean, LuauPolyfill.Object
 
+type FIX_ANALYZE = any
+
 local React = require(rootWorkspace.React)
 local useContext = React.useContext
 local useEffect = React.useEffect
@@ -49,38 +51,40 @@ local function useBaseQuery(
 	end, 0)
 	local updatedOptions = Boolean.toJSBoolean(options) and Object.assign({}, options, { query = query })
 		or { query = query }
-	local queryDataRef = useRef(nil)
+	local queryDataRef = useRef(nil) :: { current: any }
 	local queryData
-	queryData = Boolean.toJSBoolean(queryDataRef.current) and queryDataRef.current
-		or (function()
-			queryDataRef.current = QueryData.new({
-				options = updatedOptions :: QueryDataOptions<any, any>,
-				context = context,
-				onNewData = function(_self)
-					if not Boolean.toJSBoolean(queryData:ssrInitiated()) then
-						-- // When new data is received from the `QueryData` object, we want to
-						-- // force a re-render to make sure the new data is displayed. We can't
-						-- // force that re-render if we're already rendering however so to be
-						-- // safe we'll trigger the re-render in a microtask. In case the
-						-- // component gets unmounted before this callback fires, we re-check
-						-- // queryDataRef.current.isMounted before calling forceUpdate().
-						Promise.delay(0):andThen(function()
-							if Boolean.toJSBoolean(queryDataRef.current) and queryDataRef.current.isMounted then
-								-- ROBLOX deviation: Roact forces us to provide a value here
-								return forceUpdate(nil)
-							end
-							return
-						end)
-					else
-						-- // If we're rendering on the server side we can force an update at
-						-- // any point.
-						-- ROBLOX deviation: Roact forces us to provide a value here
-						forceUpdate(nil)
-					end
-				end,
-			})
-			return queryDataRef.current
-		end)()
+	queryData = if queryDataRef.current
+		then queryDataRef.current
+		else
+			(function()
+				queryDataRef.current = QueryData.new({
+					options = updatedOptions :: QueryDataOptions<any, any>,
+					context = context,
+					onNewData = function(_self)
+						if not Boolean.toJSBoolean(queryData:ssrInitiated()) then
+							-- // When new data is received from the `QueryData` object, we want to
+							-- // force a re-render to make sure the new data is displayed. We can't
+							-- // force that re-render if we're already rendering however so to be
+							-- // safe we'll trigger the re-render in a microtask. In case the
+							-- // component gets unmounted before this callback fires, we re-check
+							-- // queryDataRef.current.isMounted before calling forceUpdate().
+							Promise.delay(0):andThen(function()
+								if queryDataRef.current ~= nil and queryDataRef.current.isMounted then
+									-- ROBLOX deviation: Roact forces us to provide a value here
+									return forceUpdate(nil)
+								end
+								return
+							end)
+						else
+							-- // If we're rendering on the server side we can force an update at
+							-- // any point.
+							-- ROBLOX deviation: Roact forces us to provide a value here
+							forceUpdate(nil)
+						end
+					end,
+				} :: FIX_ANALYZE)
+				return queryDataRef.current
+			end)() :: any
 
 	queryData:setOptions(updatedOptions)
 	queryData.context = context

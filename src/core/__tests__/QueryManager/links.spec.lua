@@ -35,9 +35,8 @@ return function()
 	local stripSymbols = require(script.Parent.Parent.Parent.Parent.utilities.testing.stripSymbols).stripSymbols
 
 	-- mocks
-	local MockSubscriptionLink = require(
-		script.Parent.Parent.Parent.Parent.utilities.testing.mocking.mockSubscriptionLink
-	).MockSubscriptionLink
+	local MockSubscriptionLink =
+		require(script.Parent.Parent.Parent.Parent.utilities.testing.mocking.mockSubscriptionLink).MockSubscriptionLink
 
 	-- core
 	local QueryManagerModule = require(script.Parent.Parent.Parent.QueryManager)
@@ -105,11 +104,11 @@ return function()
 
 				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
 				local queryManager = (
-						QueryManager.new({
-							cache = InMemoryCache.new({ addTypename = false }),
-							link = link,
-						}) :: any
-					) :: QueryManager<NormalizedCacheObject>
+					QueryManager.new({
+						cache = InMemoryCache.new({ addTypename = false }),
+						link = link,
+					}) :: any
+				) :: QueryManager<NormalizedCacheObject>
 
 				local observable = queryManager:watchQuery({ query = query, variables = {} })
 
@@ -125,7 +124,9 @@ return function()
 
 				-- fire off first result
 				mockLink:simulateResult({ result = { data = initialData } })
-			end):timeout(3):expect()
+			end)
+				:timeout(3)
+				:expect()
 		end)
 
 		it("cleans up all links on the final unsubscribe from watchQuery", function()
@@ -153,11 +154,11 @@ return function()
 
 				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
 				local queryManager = (
-						QueryManager.new({
-							cache = InMemoryCache.new({ addTypename = false }),
-							link = link,
-						}) :: any
-					) :: QueryManager<NormalizedCacheObject>
+					QueryManager.new({
+						cache = InMemoryCache.new({ addTypename = false }),
+						link = link,
+					}) :: any
+				) :: QueryManager<NormalizedCacheObject>
 
 				local observable = queryManager:watchQuery({
 					query = query,
@@ -223,7 +224,9 @@ return function()
 					jestExpect(count).toEqual(6)
 					done()
 				end)
-			end):timeout(3):expect()
+			end)
+				:timeout(3)
+				:expect()
 		end)
 
 		it("cleans up all links on the final unsubscribe from watchQuery [error]", function()
@@ -247,11 +250,11 @@ return function()
 
 				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
 				local queryManager = (
-						QueryManager.new({
-							cache = InMemoryCache.new({ addTypename = false }),
-							link = link,
-						}) :: any
-					) :: QueryManager<NormalizedCacheObject>
+					QueryManager.new({
+						cache = InMemoryCache.new({ addTypename = false }),
+						link = link,
+					}) :: any
+				) :: QueryManager<NormalizedCacheObject>
 
 				local observable = queryManager:watchQuery({ query = query, variables = {} })
 
@@ -317,7 +320,9 @@ return function()
 				link:onUnsubscribe(function()
 					jestExpect(count).toEqual(4)
 				end)
-			end):timeout(3):expect()
+			end)
+				:timeout(3)
+				:expect()
 		end)
 
 		it("includes the cache on the context for mutations", function()
@@ -354,17 +359,19 @@ return function()
 
 				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
 				local queryManager = (
-						QueryManager.new({
-							cache = InMemoryCache.new({ addTypename = false }),
-							link = link,
-						}) :: any
-					) :: QueryManager<NormalizedCacheObject>
+					QueryManager.new({
+						cache = InMemoryCache.new({ addTypename = false }),
+						link = link,
+					}) :: any
+				) :: QueryManager<NormalizedCacheObject>
 
 				queryManager:mutate({ mutation = mutation })
 
 				-- fire off first result
 				mockLink:simulateResult({ result = { data = initialData } })
-			end):timeout(3):expect()
+			end)
+				:timeout(3)
+				:expect()
 		end)
 
 		it("includes passed context in the context for mutations", function()
@@ -404,17 +411,19 @@ return function()
 
 				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
 				local queryManager = (
-						QueryManager.new({
-							cache = InMemoryCache.new({ addTypename = false }),
-							link = link,
-						}) :: any
-					) :: QueryManager<NormalizedCacheObject>
+					QueryManager.new({
+						cache = InMemoryCache.new({ addTypename = false }),
+						link = link,
+					}) :: any
+				) :: QueryManager<NormalizedCacheObject>
 
 				queryManager:mutate({ mutation = mutation, context = { planet = "Tatooine" } })
 
 				-- fire off first result
 				mockLink:simulateResult({ result = { data = initialData } })
-			end):timeout(3):expect()
+			end)
+				:timeout(3)
+				:expect()
 		end)
 
 		it("includes getCacheKey function on the context for cache resolvers", function()
@@ -453,50 +462,48 @@ return function()
 			end)
 
 			local queryManager = (
-					QueryManager.new({
-						link = link,
-						cache = InMemoryCache.new({
-							typePolicies = {
-								Query = {
-									fields = {
-										book = function(
-											_self,
-											_,
-											ref_: FieldFunctionOptions<Record<string, any>, Record<string, any>>
-										): any
-											local args_ = ref_.args
-											if not Boolean.toJSBoolean(args_) then
-												error(Error.new("arg must never be null"))
-											end
-											local args = args_ :: Record<string, any>
-											local ref = ref_:toReference({ __typename = "Book", id = args.id })
-											if not Boolean.toJSBoolean(ref) then
-												error(Error.new("ref must never be null"))
-											end
-											jestExpect(ref).toEqual({ __ref = ("Book:%s"):format(args.id) })
-											local found = Array.find(ref_:readField("books"), function(book)
-												return book.__ref == ref.__ref
-											end)
-											jestExpect(found).toBeTruthy()
-											return found
-										end,
-									} :: any,
-								},
+				QueryManager.new({
+					link = link,
+					cache = InMemoryCache.new({
+						typePolicies = {
+							Query = {
+								fields = {
+									book = function(
+										_self,
+										_,
+										ref_: FieldFunctionOptions<Record<string, any>, Record<string, any>>
+									): any
+										local args_ = ref_.args
+										if not Boolean.toJSBoolean(args_) then
+											error(Error.new("arg must never be null"))
+										end
+										local args = args_ :: Record<string, any>
+										local ref = ref_:toReference({ __typename = "Book", id = args.id })
+										if not Boolean.toJSBoolean(ref) then
+											error(Error.new("ref must never be null"))
+										end
+										jestExpect(ref).toEqual({ __ref = ("Book:%s"):format(args.id) })
+										local found = Array.find(ref_:readField("books"), function(book)
+											return book.__ref == ref.__ref
+										end)
+										jestExpect(found).toBeTruthy()
+										return found
+									end,
+								} :: any,
 							},
-						}),
-					}) :: any
-				) :: QueryManager<NormalizedCacheObject>
+						},
+					}),
+				}) :: any
+			) :: QueryManager<NormalizedCacheObject>
 
 			queryManager:query({ query = query }):expect()
 
-			return queryManager
-				:query({ query = shouldHitCacheResolver })
-				:andThen(function(ref)
+			return (
+				queryManager:query({ query = shouldHitCacheResolver }):andThen(function(ref)
 					local data = ref.data
 					jestExpect(data).toMatchObject({ book = { title = "Woo", __typename = "Book" } })
-				end)
-				:timeout(3)
-				:expect()
+				end) :: any
+			) -- ROBLOX TODO: timeout is a valid method in Promise, add to Polyfill:timeout(3):expect()
 		end)
 	end)
 end

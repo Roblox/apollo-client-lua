@@ -64,8 +64,12 @@ type WatchQueryOptions<TVariables, TData> = watchQueryOptionsTypesModule.WatchQu
 type SubscriptionOptions<TVariables, TData> = watchQueryOptionsTypesModule.SubscriptionOptions<TVariables, TData>
 
 local watchQueryOptionsModule = require(script.Parent.watchQueryOptions)
-type MutationOptions<TData, TVariables, TContext, TCache> =
-	watchQueryOptionsModule.MutationOptions<TData, TVariables, TContext, TCache>
+type MutationOptions<TData, TVariables, TContext, TCache> = watchQueryOptionsModule.MutationOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 type WatchQueryFetchPolicy = watchQueryOptionsModule.WatchQueryFetchPolicy
 
 -- ROBLOX deviation: inline to avoid cirular dep

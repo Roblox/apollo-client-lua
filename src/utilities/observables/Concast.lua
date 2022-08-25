@@ -19,12 +19,10 @@ local Error = LuauPolyfill.Error
 type Set<T> = LuauPolyfill.Set<T>
 type Array<T> = LuauPolyfill.Array<T>
 type Object = LuauPolyfill.Object
+type Promise<T> = LuauPolyfill.Promise<T>
+type PromiseLike<T> = LuauPolyfill.PromiseLike<T>
 
 local Promise = require(rootWorkspace.Promise)
-
-local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
-type Promise<T> = PromiseTypeModule.Promise<T>
-type PromiseLike<T> = PromiseTypeModule.PromiseLike<T>
 
 -- ROBLOX deviation: initial state for Concast.sub. Needed to differentiate upstream null from undefined
 local undefined = {}
@@ -127,7 +125,7 @@ function Concast.new(sources: MaybeAsync<ConcastSourcesIterable<T_>> | Subscribe
 			end
 		end),
 		Concast
-	)
+	) :: any
 
 	-- Active observers receiving broadcast messages. Thanks to this.latest,
 	-- we can assume all observers in this Set have received the same most

@@ -6,10 +6,6 @@ local rootWorkspace = srcWorkspace.Parent
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Object = LuauPolyfill.Object
--- ROBLOX TODO: remove when freeze and isFrozen are available from LuauPolyfill
-Object.freeze = (table :: any).freeze
-Object.isFrozen = (table :: any).isfrozen
-
 local Set = LuauPolyfill.Set
 local Array = LuauPolyfill.Array
 
@@ -19,7 +15,7 @@ local isNonNullObject = require(script.Parent.objects).isNonNullObject
 
 local function deepFreeze(value: any)
 	local workSet = Set.new({ value })
-	for _, obj in workSet:ipairs() do
+	for _, obj in workSet do
 		if isNonNullObject(obj) then
 			if not Object.isFrozen(obj) then
 				Object.freeze(obj)

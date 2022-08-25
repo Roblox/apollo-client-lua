@@ -522,7 +522,7 @@ end
 function EntityStore:extract(): NormalizedCacheObject
 	local obj = self:toObject()
 	local extraRootIds: Array<string> = {}
-	for _, id in self:getRootIdSet():ipairs() do
+	for _, id in self:getRootIdSet() do
 		if not hasOwn(self.policies.rootTypenamesById, id) then
 			table.insert(extraRootIds, id :: string)
 		end
@@ -541,7 +541,7 @@ function EntityStore:replace(newData: NormalizedCacheObject | nil): ()
 	end)
 
 	if Boolean.toJSBoolean(newData) and newData ~= nil then
-		local __META, rest = newData.__META, Object.assign({}, newData, { __META = Object.None })
+		local __META, rest = newData.__META, Object.assign({}, newData, { __META = Object.None }) :: Object
 		Array.forEach(Object.keys(rest), function(dataId)
 			self:merge(dataId, rest[dataId] :: StoreObject)
 		end)
@@ -600,7 +600,7 @@ end
 function EntityStore:gc()
 	local ids = self:getRootIdSet()
 	local snapshot = self:toObject()
-	for _, id in ids:ipairs() do
+	for _, id in ids do
 		if hasOwn(snapshot, id) then
 			-- Because we are iterating over an ECMAScript Set, the IDs we add here
 			-- will be visited in later iterations of the forEach loop only if they
@@ -639,7 +639,7 @@ function EntityStore:findChildRefIds(dataId: string): Record<string, boolean>
 		local workSet = Set.new({ root })
 		-- Within the store, only arrays and objects can contain child entity
 		-- references, so we can prune the traversal using this predicate:
-		for _, obj in workSet:ipairs() do
+		for _, obj in workSet do
 			if isReference(obj) then
 				found[obj.__ref] = true
 				-- In rare cases, a { __ref } Reference object may have other fields.
@@ -782,20 +782,19 @@ export type EntityStore_Root = EntityStore & {
 local EntityStore_Root = setmetatable({}, { __index = EntityStore })
 EntityStore_Root.__index = EntityStore_Root
 
-function EntityStore_Root.new(
-	ref: {
-		policies: Policies,
-		resultCaching: boolean?,
-		seed: NormalizedCacheObject?,
-	}
-): EntityStore_Root
+function EntityStore_Root.new(ref: {
+	policies: Policies,
+	resultCaching: boolean?,
+	seed: NormalizedCacheObject?,
+}): EntityStore_Root
 	local policies, resultCaching, seed = ref.policies, ref.resultCaching :: boolean, ref.seed
 	if ref.resultCaching == nil then
 		resultCaching = true
 	end
 
-	local self =
-		(setmetatable(EntityStore.new(policies, CacheGroup.new(resultCaching)), EntityStore_Root) :: any) :: EntityStore_Root
+	local self = (
+		setmetatable(EntityStore.new(policies, CacheGroup.new(resultCaching)), EntityStore_Root) :: any
+	) :: EntityStore_Root
 	self.stump = Stump.new(self)
 	self.storageTrie = Trie.new(canUseWeakMap)
 

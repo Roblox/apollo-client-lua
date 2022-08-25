@@ -185,8 +185,8 @@ return function()
 
 		it("runs a basic query", function()
 			local result = (
-					{ id = "abcd", stringField = "This is a string!", numberField = 5, nullField = NULL } :: any
-				) :: StoreObject
+				{ id = "abcd", stringField = "This is a string!", numberField = 5, nullField = NULL } :: any
+			) :: StoreObject
 			local store = defaultNormalizedCacheFactory({ ROOT_QUERY = result })
 			local queryResult = readQueryFromStore(reader, {
 				store = store,
@@ -358,7 +358,9 @@ return function()
 					numberField = 6,
 					nullField = NULL,
 				} :: any) :: StoreObject,
-				deepNestedObj = ({ stringField = "This is a deep string", numberField = 7, nullField = NULL } :: any) :: StoreObject,
+				deepNestedObj = (
+						{ stringField = "This is a deep string", numberField = 7, nullField = NULL } :: any
+					) :: StoreObject,
 				nullObject = NULL,
 				__typename = "Item",
 			}
@@ -539,8 +541,8 @@ return function()
 
 		it("throws on a missing field", function()
 			local result = (
-					{ id = "abcd", stringField = "This is a string!", numberField = 5, nullField = NULL } :: any
-				) :: StoreObject
+				{ id = "abcd", stringField = "This is a string!", numberField = 5, nullField = NULL } :: any
+			) :: StoreObject
 
 			local store = defaultNormalizedCacheFactory({ ROOT_QUERY = result })
 
@@ -771,7 +773,9 @@ return function()
 					numberField = 6,
 					nullField = NULL,
 				} :: any) :: StoreObject,
-				deepNestedObj = ({ stringField = "This is a deep string", numberField = 7, nullField = NULL } :: any) :: StoreObject,
+				deepNestedObj = (
+						{ stringField = "This is a deep string", numberField = 7, nullField = NULL } :: any
+					) :: StoreObject,
 				nullObject = NULL,
 				__typename = "Item",
 			}
@@ -1522,13 +1526,10 @@ return function()
 			local aQuery: TypedDocumentNode<{ a: Array<string> }, { [string]: any }> = gql([[query { a } ]])
 
 			local abQuery: TypedDocumentNode<{ a: Array<string>, b: { c: string, d: string } }, { [string]: any }> =
-				gql(
-					[[query { a b { c d } } ]]
-				)
+				gql([[query { a b { c d } } ]])
 
-			local bQuery: TypedDocumentNode<{ b: { c: string, d: string } }, { [string]: any }> = gql(
-				[[query { b { d c } } ]]
-			)
+			local bQuery: TypedDocumentNode<{ b: { c: string, d: string } }, { [string]: any }> =
+				gql([[query { b { d c } } ]])
 
 			local abData1 = {
 				a = { "a", "y" },
@@ -1629,9 +1630,8 @@ return function()
 				},
 			})
 
-			local query: TypedDocumentNode<{ now: typeof(now), abc: typeof(abc) }, { [string]: any }> = gql(
-				[[query { now abc } ]]
-			)
+			local query: TypedDocumentNode<{ now: typeof(now), abc: typeof(abc) }, { [string]: any }> =
+				gql([[query { now abc } ]])
 
 			local result1 = cache:readQuery({
 				query = query,

@@ -2,6 +2,13 @@
 local exports = {}
 -- exports.SubscriptionData = require(script.SubscriptionData).SubscriptionData
 exports.OperationData = require(script.OperationData).OperationData
-exports.MutationData = require(script.MutationData).MutationData
+local mutationDataModule = require(script.MutationData)
+exports.MutationData = mutationDataModule.MutationData
+export type MutationData<TData, TVariables, TContext, TCache> = mutationDataModule.MutationData<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 exports.QueryData = require(script.QueryData).QueryData
 return exports

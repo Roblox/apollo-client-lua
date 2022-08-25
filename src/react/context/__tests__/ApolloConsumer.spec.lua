@@ -45,31 +45,35 @@ return function()
 		it("has a render prop", function()
 			-- ROBLOX deviation: wrap in promise
 			Promise.new(function(done, fail)
-				render(React.createElement(
-					ApolloProvider,
-					{ client = client },
-					React.createElement(ApolloConsumer, nil, function(clientRender)
-						local ok, res = pcall(function()
-							jestExpect(clientRender).toBe(client)
-							done()
+				render(
+					React.createElement(
+						ApolloProvider,
+						{ client = client },
+						React.createElement(ApolloConsumer, nil, function(clientRender)
+							local ok, res = pcall(function()
+								jestExpect(clientRender).toBe(client)
+								done()
+							end)
+							if not ok then
+								fail(res)
+							end
+							return nil
 						end)
-						if not ok then
-							fail(res)
-						end
-						return nil
-					end)
-				))
+					)
+				)
 			end):expect()
 		end)
 
 		it("renders the content in the children prop", function()
-			local ref = render(React.createElement(
-				ApolloProvider,
-				{ client = client },
-				React.createElement(ApolloConsumer, nil, function()
-					return React.createElement("TextLabel", { Text = "Test" })
-				end)
-			))
+			local ref = render(
+				React.createElement(
+					ApolloProvider,
+					{ client = client },
+					React.createElement(ApolloConsumer, nil, function()
+						return React.createElement("TextLabel", { Text = "Test" })
+					end)
+				)
+			)
 			jestExpect(ref.getByText("Test")).toBeTruthy()
 		end)
 
@@ -83,13 +87,15 @@ return function()
 				-- testing.
 				local ApolloContext = getApolloContext()
 
-				render(React.createElement(
-					ApolloContext.Provider,
-					{ value = {} },
-					React.createElement(ApolloConsumer, nil, function()
-						return nil
-					end)
-				))
+				render(
+					React.createElement(
+						ApolloContext.Provider,
+						{ value = {} },
+						React.createElement(ApolloConsumer, nil, function()
+							return nil
+						end)
+					)
+				)
 			end).toThrowError(
 				'Could not find "client" in the context of ApolloConsumer. '
 					.. "Wrap the root component in an <ApolloProvider>."

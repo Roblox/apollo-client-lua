@@ -11,8 +11,6 @@ local WeakMap = LuauPolyfill.WeakMap
 local Map = LuauPolyfill.Map
 
 local Object = require(srcWorkspace.luaUtils.Object)
--- ROBLOX TODO: remove when implemented in LuauPolyfill
-Object.freeze = (table :: any).freeze
 
 type Array<T> = LuauPolyfill.Array<T>
 type Set<T> = LuauPolyfill.Set<T>
@@ -206,7 +204,7 @@ function ObjectCanon:admit(value: any?): any?
 					return value
 				end
 				local proto = Object.getPrototypeOf(value)
-				local array = { proto }
+				local array = { proto :: any }
 				local keys = self:sortedKeys(value)
 				table.insert(array, keys.json)
 				local firstValueIndex = #array

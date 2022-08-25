@@ -48,7 +48,11 @@ local maybeSubscribe
 
 local parentEntrySlot = require(script.Parent.context).parentEntrySlot
 local initTypesModule = require(script.Parent.initTypes)
-type OptimisticWrapOptions<TArgs, TKeyArgs, TCacheKey> = initTypesModule.OptimisticWrapOptions<TArgs, TKeyArgs, TCacheKey>
+type OptimisticWrapOptions<TArgs, TKeyArgs, TCacheKey> = initTypesModule.OptimisticWrapOptions<
+	TArgs,
+	TKeyArgs,
+	TCacheKey
+>
 local depTypesModule = require(script.Parent.depTypes)
 type Dep<TKey> = depTypesModule.Dep<TKey>
 local helpersModule = require(script.Parent.helpers)
@@ -203,7 +207,7 @@ function Entry:dispose()
 	-- truly forgotten.
 	eachParent(self :: Entry<TArgs_, TValue_>, function(parent: AnyEntry, child: AnyEntry)
 		parent:setDirty()
-		forgetChild(parent :: any, (self :: any))
+		forgetChild(parent :: any, self :: any)
 		return nil
 	end)
 end
@@ -368,7 +372,7 @@ function reportCleanChild(parent: AnyEntry, child: AnyEntry)
 	assert(parent.childValues:has(child))
 	assert(not mightBeDirty(child))
 
-	local childValue = parent.childValues:get(child)
+	local childValue = parent.childValues:get(child) :: Value<any>
 	if #childValue == 0 then
 		parent.childValues:set(child, valueCopy(child.value))
 	elseif not valueIs(childValue, child.value) then

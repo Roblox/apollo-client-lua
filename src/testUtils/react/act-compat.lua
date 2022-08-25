@@ -5,10 +5,9 @@ local rootWorkspace = srcWorkspace.Parent
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local console = LuauPolyfill.console
+type Promise<T> = LuauPolyfill.Promise<T>
 
 local Promise = require(rootWorkspace.Promise)
-local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
-type Promise<T> = PromiseTypeModule.Promise<T>
 
 local Shared = require(rootWorkspace.Shared)
 type Thenable<R> = Shared.Thenable<R>

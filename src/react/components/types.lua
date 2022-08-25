@@ -19,10 +19,18 @@ type ApolloCache<TSerialized> = cacheModule.ApolloCache<TSerialized>
 local typesModule = require(script.Parent.Parent.types.types)
 type QueryFunctionOptions<TData, TVariables> = typesModule.QueryFunctionOptions<TData, TVariables>
 type QueryResult<TData, TVariables> = typesModule.QueryResult<TData, TVariables>
-type BaseMutationOptions<TData, TVariables, TContext, TCache> =
-	typesModule.BaseMutationOptions<TData, TVariables, TContext, TCache>
-type MutationFunction<TData, TVariables, TContext, TCache> =
-	typesModule.MutationFunction<TData, TVariables, TContext, TCache>
+type BaseMutationOptions<TData, TVariables, TContext, TCache> = typesModule.BaseMutationOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
+type MutationFunction<TData, TVariables, TContext, TCache> = typesModule.MutationFunction<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 type MutationResult<TData> = typesModule.MutationResult<TData>
 type BaseSubscriptionOptions<TData, TVariables> = typesModule.BaseSubscriptionOptions<TData, TVariables>
 type SubscriptionResult<TData> = typesModule.SubscriptionResult<TData>
@@ -34,7 +42,12 @@ export type QueryComponentOptions<TData, TVariables> = QueryFunctionOptions<TDat
 	query: DocumentNode | TypedDocumentNode<TData, TVariables>,
 }
 
-export type MutationComponentOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<TData, TVariables, TContext, TCache> & {
+export type MutationComponentOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+> & {
 	mutation: DocumentNode | TypedDocumentNode<TData, TVariables>,
 	children: (
 		mutateFunction: MutationFunction<TData, TVariables, TContext, any>,

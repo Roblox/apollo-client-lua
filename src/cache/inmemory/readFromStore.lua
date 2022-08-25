@@ -37,8 +37,12 @@ type FieldNode = graphqlModule.FieldNode
 type SelectionSetNode = graphqlModule.SelectionSetNode
 local optimismModule = require(srcWorkspace.optimism)
 local wrap = optimismModule.wrap
-type OptimisticWrapperFunction<TArgs, TResult, TKeyArgs, TCacheKey> =
-	optimismModule.OptimisticWrapperFunction<TArgs, TResult, TKeyArgs, TCacheKey>
+type OptimisticWrapperFunction<TArgs, TResult, TKeyArgs, TCacheKey> = optimismModule.OptimisticWrapperFunction<
+	TArgs,
+	TResult,
+	TKeyArgs,
+	TCacheKey
+>
 local invariantModule = require(srcWorkspace.jsutils.invariant)
 local invariant = invariantModule.invariant
 local InvariantError = invariantModule.InvariantError
@@ -160,12 +164,19 @@ export type StoreReader = {
 
 type StoreReaderPrivate = StoreReader & {
 	-- cached version of executeSelectionset
-	executeSelectionSet: OptimisticWrapperFunction<Array<ExecSelectionSetOptions>, -- Actual arguments tuple type.
-	ExecResult<any>, -- Actual return type.
-	ExecSelectionSetKeyArgs,
-	TCacheKey_>,
+	executeSelectionSet: OptimisticWrapperFunction<
+		Array<ExecSelectionSetOptions>, -- Actual arguments tuple type.
+		ExecResult<any>, -- Actual return type.
+		ExecSelectionSetKeyArgs,
+		TCacheKey_
+	>,
 	-- cached version of executeSubSelectedArray
-	executeSubSelectedArray: OptimisticWrapperFunction<Array<ExecSubSelectedArrayOptions>, ExecResult<any>, Array<ExecSubSelectedArrayOptions>, TCacheKey_>,
+	executeSubSelectedArray: OptimisticWrapperFunction<
+		Array<ExecSubSelectedArrayOptions>,
+		ExecResult<any>,
+		Array<ExecSubSelectedArrayOptions>,
+		TCacheKey_
+	>,
 	config: { cache: InMemoryCache, addTypename: boolean, resultCacheMaxSize: number? },
 	knownResults: WeakMap<Record<string, any>, SelectionSetNode>,
 	execSelectionSetImpl: (self: StoreReaderPrivate, ref: ExecSelectionSetOptions) -> ExecResult<any>,
@@ -396,7 +407,7 @@ function StoreReader:execSelectionSetImpl(ref: ExecSelectionSetOptions): ExecRes
 	local workSet = Set.new(selectionSet.selections)
 
 	-- ROBLOX deviation: can't use Array.map on a Set in Lua
-	for _, selection in workSet:ipairs() do
+	for _, selection in workSet do
 		-- Omit fields with directives @skip(if: <truthy value>) or
 		-- @include(if: <falsy value>).
 		if not shouldInclude(selection, variables) then
@@ -584,7 +595,7 @@ exports.StoreReader = StoreReader
 function assertSelectionSetForIdValue(store: NormalizedCache, field: FieldNode, fieldValue: any)
 	if not Boolean.toJSBoolean(field.selectionSet) then
 		local workSet = Set.new({ fieldValue })
-		for _, value in workSet:ipairs() do
+		for _, value in workSet do
 			if isNonNullObject(value) then
 				invariant(
 					not isReference(value),

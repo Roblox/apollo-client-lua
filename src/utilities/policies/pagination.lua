@@ -203,9 +203,9 @@ local function relayStylePagination<TNode>(keyArgs: KeyArgs?): RelayFieldPolicy<
 
 			local args = ref.args
 
-			local incomingEdges
+			local incomingEdges: Array<any>
 			if Boolean.toJSBoolean(incoming.edges) then
-				incomingEdges = Array.map(incoming.edges, function(edge)
+				incomingEdges = Array.map(incoming.edges, function(edge: Object)
 					edge = Object.assign({}, edge)
 					if ref:isReference(edge) then
 						edge.cursor = ref:readField("cursor", edge)

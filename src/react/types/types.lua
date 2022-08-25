@@ -2,14 +2,13 @@
 local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 
-type Record<T, U> = { [T]: U }
-type Array<T> = { [number]: T }
-type Object = { [string]: any }
-type Tuple<T, V> = Array<T | V>
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
+type Array<T> = LuauPolyfill.Array<T>
+type Object = LuauPolyfill.Object
+type Promise<T> = LuauPolyfill.Promise<T>
 
--- ROBLOX deviation: need to define Promise type for use below
-local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
-type Promise<T> = PromiseTypeModule.Promise<T>
+type Record<T, U> = { [T]: U }
+type Tuple<T, V> = Array<T | V>
 
 type JSX_Element = any
 type ZenObservable_Subscription = any
@@ -95,7 +94,8 @@ export type BaseQueryOptionsWithoutWatchQueryOptions<TVariables> = Object
 
 --[[ ROBLOX deviation: there are no default generic params in Luau: `TVariables = OperationVariables` ]]
 export type BaseQueryOptions<TVariables> =
-	BaseQueryOptionsWithoutWatchQueryOptions<TVariables> & { ssr: boolean?, client: ApolloClient<any>?, context: DefaultContext? }
+	BaseQueryOptionsWithoutWatchQueryOptions<TVariables>
+	& { ssr: boolean?, client: ApolloClient<any>?, context: DefaultContext? }
 
 --[[ ROBLOX deviation: there are no default generic params in Luau: `<
   TData = any,
@@ -124,7 +124,9 @@ export type ObservableQueryFields<TData, TVariables> = ObservableQueryPick<TData
 		fetchMoreOptions: FetchMoreQueryOptions<TVariables, TData> & FetchMoreOptions<TData, TVariables>
 	) -> Promise<ApolloQueryResult<TData>>) & ((<TData2, TVariables2>(
 		_self: any,
-		fetchMoreOptions: { query: (DocumentNode | TypedDocumentNode<TData, TVariables>)? } & FetchMoreQueryOptions<TVariables2, TData> & FetchMoreOptions<TData2, TVariables2>
+		fetchMoreOptions: { query: (DocumentNode | TypedDocumentNode<TData, TVariables>)? }
+			& FetchMoreQueryOptions<TVariables2, TData>
+			& FetchMoreOptions<TData2, TVariables2>
 	) -> Promise<ApolloQueryResult<TData2>>)),
 }
 
@@ -148,7 +150,8 @@ export type QueryDataOptions<TData, TVariables> = QueryFunctionOptions<TData, TV
 
 --[[ ROBLOX deviation: there are no default generic params in Luau: `<TData = any, TVariables = OperationVariables>` ]]
 export type QueryHookOptions<TData, TVariables> =
-	QueryFunctionOptions<TData, TVariables> & { query: (DocumentNode | TypedDocumentNode<TData, TVariables>)? }
+	QueryFunctionOptions<TData, TVariables>
+	& { query: (DocumentNode | TypedDocumentNode<TData, TVariables>)? }
 
 -- ROBLOX deviation: implements a version of skip for QueryFunctionOptions
 export type QueryFunctionOptionsWithoutSkip<TData, TVariables> = BaseQueryOptions<TVariables> & {
@@ -208,7 +211,10 @@ export type LazyQueryResult<TData, TVariables> = UnexecutedLazyResult<TData, TVa
 ]]
 export type QueryTupleFirst<TData, TVariables> = (options: QueryLazyOptions<TVariables>?) -> ()
 export type QueryTupleSecond<TData, TVariables> = LazyQueryResult<TData, TVariables>
-export type QueryTuple<TData, TVariables> = Tuple<QueryTupleFirst<TData, TVariables>, QueryTupleSecond<TData, TVariables>>
+export type QueryTuple<TData, TVariables> = Tuple<
+	QueryTupleFirst<TData, TVariables>,
+	QueryTupleSecond<TData, TVariables>
+>
 
 export type QueryTupleAsReturnType<TData, TVariables> = (
 	...any
@@ -222,7 +228,12 @@ export type RefetchQueriesFunction = (...any) -> InternalRefetchQueriesInclude
 export type MutationOptionsWithoutMutationProperty<TData, TVariables, TContext, TCache> = any
 
 --[[ ROBLOX deviation: there are no default generic params in Luau: `<TData = any, TVariables = OperationVariables, TContext = DefaultContext, TCache extends ApolloCache<any> = ApolloCache<any>>` ]]
-export type BaseMutationOptions<TData, TVariables, TContext, TCache> = MutationOptionsWithoutMutationProperty<TData, TVariables, TContext, TCache> & {
+export type BaseMutationOptions<TData, TVariables, TContext, TCache> = MutationOptionsWithoutMutationProperty<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+> & {
 	client: ApolloClient<Object>?,
 	notifyOnNetworkStatusChange: boolean?,
 	onCompleted: ((TData) -> ())?,
@@ -231,7 +242,12 @@ export type BaseMutationOptions<TData, TVariables, TContext, TCache> = MutationO
 }
 
 --[[ ROBLOX deviation: there are no default generic params in Luau: `<TData = any, TVariables = OperationVariables, TContext = DefaultContext, TCache extends ApolloCache<any> = ApolloCache<any>>` ]]
-export type MutationFunctionOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<TData, TVariables, TContext, TCache> & {
+export type MutationFunctionOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+> & {
 	mutation: (DocumentNode | TypedDocumentNode<TData, TVariables>)?,
 }
 
@@ -250,19 +266,41 @@ export type MutationFunction<TData, TVariables, TContext, TCache> = (
 ) -> Promise<FetchResult<TData>>
 
 -- ROBLOX TODO: a workaround to mimic the default generic type params. Remove when default generic types are supported
-export type MutationHookOptions_<TData, TVariables, TContext> =
-	MutationHookOptions<TData, TVariables, TContext, ApolloCache<any>>
-export type MutationHookOptions__<TData, TVariables> =
-	MutationHookOptions<TData, TVariables, DefaultContext, ApolloCache<any>>
-export type MutationHookOptions___<TData> =
-	MutationHookOptions<TData, OperationVariables, DefaultContext, ApolloCache<any>>
+export type MutationHookOptions_<TData, TVariables, TContext> = MutationHookOptions<
+	TData,
+	TVariables,
+	TContext,
+	ApolloCache<any>
+>
+export type MutationHookOptions__<TData, TVariables> = MutationHookOptions<
+	TData,
+	TVariables,
+	DefaultContext,
+	ApolloCache<any>
+>
+export type MutationHookOptions___<TData> = MutationHookOptions<
+	TData,
+	OperationVariables,
+	DefaultContext,
+	ApolloCache<any>
+>
 export type MutationHookOptions____ = MutationHookOptions<any, OperationVariables, DefaultContext, ApolloCache<any>>
-export type MutationHookOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<TData, TVariables, TContext, TCache> & {
+export type MutationHookOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+> & {
 	mutation: (DocumentNode | TypedDocumentNode<TData, TVariables>)?,
 }
 
 --[[ ROBLOX deviation: there are no default generic params in Luau: `<TData = any, TVariables = OperationVariables, TContext = DefaultContext, TCache extends ApolloCache<any> = ApolloCache<any>>` ]]
-export type MutationDataOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<TData, TVariables, TContext, TCache> & {
+export type MutationDataOptions<TData, TVariables, TContext, TCache> = BaseMutationOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+> & {
 	mutation: DocumentNode | TypedDocumentNode<TData, TVariables>,
 }
 
@@ -280,13 +318,16 @@ export type MutationTupleFirst<TData, TVariables, TContext, TCache> = (
 	options: MutationFunctionOptions<TData, TVariables, TContext, TCache>?
 ) -> Promise<FetchResult<TData>>
 export type MutationTupleSecond<TData, TVariables, TContext, TCache> = MutationResult<TData>
-export type MutationTuple<TData, TVariables, TContext, TCache> =
-	Tuple<MutationTupleFirst<TData, TVariables, TContext, TCache>, MutationTupleSecond<TData, TVariables, TContext, TCache>>
+export type MutationTuple<TData, TVariables, TContext, TCache> = Tuple<
+	MutationTupleFirst<TData, TVariables, TContext, TCache>,
+	MutationTupleSecond<TData, TVariables, TContext, TCache>
+>
 
-export type MutationTupleAsReturnType<TData, TVariables, TContext, TCache> =
-	(
+export type MutationTupleAsReturnType<TData, TVariables, TContext, TCache> = (
 	...any
-) -> (((MutationFunctionOptions<TData, TVariables, TContext, TCache>) -> Promise<FetchResult<TData>>), MutationResult<TData>)
+) -> (((MutationFunctionOptions<TData, TVariables, TContext, TCache>) -> Promise<FetchResult<TData>>), MutationResult<
+	TData
+>)
 
 --[[ Subscription types ]]
 

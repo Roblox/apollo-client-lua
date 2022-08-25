@@ -29,7 +29,7 @@ local function getApolloContext()
 		context.displayName = "ApolloContext"
 		cache:set(React.createContext, context)
 	end
-	return context
+	return context :: React.Context<ApolloContextValue>
 end
 
 return {

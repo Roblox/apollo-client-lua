@@ -5,12 +5,11 @@ local rootWorkspace = srcWorkspace.Parent
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Boolean = LuauPolyfill.Boolean
+type Promise<T> = LuauPolyfill.Promise<T>
+type PromiseLike<T> = LuauPolyfill.PromiseLike<T>
 
 local Promise = require(rootWorkspace.Promise)
 
-local PromiseModule = require(srcWorkspace.luaUtils.Promise)
-type Promise<T> = PromiseModule.Promise<T>
-type PromiseLike<T> = PromiseModule.PromiseLike<T>
 type Function = (...any) -> any
 
 local exports = {}
@@ -42,17 +41,17 @@ local function asyncMap(
 		local activeCallbackCount = 0
 		local completed = false
 		local promiseQueue = (
-				{
-					-- Normally we would initialize promiseQueue to Promise.resolve(), but
-					-- in this case, for backwards compatibility, we need to be careful to
-					-- invoke the first callback synchronously.
-					andThen = function(self, callback: () -> any)
-						return Promise.new(function(resolve)
-							return resolve(callback())
-						end)
-					end,
-				} :: any
-			) :: Promise<nil>
+			{
+				-- Normally we would initialize promiseQueue to Promise.resolve(), but
+				-- in this case, for backwards compatibility, we need to be careful to
+				-- invoke the first callback synchronously.
+				andThen = function(self, callback: () -> any)
+					return Promise.new(function(resolve)
+						return resolve(callback())
+					end)
+				end,
+			} :: any
+		) :: Promise<nil>
 
 		local function makeCallback(
 			examiner: typeof(mapFn) | typeof(catchFn),

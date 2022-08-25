@@ -170,7 +170,7 @@ end
 function DeepMerger:shallowCopyForMerge(value: T_): T_
 	if isNonNullObject(value) and not self.pastCopies:has(value) then
 		if Array.isArray(value) then
-			value = Array.slice((value :: Array<any>), 1)
+			value = Array.slice(value :: Array<any>, 1)
 		else
 			-- ROBLOX deviation: no spread operator, nor prototypes exists in lua
 			-- value = {

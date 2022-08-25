@@ -10,7 +10,9 @@ return function()
 	local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 	type Array<T> = LuauPolyfill.Array<T>
 
-	local print_ = require(rootWorkspace.GraphQL).print
+	local graphQLModule = require(rootWorkspace.GraphQL)
+	local print_ = graphQLModule.print
+	type DocumentNode = graphQLModule.DocumentNode
 	local gql = require(rootWorkspace.GraphQLTag).default
 	local disableFragmentWarnings = require(rootWorkspace.GraphQLTag).disableFragmentWarnings
 
@@ -50,7 +52,7 @@ return function()
 			]])
 			local doc = removeArgumentsFromDocument({ {
 				name = "variable",
-			} }, query)
+			} }, query) :: DocumentNode
 			jestExpect(print_(doc)).toBe(print_(expected))
 		end)
 
@@ -74,7 +76,7 @@ return function()
 			local doc = removeArgumentsFromDocument({ {
 				name = "variable",
 				remove = true,
-			} }, query)
+			} }, query) :: DocumentNode
 			jestExpect(print_(doc)).toBe(print_(expected))
 		end)
 	end)
@@ -113,13 +115,11 @@ return function()
 				zab
 			}
 			]])
-			local doc = removeFragmentSpreadFromDocument(
-				{ {
+			local doc =
+				removeFragmentSpreadFromDocument({ {
 					name = "FragmentSpread",
 					remove = true,
-				} },
-				query
-			)
+				} }, query) :: DocumentNode
 			jestExpect(print_(doc)).toBe(print_(expected))
 		end)
 	end)
@@ -400,9 +400,9 @@ return function()
 			}
 			]])
 
-			type RemoveDirectiveConfig = { name: string?, test: ((_self: any, directive: any) -> boolean)? }
-			local removed: Array<RemoveDirectiveConfig> = {
-				{ name = "storage" },
+			-- ROBLOX FIXME Luau: cannot have arrays with different elements
+			local removed = {
+				{ name = "storage" } :: any,
 				{
 					test = function(_self: any, directive: any)
 						return directive.name.value == "client"

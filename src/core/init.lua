@@ -32,8 +32,12 @@ export type FetchPolicy = watchQueryOptionsModule.FetchPolicy
 export type WatchQueryFetchPolicy = watchQueryOptionsModule.WatchQueryFetchPolicy
 export type ErrorPolicy = watchQueryOptionsModule.ErrorPolicy
 export type FetchMoreQueryOptions<TVariables, TData> = watchQueryOptionsModule.FetchMoreQueryOptions<TVariables, TData>
-export type MutationOptions<TData, TVariables, TContext, TCache> =
-	watchQueryOptionsModule.MutationOptions<TData, TVariables, TContext, TCache>
+export type MutationOptions<TData, TVariables, TContext, TCache> = watchQueryOptionsModule.MutationOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 export type SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData> =
 	watchQueryOptionsModule.SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData>
 export type SubscriptionOptions<TVariables, TData> = watchQueryOptionsModule.SubscriptionOptions<TVariables, TData>
@@ -62,8 +66,12 @@ export type OperationVariables = typesModule.OperationVariables
 export type ApolloQueryResult<T> = typesModule.ApolloQueryResult<T>
 export type MutationQueryReducer<T> = typesModule.MutationQueryReducer<T>
 export type MutationQueryReducersMap<T> = typesModule.MutationQueryReducersMap<T>
-export type MutationUpdaterFunction<TData, TVariables, TContext, TCache> =
-	typesModule.MutationUpdaterFunction<TData, TVariables, TContext, TCache>
+export type MutationUpdaterFunction<TData, TVariables, TContext, TCache> = typesModule.MutationUpdaterFunction<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 export type Resolvers = typesModule.Resolvers
 local localStateModule = require(script.LocalState)
 export type Resolver = localStateModule.Resolver
@@ -101,11 +109,16 @@ export type DataProxy = cacheModule.DataProxy
 export type DataProxy_Query<TVariables, TData> = cacheModule.DataProxy_Query<TVariables, TData>
 export type DataProxy_Fragment<TVariables, TData> = cacheModule.DataProxy_Fragment<TVariables, TData>
 export type DataProxy_ReadQueryOptions<TData, TVariables> = cacheModule.DataProxy_ReadQueryOptions<TData, TVariables>
-export type DataProxy_ReadFragmentOptions<TData, TVariables> = cacheModule.DataProxy_ReadFragmentOptions<TData, TVariables>
+export type DataProxy_ReadFragmentOptions<TData, TVariables> = cacheModule.DataProxy_ReadFragmentOptions<
+	TData,
+	TVariables
+>
 export type DataProxy_WriteOptions<TData> = cacheModule.DataProxy_WriteOptions<TData>
 export type DataProxy_WriteQueryOptions<TData, TVariables> = cacheModule.DataProxy_WriteQueryOptions<TData, TVariables>
-export type DataProxy_WriteFragmentOptions<TData, TVariables> =
-	cacheModule.DataProxy_WriteFragmentOptions<TData, TVariables>
+export type DataProxy_WriteFragmentOptions<TData, TVariables> = cacheModule.DataProxy_WriteFragmentOptions<
+	TData,
+	TVariables
+>
 export type DataProxy_DiffResult<T> = cacheModule.DataProxy_DiffResult<T>
 export type FieldFunctionOptions<TArgs, TVars> = cacheModule.FieldFunctionOptions<TArgs, TVars>
 export type FieldMergeFunction<T, V> = cacheModule.FieldMergeFunction<T, V>
@@ -183,4 +196,4 @@ exports.disableFragmentWarnings = gqlTagModule.disableFragmentWarnings
 exports.enableExperimentalFragmentVariables = gqlTagModule.enableExperimentalFragmentVariables
 exports.disableExperimentalFragmentVariables = gqlTagModule.disableExperimentalFragmentVariables
 
-return exports
+return exports :: typeof(exports) & typeof(typesModule) & typeof(inMemoryTypesModule) & typeof(linkCoreModule) & typeof(linkHttpModule)

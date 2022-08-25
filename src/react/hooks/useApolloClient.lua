@@ -20,7 +20,8 @@ function useApolloClient(): ApolloClient<{ [string]: any }>
 		"No Apollo Client instance can be found. Please ensure that you "
 			.. "have called `ApolloProvider` higher up in your tree."
 	)
-	return client
+	-- ROBLOX FIXME Luau: invariant already checked for nil (falsy) value
+	return client :: ApolloClient<{ [string]: any }>
 end
 exports.useApolloClient = useApolloClient
 

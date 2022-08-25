@@ -28,7 +28,7 @@ return function()
 					)
 				end
 				return textLabels
-			end)()
+			end)() :: React.React_Element<any>
 		)
 	end
 

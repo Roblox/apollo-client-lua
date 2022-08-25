@@ -55,7 +55,7 @@ return function()
 		end)
 
 		it("should resolve conflicts among more than two objects", function()
-			local sources = {}
+			local sources = {} :: Array<any>
 
 			for i = 1, 100 do
 				table.insert(sources, {
@@ -291,35 +291,31 @@ return function()
 			local contextObject = { contextWithSpaces = "c o n t e x t" } :: any
 
 			local shallowContextValues: Array<any> = {}
-			local shallowMerger = DeepMerger.new(
-				function(
-					self: DeepMerger,
-					target: Record<string | number, any>,
-					source: Record<string | number, any>,
-					property: string | number,
-					context: any
-				)
-					-- ROBLOX deviation: inserting { context = context } instead of just context to be able to insert nil context
-					table.insert(shallowContextValues, { context = context })
-					-- Deliberately not passing context down to nested levels.
-					return self:merge(target[property], source[property])
-				end
+			local shallowMerger = DeepMerger.new(function(
+				self: any --[[ ROBLOX FIXME: DeepMerger differs from DeepMergerPrivate ]],
+				target: Record<string | number, any>,
+				source: Record<string | number, any>,
+				property: string | number,
+				context: any
 			)
+				-- ROBLOX deviation: inserting { context = context } instead of just context to be able to insert nil context
+				table.insert(shallowContextValues, { context = context })
+				-- Deliberately not passing context down to nested levels.
+				return self:merge(target[property], source[property])
+			end)
 
 			local typicalContextValues: Array<any> = {}
-			local typicalMerger = DeepMerger.new(
-				function(
-					self: DeepMerger,
-					target: Record<string | number, any>,
-					source: Record<string | number, any>,
-					property: string | number,
-					context: any
-				)
-					table.insert(typicalContextValues, context)
-					-- Passing context down this time.
-					return self:merge(target[property], source[property], context)
-				end
+			local typicalMerger = DeepMerger.new(function(
+				self: any --[[ ROBLOX FIXME: DeepMerger differs from DeepMergerPrivate ]],
+				target: Record<string | number, any>,
+				source: Record<string | number, any>,
+				property: string | number,
+				context: any
 			)
+				table.insert(typicalContextValues, context)
+				-- Passing context down this time.
+				return self:merge(target[property], source[property], context)
+			end)
 
 			local left = {
 				a = 1,

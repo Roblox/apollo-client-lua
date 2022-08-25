@@ -16,7 +16,10 @@ type DataProxy_Query<TVariables, TData> = DataProxyModule.DataProxy_Query<TVaria
 type DataProxy_ReadQueryOptions<TData, TVariables> = DataProxyModule.DataProxy_ReadQueryOptions<TData, TVariables>
 type DataProxy_ReadFragmentOptions<TData, TVariables> = DataProxyModule.DataProxy_ReadFragmentOptions<TData, TVariables>
 type DataProxy_WriteQueryOptions<TData, TVariables> = DataProxyModule.DataProxy_WriteQueryOptions<TData, TVariables>
-type DataProxy_WriteFragmentOptions<TData, TVariables> = DataProxyModule.DataProxy_WriteFragmentOptions<TData, TVariables>
+type DataProxy_WriteFragmentOptions<TData, TVariables> = DataProxyModule.DataProxy_WriteFragmentOptions<
+	TData,
+	TVariables
+>
 type DataProxy_Fragment<TData, TVariables> = DataProxyModule.DataProxy_Fragment<TData, TVariables>
 
 local commonModule = require(script.Parent.common)
@@ -55,7 +58,9 @@ type Omit_data_from_DataProxy_WriteOptions<TResult> = { broadcast: boolean?, ove
 
 -- ROBLOX deviation: no generic type parameter defaults in luau
 export type Cache_WriteOptions<TResult, TVariables> =
-	Omit_id_from_DataProxy_Query<TVariables, TResult> & Omit_data_from_DataProxy_WriteOptions<TResult> & { dataId: string?, result: TResult }
+	Omit_id_from_DataProxy_Query<TVariables, TResult>
+	& Omit_data_from_DataProxy_WriteOptions<TResult>
+	& { dataId: string?, result: TResult }
 
 -- ROBLOX deviation START: add explicit default types for Cache_ReadOptions
 export type Cache_DiffOptions = Cache_ReadOptions<any, any> & {

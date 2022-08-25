@@ -13,13 +13,23 @@ local errorsModule = require(srcWorkspace.errors)
 local ApolloError = errorsModule.ApolloError
 type ApolloError = errorsModule.ApolloError
 local typesModule = require(script.Parent.Parent.types.types)
-type MutationDataOptions<TData, TVariables, TContext, TCache> =
-	typesModule.MutationDataOptions<TData, TVariables, TContext, TCache>
+type MutationDataOptions<TData, TVariables, TContext, TCache> = typesModule.MutationDataOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 type MutationTuple<TData, TVariables, TContext, TCache> = typesModule.MutationTuple<TData, TVariables, TContext, TCache>
-type MutationFunctionOptions<TData, TVariables, TContext, TCache> =
-	typesModule.MutationFunctionOptions<TData, TVariables, TContext, TCache>
+type MutationFunctionOptions<TData, TVariables, TContext, TCache> = typesModule.MutationFunctionOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 type MutationResult<TData> = typesModule.MutationResult<TData>
-local OperationData = require(script.Parent.OperationData).OperationData
+local operationDataModule = require(script.Parent.OperationData)
+local OperationData = operationDataModule.OperationData
+type OperationData<TOptions> = operationDataModule.OperationData<TOptions>
 
 local coreModule = require(srcWorkspace.core)
 -- local MutationOptions = coreModule.MutationOptions
@@ -42,7 +52,9 @@ type MutationResultWithoutClient<TData> = {
 local MutationData = setmetatable({}, { __index = OperationData })
 MutationData.__index = MutationData
 
-type MutationData<TData, TVariables, TContext, TCache> = {
+export type MutationData<TData, TVariables, TContext, TCache> = OperationData<
+	MutationDataOptions<TData, TVariables, TContext, TCache>
+> & {
 	execute: (
 		self: MutationData<TData, TVariables, TContext, TCache>,
 		result: MutationResultWithoutClient<TData>

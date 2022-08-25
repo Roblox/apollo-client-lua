@@ -14,7 +14,8 @@ local exports: { [string]: any } = {}
 
 -- export * from './queries'
 
-Object.assign(exports, require(script.wait))
+local waitModule = require(script.wait)
+Object.assign(exports, waitModule)
 
 -- export * from './wait-for-element'
 -- export * from './wait-for-element-to-be-removed'
@@ -39,4 +40,4 @@ exports.configure = require(script.config).configure
 --   queryHelpers,
 -- }
 
-return exports
+return exports :: typeof(exports) & typeof(waitModule)

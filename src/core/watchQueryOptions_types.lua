@@ -194,8 +194,12 @@ export type SubscriptionOptions<TVariables, TData> = {
 }
 
 -- ROBLOX TODO: a workaround to mimic the default generic type params. Remove when default generic types are supported
-export type MutationBaseOptions_<TData, TVariables, TContext> =
-	MutationBaseOptions<TData, TVariables, TContext, ApolloCache<any>>
+export type MutationBaseOptions_<TData, TVariables, TContext> = MutationBaseOptions<
+	TData,
+	TVariables,
+	TContext,
+	ApolloCache<any>
+>
 export type MutationBaseOptions<TData, TVariables, TContext, TCache> = {
 	--[[*
    * An object that represents the result of this mutation that will be
@@ -287,8 +291,18 @@ export type MutationBaseOptions<TData, TVariables, TContext, TCache> = {
 }
 
 -- ROBLOX TODO: a workaround to mimic the default generic type params. Remove when default generic types are supported
-export type MutationOptions_<TData, TVariables, TContext> = MutationOptions<TData, TVariables, TContext, ApolloCache<any>>
-export type MutationOptions<TData, TVariables, TContext, TCache> = MutationBaseOptions<TData, TVariables, TContext, TCache> & {
+export type MutationOptions_<TData, TVariables, TContext> = MutationOptions<
+	TData,
+	TVariables,
+	TContext,
+	ApolloCache<any>
+>
+export type MutationOptions<TData, TVariables, TContext, TCache> = MutationBaseOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+> & {
 	--[[
     A GraphQL document, often created with `gql` from the `graphql-tag`
     package, that contains a single mutation inside of it.

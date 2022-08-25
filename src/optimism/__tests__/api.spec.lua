@@ -16,8 +16,12 @@ return function()
 	local optimismModule = require(script.Parent.Parent)
 	local wrap = optimismModule.wrap
 	local defaultMakeCacheKey = optimismModule.defaultMakeCacheKey
-	type OptimisticWrapperFunction<TArgs, TResult, TKeyArgs, TCacheKey> =
-		optimismModule.OptimisticWrapperFunction<TArgs, TResult, TKeyArgs, TCacheKey>
+	type OptimisticWrapperFunction<TArgs, TResult, TKeyArgs, TCacheKey> = optimismModule.OptimisticWrapperFunction<
+		TArgs,
+		TResult,
+		TKeyArgs,
+		TCacheKey
+	>
 	-- local wrapYieldingFiberMethods = require(srcWorkspace.wry.context).wrapYieldingFiberMethods
 	local dep = require(script.Parent.Parent.dep).dep
 
@@ -512,11 +516,11 @@ return function()
 			local sumNums = wrap(function(...)
 				local args = { ... }
 				return {
-					sum = Array.reduce(args, function(sum, arg)
+					sum = Array.reduce(args, function(sum: number, arg)
 						if typeof(arg) == "number" then
-							return arg + sum
+							return (arg + sum) :: number
 						else
-							return sum
+							return sum :: number
 						end
 					end, 0) :: number,
 				}

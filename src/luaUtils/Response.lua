@@ -1,5 +1,5 @@
-local promiseModule = require(script.Parent.Promise)
-type Promise<T> = promiseModule.Promise<T>
+local LuauPolyfill = require(script.Parent.Parent.Parent.LuauPolyfill)
+type Promise<T> = LuauPolyfill.Promise<T>
 
 -- ROBLOX TODO: add Response type to LuauPolyfill
 type Body = { text: (self: Body) -> Promise<string> }

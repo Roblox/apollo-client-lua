@@ -101,7 +101,7 @@ local defaultHeaders = {
 local defaultOptions = { method = "POST" }
 
 local fallbackHttpConfig = { http = defaultHttpOptions, headers = defaultHeaders, options = defaultOptions }
-exports.fallbackHttpConfig = fallbackHttpConfig
+exports.fallbackHttpConfig = fallbackHttpConfig :: HttpConfig
 
 local function selectHttpOptionsAndBody(operation: Operation, fallbackConfig: HttpConfig, ...: HttpConfig)
 	local configs: Array<HttpConfig> = { ... }

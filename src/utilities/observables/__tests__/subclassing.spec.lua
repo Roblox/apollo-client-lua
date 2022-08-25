@@ -9,11 +9,9 @@ return function()
 
 	local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 	type Array<T> = LuauPolyfill.Array<T>
+	type Promise<T> = LuauPolyfill.Promise<T>
 
 	local Promise = require(rootWorkspace.Promise)
-
-	local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
-	type Promise<T> = PromiseTypeModule.Promise<T>
 
 	local ObservableModule = require(script.Parent.Parent.Observable)
 	local Observable = ObservableModule.Observable

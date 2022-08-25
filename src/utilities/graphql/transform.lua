@@ -265,7 +265,7 @@ local addTypenameToDocument = Object.assign(
 						if
 							isField(field)
 							and Boolean.toJSBoolean(field.directives)
-							and Boolean.toJSBoolean(Array.some((field.directives :: Array<DirectiveNode>), function(d)
+							and Boolean.toJSBoolean(Array.some(field.directives :: Array<DirectiveNode>, function(d)
 								return d.name.value == "export"
 							end))
 						then
@@ -452,8 +452,8 @@ function removeFragmentSpreadFromDocument(
 end
 exports.removeFragmentSpreadFromDocument = removeFragmentSpreadFromDocument
 
-function getAllFragmentSpreadsFromSelectionSet(selectionSet: SelectionSetNode): Array<FragmentSpreadNode>
-	local allFragments: Array<FragmentSpreadNode> = {}
+function getAllFragmentSpreadsFromSelectionSet(selectionSet: SelectionSetNode)
+	local allFragments = {} :: Array<any>
 	Array.forEach(selectionSet.selections, function(selection)
 		if
 			-- ROBLOX TODO: If Luau supported type literals, it would know these functions narrow selection to FieldNode | InlineFragmentNode
@@ -466,7 +466,7 @@ function getAllFragmentSpreadsFromSelectionSet(selectionSet: SelectionSetNode): 
 					(selection :: FieldNode | InlineFragmentNode).selectionSet :: SelectionSetNode
 				),
 				function(frag)
-					table.insert(allFragments, frag)
+					table.insert(allFragments, frag :: FragmentSpreadNode)
 				end
 			)
 			-- ROBLOX TODO: If Luau supported type literals, it would know these functions narrow selection to FragmentSpreadNode

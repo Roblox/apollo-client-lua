@@ -19,9 +19,7 @@ return function()
 
 	type Array<T> = LuauPolyfill.Array<T>
 	type Object = LuauPolyfill.Object
-
-	local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
-	type Promise<T> = PromiseTypeModule.Promise<T>
+	type Promise<T> = LuauPolyfill.Promise<T>
 
 	-- ROBLOX FIXME: remove if better solution is found
 	type FIX_ANALYZE = any
@@ -29,7 +27,7 @@ return function()
 	local gql = require(rootWorkspace.GraphQLTag).default
 	local GraphQLError = require(rootWorkspace.GraphQL).GraphQLError
 	local typedDocumentNodeModule = require(srcWorkspace.jsutils.typedDocumentNode)
-	type TypedDocumentNode_<Result> = typedDocumentNodeModule.TypedDocumentNode_<Result>
+	type TypedDocumentNode<Result, Variables> = typedDocumentNodeModule.TypedDocumentNode<Result, Variables>
 
 	local coreModule = require(script.Parent.Parent.Parent.core)
 	local ApolloClient = coreModule.ApolloClient
@@ -64,11 +62,11 @@ return function()
 
 	describe("ObservableQuery", function()
 		-- Standard data for all these tests
-		local query: TypedDocumentNode_<{
+		local query: TypedDocumentNode<{
 			people_one: {
 				name: string,
 			},
-		}> = gql([[
+		}, any> = gql([[
 
     query query($id: ID!) {
       people_one(id: $id) {
@@ -94,14 +92,14 @@ return function()
 		local function createQueryManager(ref: { link: ApolloLink }): QueryManager<NormalizedCacheObject>
 			local link = ref.link
 			return (
-					QueryManager.new({
-						link = link,
-						assumeImmutableResults = true,
-						cache = InMemoryCache.new({
-							addTypename = false,
-						}),
-					}) :: any
-				) :: QueryManager<NormalizedCacheObject>
+				QueryManager.new({
+					link = link,
+					assumeImmutableResults = true,
+					cache = InMemoryCache.new({
+						addTypename = false,
+					}),
+				}) :: any
+			) :: QueryManager<NormalizedCacheObject>
 		end
 
 		describe("setOptions", function()
@@ -420,7 +418,7 @@ return function()
 							observable:refetch()
 							setTimeout(resolve, 25)
 						end,
-					})
+					} :: FIX_ANALYZE)
 				end
 			)
 
@@ -1966,7 +1964,7 @@ return function()
 							-- ROBLOX deviation: table freeze error is not an instance of Error
 							-- jestExpect(error_).toBeInstanceOf(Error)
 							-- ROBLOX deviation: error message is different than the JS version
-							jestExpect(error_).toMatch("Attempt to modify a readonly table")
+							jestExpect(error_).toMatch("attempt to modify a readonly table")
 						end
 						resolve_()
 					end)

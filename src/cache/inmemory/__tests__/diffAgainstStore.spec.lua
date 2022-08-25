@@ -1114,7 +1114,7 @@ return function()
 				end
 
 				check(writeQueryToStore({
-					writer = StoreWriter.new(InMemoryCache.new({ dataIdFromObject = 0 and nil or nil })),
+					writer = StoreWriter.new(InMemoryCache.new({ dataIdFromObject = nil })),
 					query = query,
 					result = {
 						user = company.users[1],

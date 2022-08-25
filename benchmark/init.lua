@@ -159,7 +159,7 @@ return function()
 					end
 					observer:complete()
 				end
-			end, if Boolean.toJSBoolean(delay) then delay else	0)
+			end, if Boolean.toJSBoolean(delay) then delay else 0)
 
 			return function()
 				clearTimeout(timer)

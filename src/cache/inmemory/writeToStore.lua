@@ -63,6 +63,7 @@ local typesModule = require(script.Parent.types)
 type NormalizedCache = typesModule.NormalizedCache
 type ReadMergeModifyContext = typesModule.ReadMergeModifyContext
 type MergeTree = typesModule.MergeTree
+type MergeInfo = typesModule.MergeInfo
 
 local helpersModule = require(script.Parent.helpers)
 local makeProcessedFieldsMerger = helpersModule.makeProcessedFieldsMerger
@@ -180,7 +181,7 @@ function StoreWriter:writeToStore(store: NormalizedCache, writeOpts: Cache_Write
 	-- So far, the store has not been modified, so now it's time to process
 	-- context.incomingById and merge those incoming fields into context.store.
 	-- ROBLOX deviation: renamed dataId to dataId_ to resolve shadowing analyze error
-	for _, ref_ in context.incomingById:ipairs() do
+	for _, ref_ in context.incomingById do
 		local dataId_, incoming = ref_[1], ref_[2]
 		local fields: StoreObject, mergeTree: MergeTree, selections: Set<SelectionNode> =
 			incoming.fields, incoming.mergeTree, incoming.selections
@@ -206,7 +207,7 @@ function StoreWriter:writeToStore(store: NormalizedCache, writeOpts: Cache_Write
 				return fieldsWithSelectionSets:has(fieldNameFromStoreName(storeFieldName))
 			end
 			fieldsWithSelectionSets = Set.new()
-			for _, selection in selections:ipairs() do
+			for _, selection in selections do
 				if isField(selection) and Boolean.toJSBoolean(selection.selectionSet) then
 					fieldsWithSelectionSets:add(selection.name.value)
 				end
@@ -321,7 +322,7 @@ function StoreWriter:processSelectionSet(ref_: ProcessSelectionSetOptions): Stor
 
 	local selections = Set.new(selectionSet.selections)
 
-	for _, selection in selections:ipairs() do
+	for _, selection in selections do
 		if not shouldInclude(selection, context.variables) then
 			continue
 		end
@@ -449,14 +450,14 @@ function StoreWriter:processSelectionSet(ref_: ProcessSelectionSetOptions): Stor
 
 	if "string" == typeof(dataId) then
 		local previous = context.incomingById:get(dataId)
-		if Boolean.toJSBoolean(previous) then
+		if previous ~= nil then
 			previous.fields = context.merge(previous.fields, incomingFields)
 			previous.mergeTree = mergeMergeTrees(previous.mergeTree, mergeTree)
 			-- Add all previous SelectionNode objects, rather than creating a new
 			-- Set, since the original unmerged selections Set is not going to be
 			-- needed again (only the merged Set).
-			for index, value in previous.selections:ipairs() do
-				selections:add(value, index)
+			for _index, value in previous.selections do
+				selections:add(value)
 			end
 			previous.selections = selections
 		else
@@ -566,11 +567,11 @@ function StoreWriter:applyMerges(
 					return nil
 				end
 			else
-				return context.store:getFieldValue((from :: StoreObject | Reference), tostring(name))
+				return context.store:getFieldValue(from :: StoreObject | Reference, tostring(name))
 			end
 		end
 
-		for _, ref in mergeTree.map:ipairs() do
+		for _, ref in mergeTree.map do
 			local storeFieldName, childTree = table.unpack(ref, 1, 2)
 			local eVal = getValue(e, storeFieldName)
 			local iVal = getValue(i, storeFieldName)
@@ -599,7 +600,7 @@ function StoreWriter:applyMerges(
 			else
 				incoming = Object.assign({}, i) :: T_
 			end
-			for _, ref_ in changedFields:ipairs() do
+			for _, ref_ in changedFields do
 				local name, value = table.unpack(ref_, 1, 2)
 				incoming[name] = value
 			end
@@ -630,42 +631,32 @@ function getChildMergeTree(ref: MergeTree, name: string | number): MergeTree
 			map = Map.new(nil),
 		})
 	end
-	return map:get(name)
+	return map:get(name) :: MergeTree
 end
 
 function mergeMergeTrees(left: MergeTree | nil, right: MergeTree | nil): MergeTree
 	if left == right or not (right ~= nil) or mergeTreeIsEmpty(right) then
-		return (left :: MergeTree)
+		return left :: MergeTree
 	end
 
-	if not (left ~= nil) or mergeTreeIsEmpty(left) then
-		return (right :: MergeTree)
+	if (left == nil) or mergeTreeIsEmpty(left) then
+		return right :: MergeTree
 	end
 
-	local info
-	if Boolean.toJSBoolean((left :: MergeTree).info) and Boolean.toJSBoolean((right :: MergeTree).info) then
-		info = Object.assign({}, (left :: MergeTree).info, (right :: MergeTree).info)
-	else
-		info = (left :: MergeTree).info or (right :: MergeTree).info
-	end
+	local info = if Boolean.toJSBoolean((left :: MergeTree).info)
+			and Boolean.toJSBoolean((right :: MergeTree).info)
+		then Object.assign({}, (left :: MergeTree).info, (right :: MergeTree).info)
+		else (left :: MergeTree).info or (right :: MergeTree).info :: MergeInfo?
 
-	local needToMergeMaps
-	if Boolean.toJSBoolean((left :: MergeTree).map.size) then
-		needToMergeMaps = (right :: MergeTree).map.size
-	else
-		needToMergeMaps = (left :: MergeTree).map.size
-	end
+	local needToMergeMaps = if Boolean.toJSBoolean((left :: MergeTree).map.size)
+		then (right :: MergeTree).map.size
+		else (left :: MergeTree).map.size
 
-	local map
-	if Boolean.toJSBoolean(needToMergeMaps) then
-		map = Map.new(nil)
-	else
-		if Boolean.toJSBoolean((left :: MergeTree).map.size) then
-			map = (left :: MergeTree).map
-		else
-			map = (right :: MergeTree).map
-		end
-	end
+	local map = if Boolean.toJSBoolean(needToMergeMaps)
+		then Map.new()
+		else if Boolean.toJSBoolean((left :: MergeTree).map.size)
+			then (left :: MergeTree).map
+			else (right :: MergeTree).map :: Map<any, any>
 
 	local merged = { info = info, map = map }
 
@@ -673,14 +664,17 @@ function mergeMergeTrees(left: MergeTree | nil, right: MergeTree | nil): MergeTr
 		local remainingRightKeys = Set.new((right :: MergeTree).map:keys())
 
 		-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-		for _, ref in (left :: MergeTree).map:ipairs() do
-			local key, leftTree = table.unpack(ref, 1, 2)
-			merged.map:set(key, mergeMergeTrees(leftTree, (right :: MergeTree).map:get(key)))
+		for _, ref in (left :: MergeTree).map do
+			local key, leftTree = table.unpack(ref, 1, 2);
+			(merged.map :: Map<any, any>):set(key, mergeMergeTrees(leftTree, (right :: MergeTree).map:get(key)))
 			remainingRightKeys:delete(key)
 		end
 
-		for _, key in remainingRightKeys:ipairs() do
-			merged.map:set(key, mergeMergeTrees((right :: MergeTree).map:get(key), (left :: MergeTree).map:get(key)))
+		for _, key in remainingRightKeys do
+			(merged.map :: Map<any, any>):set(
+				key,
+				mergeMergeTrees((right :: MergeTree).map:get(key), (left :: MergeTree).map:get(key))
+			)
 		end
 	end
 
@@ -775,7 +769,8 @@ function warnAboutDataLoss(
 			end
 		end)
 	end
-	invariant.warn(([[Cache data may be lost when replacing the %s field of a %s object.
+	invariant.warn(
+		([[Cache data may be lost when replacing the %s field of a %s object.
 
 	To address this problem (which is not a bug in Apollo Client), %sdefine a custom merge function for the %s field, so InMemoryCache can safely merge these objects:
 
@@ -787,20 +782,21 @@ function warnAboutDataLoss(
 	  * Ensuring entity objects have IDs: https://go.apollo.dev/c/generating-unique-identifiers
 	  * Defining custom merge functions: https://go.apollo.dev/c/merging-non-normalized-objects
 	]]):format(
-		fieldName,
-		parentType,
-		(function()
-			if Boolean.toJSBoolean(#childTypenames) then
-				return "either ensure all objects of type "
-					.. Array.join(childTypenames, " and ")
-					.. " have an ID or a custom merge function, or "
-			else
-				return ""
-			end
-		end)(),
-		typeDotName,
-		string.sub(HttpService:JSONEncode(existing), 1, 1000),
-		string.sub(HttpService:JSONEncode(incoming), 1, 1000)
-	))
+			fieldName,
+			parentType,
+			(function()
+				if Boolean.toJSBoolean(#childTypenames) then
+					return "either ensure all objects of type "
+						.. Array.join(childTypenames, " and ")
+						.. " have an ID or a custom merge function, or "
+				else
+					return ""
+				end
+			end)(),
+			typeDotName,
+			string.sub(HttpService:JSONEncode(existing), 1, 1000),
+			string.sub(HttpService:JSONEncode(incoming), 1, 1000)
+		)
+	)
 end
 return exports

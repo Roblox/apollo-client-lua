@@ -12,10 +12,9 @@ local setTimeout = LuauPolyfill.setTimeout
 
 type Array<T> = LuauPolyfill.Array<T>
 type Error = LuauPolyfill.Error
+type Promise<T> = LuauPolyfill.Promise<T>
 
 local Promise = require(rootWorkspace.Promise)
-local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
-type Promise<T> = PromiseTypeModule.Promise<T>
 
 local observableQueryModule = require(script.Parent.Parent.Parent.core.ObservableQuery_types)
 type ObservableQuery_<TData> = observableQueryModule.ObservableQuery_<TData>

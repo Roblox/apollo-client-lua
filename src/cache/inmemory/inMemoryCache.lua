@@ -31,8 +31,12 @@ local exports = {}
 local graphQLModule = require(rootWorkspace.GraphQL)
 type DocumentNode = graphQLModule.DocumentNode
 local optimismModule = require(srcWorkspace.optimism)
-type OptimisticWrapperFunction<TArgs, TResult, TKeyArgs, TCacheKey> =
-	optimismModule.OptimisticWrapperFunction<TArgs, TResult, TKeyArgs, TCacheKey>
+type OptimisticWrapperFunction<TArgs, TResult, TKeyArgs, TCacheKey> = optimismModule.OptimisticWrapperFunction<
+	TArgs,
+	TResult,
+	TKeyArgs,
+	TCacheKey
+>
 local wrap = optimismModule.wrap
 local equal = require(srcWorkspace.jsutils.equal)
 
@@ -168,7 +172,12 @@ type InMemoryCachePrivate = InMemoryCache & {
 	storeReader: StoreReader,
 	storeWriter: StoreWriter,
 
-	maybeBroadcastWatch: OptimisticWrapperFunction<Array<Cache_WatchOptions<Watcher_> | BroadcastOptions?>, any, Array<Cache_WatchOptions<Watcher_>>, any>,
+	maybeBroadcastWatch: OptimisticWrapperFunction<
+		Array<Cache_WatchOptions<Watcher_> | BroadcastOptions?>,
+		any,
+		Array<Cache_WatchOptions<Watcher_>>,
+		any
+	>,
 
 	init: (self: InMemoryCachePrivate) -> (),
 	resetResultCache: (self: InMemoryCachePrivate, resetResultIdentities: boolean?) -> (),
@@ -288,7 +297,7 @@ function InMemoryCache:resetResultCache(resetResultIdentities: boolean?): ()
 	-- Since we have thrown away all the cached functions that depend on the
 	-- CacheGroup dependencies maintained by EntityStore, we should also reset
 	-- all CacheGroup dependency information.
-	for _, group in Set.new({ self.data.group, self.optimisticData.group }):ipairs() do
+	for _, group in Set.new({ self.data.group, self.optimisticData.group }) do
 		group:resetCaching()
 	end
 end
@@ -647,7 +656,7 @@ function InMemoryCache:batch(options: Cache_BatchOptions<InMemoryCache>)
 		-- Silently re-dirty any watches that were already dirty before the update
 		-- was performed, and were not broadcast just now.
 		if Boolean.toJSBoolean(alreadyDirty.size) then
-			for _, watch in alreadyDirty:ipairs() do
+			for _, watch in alreadyDirty do
 				self.maybeBroadcastWatch:dirty(watch)
 			end
 		end
@@ -686,7 +695,7 @@ end
 
 function InMemoryCache:broadcastWatches(options: BroadcastOptions?): ()
 	if not Boolean.toJSBoolean(self.txCount) then
-		for _, c in self.watches:ipairs() do
+		for _, c in self.watches do
 			self:maybeBroadcastWatch(c, options)
 		end
 	end
@@ -717,8 +726,8 @@ function InMemoryCache:broadcastWatch(c: Cache_WatchOptions<Watcher_>, options: 
 	end
 
 	if not lastDiff or not equal(lastDiff.result, diff.result) then
-		c.lastDiff = diff :: any
-		c:callback(c.lastDiff, lastDiff)
+		c.lastDiff = diff
+		c:callback(c.lastDiff :: Cache_DiffResult<any>, lastDiff)
 	end
 end
 

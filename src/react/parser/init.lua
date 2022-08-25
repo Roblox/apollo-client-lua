@@ -44,7 +44,7 @@ exports.operationName = operationName
 -- This parser is mostly used to saftey check incoming documents.
 local function parser(document: DocumentNode): IDocumentDefinition
 	local cached = cache:get(document)
-	if Boolean.toJSBoolean(cached) then
+	if cached ~= nil then
 		return cached
 	end
 	local variables, type_, name
@@ -56,19 +56,19 @@ local function parser(document: DocumentNode): IDocumentDefinition
 	)
 	local fragments = Array.filter(document.definitions, function(x: DefinitionNode)
 		return x.kind == "FragmentDefinition"
-	end, nil)
+	end) :: Array<DefinitionNode>
 
 	local queries = Array.filter(document.definitions, function(x: DefinitionNode)
 		return x.kind == "OperationDefinition" and (x :: OperationDefinitionNode).operation == "query"
-	end, nil)
+	end) :: Array<DefinitionNode>
 
 	local mutations = Array.filter(document.definitions, function(x: DefinitionNode)
 		return x.kind == "OperationDefinition" and (x :: OperationDefinitionNode).operation == "mutation"
-	end, nil)
+	end) :: Array<DefinitionNode>
 
 	local subscriptions = Array.filter(document.definitions, function(x: DefinitionNode)
 		return x.kind == "OperationDefinition" and (x :: OperationDefinitionNode).operation == "subscription"
-	end, nil)
+	end) :: Array<DefinitionNode>
 
 	invariant(
 		not (#fragments > 0) or ((#queries > 0) or (#mutations > 0) or (#subscriptions > 0)),
@@ -89,7 +89,9 @@ local function parser(document: DocumentNode): IDocumentDefinition
 		type_ = DocumentType.Subscription
 	end
 
-	local definitions = if #queries > 0 then queries else if #mutations > 0 then mutations else subscriptions
+	local definitions: Array<DefinitionNode> = if #queries > 0
+		then queries
+		else if #mutations > 0 then mutations else subscriptions
 
 	invariant(
 		#definitions == 1,

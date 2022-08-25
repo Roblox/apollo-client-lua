@@ -19,8 +19,12 @@ local typesModule = require(script.Parent.types)
 type DefaultContext = typesModule.DefaultContext
 type MutationQueryReducersMap<T> = typesModule.MutationQueryReducersMap<T>
 type OperationVariables = typesModule.OperationVariables
-type MutationUpdaterFunction<TData, TVariables, TContext, TCache> =
-	typesModule.MutationUpdaterFunction<TData, TVariables, TContext, TCache>
+type MutationUpdaterFunction<TData, TVariables, TContext, TCache> = typesModule.MutationUpdaterFunction<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 type OnQueryUpdated<TResult> = typesModule.OnQueryUpdated<TResult>
 type InternalRefetchQueriesInclude = typesModule.InternalRefetchQueriesInclude
 -- ROBLOX comment: moved to different file to solve circular dependency issue
@@ -36,19 +40,26 @@ export type ErrorPolicy = watchQueryOptionsTypesModule.ErrorPolicy
 -- ROBLOX comment: moved to different file to solve circular dependency issue
 export type QueryOptions<TVariables, TData> = watchQueryOptionsTypesModule.QueryOptions<TVariables, TData>
 -- ROBLOX comment: moved to different file to solve circular dependency issue
-type QueryOptions_omit_fetchPolicy<TVariables, TData> =
-	watchQueryOptionsTypesModule.QueryOptions_omit_fetchPolicy<TVariables, TData>
+type QueryOptions_omit_fetchPolicy<TVariables, TData> = watchQueryOptionsTypesModule.QueryOptions_omit_fetchPolicy<
+	TVariables,
+	TData
+>
 -- ROBLOX comment: moved to different file to solve circular dependency issue
 export type WatchQueryOptions_<TVariables> = watchQueryOptionsTypesModule.WatchQueryOptions_<TVariables>
 export type WatchQueryOptions__ = watchQueryOptionsTypesModule.WatchQueryOptions__
 export type WatchQueryOptions<TVariables, TData> = watchQueryOptionsTypesModule.WatchQueryOptions<TVariables, TData>
 -- ROBLOX comment: moved to different file to solve circular dependency issue
-export type FetchMoreQueryOptions<TVariables, TData> =
-	watchQueryOptionsTypesModule.FetchMoreQueryOptions<TVariables, TData>
+export type FetchMoreQueryOptions<TVariables, TData> = watchQueryOptionsTypesModule.FetchMoreQueryOptions<
+	TVariables,
+	TData
+>
 
 -- ROBLOX comment: moved to different file to solve circular dependency issue
-export type UpdateQueryFn<TData, TSubscriptionVariables, TSubscriptionData> =
-	watchQueryOptionsTypesModule.UpdateQueryFn<TData, TSubscriptionVariables, TSubscriptionData>
+export type UpdateQueryFn<TData, TSubscriptionVariables, TSubscriptionData> = watchQueryOptionsTypesModule.UpdateQueryFn<
+	TData,
+	TSubscriptionVariables,
+	TSubscriptionData
+>
 
 -- ROBLOX comment: moved to different file to solve circular dependency issue
 export type SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData> =
@@ -56,6 +67,10 @@ export type SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionD
 export type SubscriptionOptions<TVariables, TData> = watchQueryOptionsTypesModule.SubscriptionOptions<TVariables, TData>
 
 -- ROBLOX comment: moved to different file to solve circular dependency issue
-export type MutationOptions<TData, TVariables, TContext, TCache> =
-	watchQueryOptionsTypesModule.MutationOptions<TData, TVariables, TContext, TCache>
+export type MutationOptions<TData, TVariables, TContext, TCache> = watchQueryOptionsTypesModule.MutationOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 return exports

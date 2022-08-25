@@ -28,7 +28,6 @@ local function subscribeAndCount(
 	reject: (reason: any) -> ...any,
 	observable: ObservableQuery<TData_, TVariables_>,
 	cb: (handleCount: number, result: ApolloQueryResult<TData_>) -> ...any
-
 ): ObservableSubscription
 	-- ROBLOX deviation: predefine function
 	local error_

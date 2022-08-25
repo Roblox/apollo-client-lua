@@ -9,9 +9,6 @@ return function()
 	local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 	local Array = LuauPolyfill.Array
 	local Object = LuauPolyfill.Object
-	-- ROBLOX TODO: remove when available in LuauPolyfill
-	Object.isFrozen = (table :: any).isfrozen
-
 	local Boolean = LuauPolyfill.Boolean
 	local Set = LuauPolyfill.Set
 	local Map = LuauPolyfill.Map
@@ -646,10 +643,7 @@ return function()
 					},
 				}
 
-				local function check<TData, TVars>(
-					query: DocumentNode | TypedDocumentNode<TData, TVars>,
-					variables: TVars?
-				)
+				local function check<TData, TVars>(query: DocumentNode | TypedDocumentNode<TData, TVars>, variables: TVars?)
 					cache:writeQuery({ query = query, variables = variables, data = data })
 					jestExpect(cache:readQuery({ query = query, variables = variables })).toEqual(data)
 				end
@@ -999,7 +993,7 @@ return function()
 					},
 				})
 
-				for _, storage in storageSet:ipairs() do
+				for _, storage in storageSet do
 					storage.result = nil
 				end
 
@@ -1336,16 +1330,14 @@ return function()
 				})
 
 				local query: TypedDocumentNode<{ mergeRead: number, mergeModify: number, mergeReadModify: number }, any> =
-					gql(
-						[[
+					gql([[
 		
 				query {
 				  mergeRead
 				  mergeModify
 				  mergeReadModify
 				}
-			  ]]
-					)
+			  ]])
 
 				cache:writeQuery({ query = query, data = { mergeRead = 1, mergeModify = 10, mergeReadModify = 100 } })
 

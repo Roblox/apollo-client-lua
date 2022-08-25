@@ -14,7 +14,7 @@ exports.hasOwnProperty = require(srcWorkspace.luaUtils.hasOwnProperty)
 local function toArray(collection: Set<any>): Array<any>
 	local array: Array<any> = {}
 	-- ROBLOX deviation: can't use Array.map on a Set in Lua
-	for _, item in collection:ipairs() do
+	for _, item in collection do
 		table.insert(array, item)
 	end
 	return array

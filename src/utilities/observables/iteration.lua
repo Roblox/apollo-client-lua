@@ -28,7 +28,7 @@ local function iterateObserversSafely(
 	-- to just the observers with the given method.
 	local observersWithMethod: Array<Observer<E>> = {}
 
-	for _, obs in observers:ipairs() do
+	for _, obs in observers do
 		if obs[method] ~= nil then
 			table.insert(observersWithMethod, obs)
 		end

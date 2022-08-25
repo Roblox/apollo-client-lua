@@ -108,13 +108,12 @@ return function()
 				jestExpect(context.client).toEqual(client)
 				return nil
 			end
-			render(
-				React.createElement(
-					ApolloProvider,
-					{ client = client },
-					{ React.createElement(TestChild), React.createElement(TestChild) }
-				)
-			)
+			render(React.createElement(
+				ApolloProvider,
+				{ client = client },
+				-- ROBLOX FIXME Luau: this cast shouldn't be necessary
+				{ React.createElement(TestChild), React.createElement(TestChild) :: any }
+			))
 		end)
 
 		it("should update props when the client changes", function()
@@ -124,9 +123,8 @@ return function()
 				jestExpect(context.client).toBe(clientToCheck)
 				return nil
 			end
-			local ref = render(
-				React.createElement(ApolloProvider, { client = clientToCheck }, React.createElement(TestChild))
-			)
+			local ref =
+				render(React.createElement(ApolloProvider, { client = clientToCheck }, React.createElement(TestChild)))
 			local newClient = ApolloClient.new({
 				cache = Cache.new(),
 				link = ApolloLink.new(function(_self, o, f)

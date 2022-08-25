@@ -5,8 +5,8 @@ local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 local Promise = require(rootWorkspace.Promise)
 
-local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
-type Promise<T> = PromiseTypeModule.Promise<T>
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
+type Promise<T> = LuauPolyfill.Promise<T>
 
 local invariantModule = require(srcWorkspace.jsutils.invariant)
 local invariant = invariantModule.invariant
@@ -14,10 +14,7 @@ local invariant = invariantModule.invariant
 local utilitiesModule = require(script.Parent.Parent.Parent.utilities)
 type Observable<T> = utilitiesModule.Observable<T>
 
--- ROBLOX TODO:replace when generic in functions are possible
-type R_ = any
-
-local function toPromise(observable: Observable<R_>): Promise<R_>
+local function toPromise<R>(observable: Observable<R>): Promise<R>
 	local completed = false
 	return Promise.new(function(resolve, reject)
 		observable:subscribe({

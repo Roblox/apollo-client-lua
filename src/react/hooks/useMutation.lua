@@ -23,7 +23,9 @@ local typesModule = require(script.Parent.Parent.types.types)
 type MutationHookOptions_<TData, TVariables, TContext> = typesModule.MutationHookOptions_<TData, TVariables, TContext>
 -- ROBLOX deviation: can't type tuple
 type MutationTuple<TData, TVariables, TContext, TCache> = typesModule.MutationTuple<TData, TVariables, TContext, TCache>
-local MutationData = require(script.Parent.Parent.data).MutationData
+local dataModule = require(script.Parent.Parent.data)
+local MutationData = dataModule.MutationData
+type MutationData<TData, TVariables, TContext, TCache> = dataModule.MutationData<TData, TVariables, TContext, TCache>
 local getApolloContext = require(script.Parent.Parent.context).getApolloContext
 
 local function useMutation<TData, TVariables, TContext, TCache>(
@@ -36,14 +38,14 @@ local function useMutation<TData, TVariables, TContext, TCache>(
 		then Object.assign({}, options, { mutation = mutation })
 		else { mutation = mutation }
 
-	local mutationDataRef = useRef(nil)
+	local mutationDataRef = useRef(nil :: any)
 	local function getMutationDataRef()
-		if not Boolean.toJSBoolean(mutationDataRef.current) then
+		if not mutationDataRef.current then
 			mutationDataRef.current = MutationData.new({
 				options = updatedOptions,
 				context = context,
 				result = result,
-				setResult = function(_self, ...)
+				setResult = function(_self, ...: any)
 					setResult(...)
 					return nil
 				end,
@@ -52,7 +54,7 @@ local function useMutation<TData, TVariables, TContext, TCache>(
 		return mutationDataRef.current
 	end
 
-	local mutationData = getMutationDataRef()
+	local mutationData = getMutationDataRef() :: MutationData<any, any, any, any>
 	mutationData:setOptions(updatedOptions)
 	mutationData.context = context
 

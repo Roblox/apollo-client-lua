@@ -102,7 +102,7 @@ local function makeSlotClass()
 
 	function Slot:getValue(): TValue_ | nil
 		if self:hasValue() then
-			return ((currentContext :: any).slots[self.id] :: TValue_)
+			return (currentContext :: any).slots[self.id] :: TValue_
 		end
 		return nil
 	end

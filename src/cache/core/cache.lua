@@ -8,10 +8,8 @@ local Object = LuauPolyfill.Object
 local Boolean = LuauPolyfill.Boolean
 
 type Array<T> = LuauPolyfill.Array<T>
+type Promise<T> = LuauPolyfill.Promise<T>
 type Record<T, U> = { [T]: U }
-
-local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
-type Promise<T> = PromiseTypeModule.Promise<T>
 
 --[[
   ROBLOX deviation: no generic params for functions are supported.

@@ -204,14 +204,13 @@ return function()
 				unmount = render(React.createElement(Component, nil)).unmount
 
 				return wait_(function()
-					jestExpect(attemptedUpdateAfterUnmount).toBe(true)
-				end)
+						jestExpect(attemptedUpdateAfterUnmount).toBe(true)
+					end)
 					:andThen(function()
 						jestExpect(renderCount).toBe(3)
 						jestExpect(counterVar()).toBe(6)
 						jestExpect(consoleErrorArgs).toEqual({})
 					end) -- ROBLOX deviation: finally works different in Lua, replacing with then catch blocks
-
 					:andThen(function()
 						console.error = error_
 					end)

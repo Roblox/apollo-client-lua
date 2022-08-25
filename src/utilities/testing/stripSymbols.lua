@@ -27,7 +27,7 @@ local function stripSymbols<T>(data: T): T
 		original code:
 		return JSON.parse(JSON.stringify(data));
 	]]
-	local copy = Object.assign({}, data)
+	local copy = Object.assign({}, data) :: any
 
 	Array.forEach(Object.keys(copy), function(key)
 		if typeof(key) == "userdata" and string.sub(tostring(key), 1, 7) == "Symbol(" and key ~= tostring(key) then
@@ -37,7 +37,7 @@ local function stripSymbols<T>(data: T): T
 		end
 	end)
 
-	return copy
+	return copy :: T
 end
 exports.stripSymbols = stripSymbols
 return exports

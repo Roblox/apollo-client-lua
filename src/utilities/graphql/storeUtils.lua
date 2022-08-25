@@ -150,7 +150,7 @@ local function storeKeyNameFromField(field: FieldNode, variables: Object): strin
 	local directivesObj: any = nil
 	if Boolean.toJSBoolean(field.directives) then
 		directivesObj = {}
-		Array.forEach(((field.directives :: any) :: Array<DirectiveNode>), function(directive)
+		Array.forEach((field.directives :: any) :: Array<DirectiveNode>, function(directive)
 			directivesObj[directive.name.value] = {}
 
 			if Boolean.toJSBoolean(directive.arguments) then
@@ -312,7 +312,7 @@ end
 local function argumentsObjectFromField(field: FieldNode | DirectiveNode, variables: Record<string, any>): Object | nil
 	if Boolean.toJSBoolean(field.arguments) and Boolean.toJSBoolean(#(field.arguments :: Array<any>)) then
 		local argObj: Object = {}
-		Array.forEach((field.arguments :: Array<any>), function(ref)
+		Array.forEach(field.arguments :: Array<any>, function(ref)
 			local name, value = ref.name, ref.value
 			valueToObjectRepresentation(argObj, name, value, variables)
 		end)

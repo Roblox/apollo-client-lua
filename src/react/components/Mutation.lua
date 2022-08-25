@@ -13,8 +13,12 @@ local coreModule = require(srcWorkspace.core)
 type OperationVariables = coreModule.OperationVariables
 
 local typesModule = require(script.Parent.types)
-type MutationComponentOptions<TData, TVariables, TContext, TCache> =
-	typesModule.MutationComponentOptions<TData, TVariables, TContext, TCache>
+type MutationComponentOptions<TData, TVariables, TContext, TCache> = typesModule.MutationComponentOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 
 local useMutation = require(script.Parent.Parent.hooks).useMutation
 

@@ -11,9 +11,6 @@ return function()
 	local Array = LuauPolyfill.Array
 	local Error = LuauPolyfill.Error
 	local Object = LuauPolyfill.Object
-	-- ROBLOX TODO: remove when available in LuauPolyfill
-	Object.isFrozen = (table :: any).isfrozen
-
 	type Array<T> = LuauPolyfill.Array<T>
 	type Object = LuauPolyfill.Object
 
@@ -98,7 +95,7 @@ return function()
 
 				-- ROBLOX deviation: freeze error is not an instance of Error, adding a test to verify expected message
 				-- jestExpect(res).toBeInstanceOf(Error)
-				jestExpect(res).toMatch("Attempt to modify a readonly table")
+				jestExpect(res).toMatch("attempt to modify a readonly table")
 			end
 
 			assertDeeplyFrozen(immutableResult)

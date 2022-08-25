@@ -83,8 +83,12 @@ type WatchQueryOptions<TVariables, TData> = watchQueryOptionsTypesModule.WatchQu
 type SubscriptionOptions<TVariables, TData> = watchQueryOptionsTypesModule.SubscriptionOptions<TVariables, TData>
 
 local watchQueryOptionsModule = require(script.Parent.watchQueryOptions)
-type MutationOptions<TData, TVariables, TContext, TCache> =
-	watchQueryOptionsModule.MutationOptions<TData, TVariables, TContext, TCache>
+type MutationOptions<TData, TVariables, TContext, TCache> = watchQueryOptionsModule.MutationOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 type WatchQueryFetchPolicy = watchQueryOptionsModule.WatchQueryFetchPolicy
 
 local LocalStateModule = require(script.Parent.LocalState)
@@ -696,7 +700,7 @@ function ApolloClient:refetchQueries(options: RefetchQueriesOptions<TCache_, TRe
 	local queries: Array<ObservableQuery<any, any>> = {}
 	local results: Array<InternalRefetchQueriesResult<TResult_>> = {}
 
-	for _, ref in map:ipairs() do
+	for _, ref in map do
 		local obsQuery, result = table.unpack(ref, 1, 2)
 		table.insert(queries, obsQuery)
 		table.insert(results, result)

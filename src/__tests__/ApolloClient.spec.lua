@@ -1191,7 +1191,9 @@ return function()
 									end
 								end,
 							})
-						end):timeout(3):expect()
+						end)
+							:timeout(3)
+							:expect()
 					end)
 
 					it("with a value change inside a nested array (wq)", function()
@@ -1249,16 +1251,18 @@ return function()
 										local nextFriends = stripSymbols((nextResult.data :: any).people.friends)
 										jestExpect(nextFriends[1]).toEqual(expectation0)
 										jestExpect(nextFriends[2]).toEqual(expectation1)
-										local readFriends = stripSymbols(
-											(client:readQuery({ query = query }) :: any).people.friends
-										)
+										local readFriends =
+											-- ROBLOX FIXME Luau: this should be cast to `Data` per the bang operator in upstream: client.readQuery<Data>({ query })!
+											stripSymbols((client:readQuery({ query = query }) :: any).people.friends)
 										jestExpect(readFriends[1]).toEqual(expectation0)
 										jestExpect(readFriends[2]).toEqual(expectation1)
 										done()
 									end
 								end,
 							})
-						end):timeout(3):expect()
+						end)
+							:timeout(3)
+							:expect()
 					end)
 				end)
 
@@ -1319,7 +1323,9 @@ return function()
 									end
 								end,
 							})
-						end):timeout(3):expect()
+						end)
+							:timeout(3)
+							:expect()
 					end)
 
 					it("with a value change inside a nested array (wf)", function()
@@ -1383,7 +1389,9 @@ return function()
 									end
 								end,
 							})
-						end):timeout(3):expect()
+						end)
+							:timeout(3)
+							:expect()
 					end)
 				end)
 			end)
@@ -2287,16 +2295,18 @@ return function()
 					})
 				end
 
-				local linkFn = jest.fn().mockImplementation(function()
-					return Observable.new(function(observer)
-						setTimeout(function()
-							observer:error(Error.new("refetch failed"))
-						end, TICK)
+				local linkFn = jest.fn()
+					.mockImplementation(function()
+						return Observable.new(function(observer)
+							setTimeout(function()
+								observer:error(Error.new("refetch failed"))
+							end, TICK)
+						end)
 					end)
-				end).mockImplementationOnce(function()
-					setTimeout(refetchQueries, TICK)
-					return Observable.of()
-				end)
+					.mockImplementationOnce(function()
+						setTimeout(refetchQueries, TICK)
+						return Observable.of()
+					end)
 
 				client = ApolloClient.new({
 					link = ApolloLink.new(linkFn),

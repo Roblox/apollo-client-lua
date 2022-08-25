@@ -119,10 +119,12 @@ export type DataProxy_WriteOptions<TData> = {
 }
 
 export type DataProxy_WriteQueryOptions<TData, TVariables> =
-	DataProxy_Query<TVariables, TData> & DataProxy_WriteOptions<TData>
+	DataProxy_Query<TVariables, TData>
+	& DataProxy_WriteOptions<TData>
 
 export type DataProxy_WriteFragmentOptions<TData, TVariables> =
-	DataProxy_Fragment<TVariables, TData> & DataProxy_WriteOptions<TData>
+	DataProxy_Fragment<TVariables, TData>
+	& DataProxy_WriteOptions<TData>
 
 export type DataProxy_DiffResult<T> = {
 	result: T?,

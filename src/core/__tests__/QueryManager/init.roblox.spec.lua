@@ -21,8 +21,7 @@ return function()
 	type Array<T> = LuauPolyfill.Array<T>
 	type Error = LuauPolyfill.Error
 	type Object = LuauPolyfill.Object
-	local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
-	type Promise<T> = PromiseTypeModule.Promise<T>
+	type Promise<T> = LuauPolyfill.Promise<T>
 
 	-- ROBLOX FIXME: remove if better solution is found
 	type FIX_ANALYZE = any
@@ -55,11 +54,15 @@ return function()
 
 	local ObservableModule = require(srcWorkspace.utilities.observables.Observable)
 	local Observable = ObservableModule.Observable
+	type Observable<T> = ObservableModule.Observable<T>
 	type Observer<T> = ObservableModule.Observer<T>
+	type Subscriber<T> = ObservableModule.Subscriber<T>
+
 	local coreModule = require(srcWorkspace.link.core)
 	local ApolloLink = coreModule.ApolloLink
 	type ApolloLink = coreModule.ApolloLink
 	type GraphQLRequest = coreModule.GraphQLRequest
+	type RequestHandler = coreModule.RequestHandler
 	export type FetchResult__<TData> = coreModule.FetchResult__<TData>
 	export type FetchResult___ = coreModule.FetchResult___
 	local inMemoryCacheModule = require(srcWorkspace.cache.inmemory.inMemoryCache)
@@ -86,10 +89,16 @@ return function()
 	type ObservableQuery_<TData> = observableQueryModule.ObservableQuery_<TData>
 	type ObservableQuery<TData, TVariables> = observableQueryModule.ObservableQuery<TData, TVariables>
 	local watchQueryOptionsModule = require(script.Parent.Parent.Parent.watchQueryOptions_types)
-	type MutationBaseOptions_<TData, TVariables, TContext> =
-		watchQueryOptionsModule.MutationBaseOptions_<TData, TVariables, TContext>
-	type MutationOptions_<TData, TVariables, TContext> =
-		watchQueryOptionsModule.MutationOptions_<TData, TVariables, TContext>
+	type MutationBaseOptions_<TData, TVariables, TContext> = watchQueryOptionsModule.MutationBaseOptions_<
+		TData,
+		TVariables,
+		TContext
+	>
+	type MutationOptions_<TData, TVariables, TContext> = watchQueryOptionsModule.MutationOptions_<
+		TData,
+		TVariables,
+		TContext
+	>
 	type WatchQueryOptions_<TData> = watchQueryOptionsModule.WatchQueryOptions_<TData>
 	type WatchQueryOptions__ = watchQueryOptionsModule.WatchQueryOptions__
 	local queryManagerModule = require(script.Parent.Parent.Parent.QueryManager)
@@ -143,14 +152,12 @@ return function()
 		-- Helper method that serves as the constructor method for
 		-- QueryManager but has defaults that make sense for these
 		-- tests.
-		local function createQueryManager(
-			ref: {
-				link: ApolloLink,
-				config: Partial<InMemoryCacheConfig>?,
-				clientAwareness: { [string]: string }?,
-				queryDeduplication: boolean?,
-			}
-		)
+		local function createQueryManager(ref: {
+			link: ApolloLink,
+			config: Partial<InMemoryCacheConfig>?,
+			clientAwareness: { [string]: string }?,
+			queryDeduplication: boolean?,
+		})
 			local link, config, clientAwareness, queryDeduplication =
 				ref.link, ref.config, ref.clientAwareness, ref.queryDeduplication
 
@@ -166,30 +173,28 @@ return function()
 
 			-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
 			return (
-					QueryManager.new({
-						link = link,
-						cache = InMemoryCache.new(Object.assign({}, { addTypename = false }, config)),
-						clientAwareness = clientAwareness,
-						queryDeduplication = queryDeduplication,
-						onBroadcast = function(_self) end,
-					} :: FIX_ANALYZE) :: any
-				) :: QueryManager<NormalizedCacheObject>
+				QueryManager.new({
+					link = link,
+					cache = InMemoryCache.new(Object.assign({}, { addTypename = false }, config)),
+					clientAwareness = clientAwareness,
+					queryDeduplication = queryDeduplication,
+					onBroadcast = function(_self) end,
+				} :: FIX_ANALYZE) :: any
+			) :: QueryManager<NormalizedCacheObject>
 		end
 
 		-- Helper method that sets up a mockQueryManager and then passes on the
 		-- results to an observer.
-		local function assertWithObserver(
-			ref: {
-				reject: (reason: any) -> any,
-				query: DocumentNode,
-				variables: Object?,
-				queryOptions: Object?,
-				error: Error?,
-				result: FetchResult___?,
-				delay: number?,
-				observer: Observer<ApolloQueryResult<any>>,
-			}
-		)
+		local function assertWithObserver(ref: {
+			reject: (reason: any) -> any,
+			query: DocumentNode,
+			variables: Object?,
+			queryOptions: Object?,
+			error: Error?,
+			result: FetchResult___?,
+			delay: number?,
+			observer: Observer<ApolloQueryResult<any>>,
+		})
 			local reject, query, variables, queryOptions, result, error_, delay, observer =
 				ref.reject, ref.query, ref.variables, ref.queryOptions, ref.result, ref.error, ref.delay, ref.observer
 			if ref.variables == nil then
@@ -209,7 +214,7 @@ return function()
 			local finalOptions = assign({ query = query, variables = variables }, queryOptions) :: WatchQueryOptions__
 
 			return queryManager:watchQuery(finalOptions):subscribe({
-				next = wrap(reject, (observer.next :: FIX_ANALYZE)),
+				next = wrap(reject, observer.next :: FIX_ANALYZE),
 				error = observer.error,
 			})
 		end
@@ -259,15 +264,13 @@ return function()
 
 		-- Helper method that takes a query with a first response and a second response.
 		-- Used to assert stuff about refetches.
-		local function mockRefetch(
-			ref: {
-				reject: (reason: any) -> any,
-				request: GraphQLRequest,
-				firstResult: FetchResult___,
-				secondResult: FetchResult___,
-				thirdResult: FetchResult___?,
-			}
-		)
+		local function mockRefetch(ref: {
+			reject: (reason: any) -> ...any,
+			request: GraphQLRequest,
+			firstResult: FetchResult___,
+			secondResult: FetchResult___,
+			thirdResult: FetchResult___?,
+		})
 			local reject, request, firstResult, secondResult, thirdResult =
 				ref.reject, ref.request, ref.firstResult, ref.secondResult, ref.thirdResult
 
@@ -290,9 +293,7 @@ return function()
 			return mockQueryManager(reject, table.unpack(args, 1, #args))
 		end
 
-		local function getCurrentQueryResult(
-			observableQuery: ObservableQuery<TData_, TVars_>
-		): {
+		local function getCurrentQueryResult(observableQuery: ObservableQuery<TData_, TVars_>): {
 			data: TData_,
 			partial: boolean,
 		}
@@ -481,7 +482,7 @@ return function()
 					error = function(_self, error_)
 						local apolloError = error_ :: ApolloError
 						jestExpect(apolloError.networkError).toBeDefined()
-						jestExpect(apolloError.networkError.message).toMatch("Network error")
+						jestExpect((apolloError.networkError :: any).message).toMatch("Network error")
 						resolve()
 					end,
 				},
@@ -608,11 +609,11 @@ return function()
 
 			-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
 			local mockedQueryManger = (
-					QueryManager.new({
-						link = mockedSingleLink,
-						cache = InMemoryCache.new({ addTypename = false }),
-					}) :: any
-				) :: QueryManager<NormalizedCacheObject>
+				QueryManager.new({
+					link = mockedSingleLink,
+					cache = InMemoryCache.new({ addTypename = false }),
+				}) :: any
+			) :: QueryManager<NormalizedCacheObject>
 
 			local observableQuery = mockedQueryManger:watchQuery({
 				query = request.query,
@@ -1009,7 +1010,7 @@ return function()
 							reject(error_)
 						end)
 					end,
-					error = reject,
+					error = reject :: FIX_ANALYZE,
 				})
 			end
 		)
@@ -1102,7 +1103,7 @@ return function()
 				request = request,
 				firstResult = { data = data1 },
 				secondResult = { data = data2 },
-			})
+			} :: FIX_ANALYZE)
 
 			local observable = queryManager:watchQuery(request)
 			return observableToPromise({ observable = observable }, function(result)
@@ -1511,15 +1512,15 @@ return function()
 			local errors = { GraphQLError.new("foo") }
 
 			return mockMutation({
-				reject = reject,
-				mutation = gql([[
+					reject = reject,
+					mutation = gql([[
 
         mutation makeListPrivate {
           makeListPrivate(id: "5")
         }
       ]]),
-				errors = errors,
-			})
+					errors = errors,
+				})
 				:andThen(function(result)
 					error(Error.new("Mutation should not be successful with default errorPolicy"))
 				end, function(error_)
@@ -1554,8 +1555,8 @@ return function()
 				},
 			}
 			return mockMutation({
-				reject = reject,
-				mutation = gql([[
+					reject = reject,
+					mutation = gql([[
 
         mutation makeListPrivate {
           makeListPrivate(input: { id: "5" }) {
@@ -1564,9 +1565,9 @@ return function()
           }
         }
       ]]),
-				data = data,
-				config = { dataIdFromObject = getIdField },
-			} :: FIX_ANALYZE)
+					data = data,
+					config = { dataIdFromObject = getIdField },
+				} :: FIX_ANALYZE)
 				:andThen(function(ref)
 					local result, queryManager = ref.result, ref.queryManager
 					jestExpect(stripSymbols(result.data)).toEqual(data)
@@ -1587,8 +1588,8 @@ return function()
 			}
 
 			return mockMutation({
-				reject = reject,
-				mutation = gql([[
+					reject = reject,
+					mutation = gql([[
 
         mutation makeListPrivate {
           makeListPrivate(id: "5") {
@@ -1597,9 +1598,9 @@ return function()
           }
         }
       ]]),
-				data = data,
-				config = { dataIdFromObject = getIdField },
-			} :: FIX_ANALYZE)
+					data = data,
+					config = { dataIdFromObject = getIdField },
+				} :: FIX_ANALYZE)
 				:andThen(function(ref)
 					local result, queryManager = ref.result, ref.queryManager
 					jestExpect(stripSymbols(result.data)).toEqual(data)
@@ -1844,12 +1845,12 @@ return function()
 			--make sure that the query is transformed within the query
 			--manager
 			createQueryManager({
-				link = mockSingleLink({
-					request = { query = transformedQuery },
-					result = { data = transformedQueryResult },
-				}):setOnError(reject),
-				config = { addTypename = true },
-			} :: FIX_ANALYZE)
+					link = mockSingleLink({
+						request = { query = transformedQuery },
+						result = { data = transformedQueryResult },
+					}):setOnError(reject),
+					config = { addTypename = true },
+				} :: FIX_ANALYZE)
 				:query({ query = query })
 				:andThen(function(result)
 					jestExpect(stripSymbols(result.data)).toEqual(transformedQueryResult)
@@ -1887,15 +1888,17 @@ return function()
 			}
 
 			createQueryManager({
-				link = mockSingleLink({
-					request = { query = transformedMutation },
-					result = { data = transformedMutationResult },
-				}):setOnError(reject),
-				config = { addTypename = true },
-			} :: FIX_ANALYZE):mutate({ mutation = mutation }):andThen(function(result)
-				jestExpect(stripSymbols(result.data)).toEqual(transformedMutationResult)
-				resolve()
-			end)
+					link = mockSingleLink({
+						request = { query = transformedMutation },
+						result = { data = transformedMutationResult },
+					}):setOnError(reject),
+					config = { addTypename = true },
+				} :: FIX_ANALYZE)
+				:mutate({ mutation = mutation })
+				:andThen(function(result)
+					jestExpect(stripSymbols(result.data)).toEqual(transformedMutationResult)
+					resolve()
+				end)
 		end)
 
 		itAsync(it)("should reject a query promise given a network error", function(resolve, reject)
@@ -1910,9 +1913,9 @@ return function()
     ]])
 			local networkError = Error.new("Network error")
 			mockQueryManager(reject, {
-				request = { query = query },
-				error = networkError,
-			})
+					request = { query = query },
+					error = networkError,
+				})
 				:query({ query = query })
 				:andThen(function()
 					reject(Error.new("Returned result on an errored fetchQuery"))
@@ -1940,9 +1943,9 @@ return function()
     ]])
 			local graphQLErrors = { GraphQLError.new("GraphQL error") }
 			return mockQueryManager(reject, {
-				request = { query = query },
-				result = { errors = graphQLErrors },
-			} :: FIX_ANALYZE)
+					request = { query = query },
+					result = { errors = graphQLErrors },
+				} :: FIX_ANALYZE)
 				:query({ query = query })
 				:andThen(
 					function()
@@ -2326,15 +2329,16 @@ return function()
 			local client = ApolloClient.new({
 				cache = cache,
 				link = ApolloLink.new(function(_self, operation)
-					return Observable.new(function(observer: Observer<FetchResult___>)
+					return Observable.new(function(observer)
 						local condition = operation.operationName
+						type AorBKey = { a: string } | { b: string }
 						if condition == "A" then
-							(observer :: FIX_ANALYZE):next({ data = { info = { a = "ay" } } })
+							observer:next({ data = { info = { a = "ay" } :: AorBKey } })
 						elseif condition == "B" then
-							(observer :: FIX_ANALYZE):next({ data = { info = { b = "bee" } } })
+							observer:next({ data = { info = { b = "bee" } :: AorBKey } })
 						end
-						(observer :: FIX_ANALYZE):complete()
-					end)
+						observer:complete()
+					end) :: Observable<any>
 				end),
 			})
 
@@ -2456,10 +2460,10 @@ return function()
 			local client = ApolloClient.new({
 				cache = cache,
 				link = ApolloLink.new(function(operation)
-					return Observable.new(function(observer: Observer<FetchResult___>)
-						(observer.next :: any)(observer, { data = { info = { c = "see" } } });
-						(observer.complete :: any)(observer)
-					end)
+					return Observable.new(function(observer)
+						observer:next({ data = { info = { c = "see" } } })
+						observer:complete()
+					end) :: Observable<any>
 				end),
 			})
 
@@ -2743,15 +2747,15 @@ return function()
 					},
 				}
 				local queryManager = (
-						QueryManager.new({
-							link = mockSingleLink(
-								{ request = { query = queryA }, result = { data = dataA } },
-								{ request = { query = queryB }, result = { data = dataB }, delay = 20 }
-							):setOnError(reject),
-							cache = InMemoryCache.new({}),
-							ssrMode = true,
-						}) :: any
-					) :: QueryManager<NormalizedCacheObject>
+					QueryManager.new({
+						link = mockSingleLink(
+							{ request = { query = queryA }, result = { data = dataA } },
+							{ request = { query = queryB }, result = { data = dataB }, delay = 20 }
+						):setOnError(reject),
+						cache = InMemoryCache.new({}),
+						ssrMode = true,
+					}) :: any
+				) :: QueryManager<NormalizedCacheObject>
 
 				local observableA = queryManager:watchQuery({
 					query = queryA,
@@ -2917,21 +2921,21 @@ return function()
 
 				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
 				local queryManager = (
-						QueryManager.new({
-							link = mockSingleLink({
-								request = { query = query, variables = variables },
-								result = { data = data1 },
-							}, {
-								request = { query = query, variables = variables },
-								result = { data = data2 },
-							}, {
-								request = { query = query, variables = variables },
-								result = { data = data2 },
-							}):setOnError(reject),
-							cache = InMemoryCache.new({ addTypename = false }),
-							ssrMode = true,
-						}) :: any
-					) :: QueryManager<NormalizedCacheObject>
+					QueryManager.new({
+						link = mockSingleLink({
+							request = { query = query, variables = variables },
+							result = { data = data1 },
+						}, {
+							request = { query = query, variables = variables },
+							result = { data = data2 },
+						}, {
+							request = { query = query, variables = variables },
+							result = { data = data2 },
+						}):setOnError(reject),
+						cache = InMemoryCache.new({ addTypename = false }),
+						ssrMode = true,
+					}) :: any
+				) :: QueryManager<NormalizedCacheObject>
 
 				local observable = queryManager:watchQuery({
 					query = query,
@@ -3506,13 +3510,13 @@ return function()
 						end
 						observer:complete()
 						return
-					end)
+					end) :: Observable<any>
 				end)
 				queryManager = createQueryManager({ link = link })
 				local observable = queryManager:watchQuery({ query = query })
 
 				-- wait just to make sure the observable doesn't fire again
-				return observableToPromise({ observable = observable :: FIX_ANALYZE, wait = 0 }, function(result)
+				return (observableToPromise({ observable = observable :: FIX_ANALYZE, wait = 0 }, function(result)
 					jestExpect(stripSymbols(result.data)).toEqual(data)
 					jestExpect(timesFired).toBe(1)
 					-- reset the store after data has returned
@@ -3521,7 +3525,9 @@ return function()
 					-- only refetch once and make sure data has changed
 					jestExpect(stripSymbols(result.data)).toEqual(data2)
 					jestExpect(timesFired).toBe(2)
-				end):timeout(3):expect()
+				end) :: any --[[ ROBLOX TODO: timeout is valid method in Lua Promise, fix in Polyfill type ]]):timeout(
+					3
+				):expect()
 			end)
 
 			itAsync(it)("should not refetch torn-down queries", function(resolve, reject)
@@ -3550,7 +3556,7 @@ return function()
 							timesFired += 1
 							observer:next({ data = data })
 							return
-						end)
+						end) :: Observable<any>
 					end,
 				})
 
@@ -3598,7 +3604,7 @@ return function()
 							observer:next({ data = data })
 							observer:complete()
 							return
-						end)
+						end) :: Observable<any>
 					end),
 				})
 
@@ -3641,7 +3647,7 @@ return function()
 				local link = ApolloLink.new(function()
 					return Observable.new(function(observer)
 						observer:next({ data = data })
-					end)
+					end) :: Observable<any>
 				end)
 
 				queryManager = createQueryManager({ link = link })
@@ -3744,11 +3750,11 @@ return function()
 					})
 
 					local options = (
-							{
-								query = query,
-								fetchPolicy = "cache-only",
-							} :: FIX_ANALYZE
-						) :: WatchQueryOptions__
+						{
+							query = query,
+							fetchPolicy = "cache-only",
+						} :: FIX_ANALYZE
+					) :: WatchQueryOptions__
 
 					local refetchCount = 0
 
@@ -3784,10 +3790,12 @@ return function()
 						link = mockSingleLink():setOnError(reject),
 					})
 
-					local options = ({
-						query = query,
-						fetchPolicy = "standby",
-					} :: FIX_ANALYZE) :: WatchQueryOptions__
+					local options = (
+						{
+							query = query,
+							fetchPolicy = "standby",
+						} :: FIX_ANALYZE
+					) :: WatchQueryOptions__
 
 					local refetchCount = 0
 
@@ -3870,7 +3878,7 @@ return function()
 						queryManager:resetStore()
 						observer:next({ data = data })
 						return
-					end)
+					end) :: Observable<any>
 				end)
 
 				queryManager = createQueryManager({ link = link })
@@ -4023,7 +4031,7 @@ return function()
 						end
 						observer:complete()
 						return
-					end)
+					end) :: Observable<any>
 				end)
 				queryManager = createQueryManager({ link = link })
 				local observable = queryManager:watchQuery({ query = query })
@@ -4070,7 +4078,7 @@ return function()
 							timesFired += 1
 							observer:next({ data = data })
 							return
-						end)
+						end) :: Observable<any>
 					end,
 				})
 
@@ -4116,7 +4124,7 @@ return function()
 							timesFired += 1
 							observer:next({ data = data })
 							observer:complete()
-						end)
+						end) :: Observable<any>
 					end,
 				})
 
@@ -4221,11 +4229,11 @@ return function()
 					})
 
 					local options = (
-							{
-								query = query,
-								fetchPolicy = "cache-only",
-							} :: FIX_ANALYZE
-						) :: WatchQueryOptions__
+						{
+							query = query,
+							fetchPolicy = "cache-only",
+						} :: FIX_ANALYZE
+					) :: WatchQueryOptions__
 
 					local refetchCount = 0
 
@@ -4262,10 +4270,12 @@ return function()
 						link = mockSingleLink():setOnError(reject),
 					})
 
-					local options = ({
-						query = query,
-						fetchPolicy = "standby",
-					} :: FIX_ANALYZE) :: WatchQueryOptions__
+					local options = (
+						{
+							query = query,
+							fetchPolicy = "standby",
+						} :: FIX_ANALYZE
+					) :: WatchQueryOptions__
 
 					local refetchCount = 0
 
@@ -4302,10 +4312,12 @@ return function()
 						link = mockSingleLink():setOnError(reject),
 					})
 
-					local options = ({
-						query = query,
-						fetchPolicy = "standby",
-					} :: any) :: WatchQueryOptions__
+					local options = (
+						{
+							query = query,
+							fetchPolicy = "standby",
+						} :: any
+					) :: WatchQueryOptions__
 
 					local refetchCount = 0
 
@@ -4387,8 +4399,8 @@ return function()
 							queryManager:reFetchObservableQueries()
 							observer:next({ data = data })
 							observer:complete()
-						end)
-					end)
+						end) :: Observable<any>
+					end :: RequestHandler)
 
 					queryManager = createQueryManager({ link = link })
 					queryManager
@@ -4526,9 +4538,9 @@ return function()
 					fortuneCookie = "Buy it",
 				}
 				return mockQueryManager(reject, {
-					request = { query = query },
-					result = { data = data },
-				})
+						request = { query = query },
+						result = { data = data },
+					})
 					:query({ query = query })
 					:andThen(function(result)
 						jestExpect(not result.loading).toBeTruthy()
@@ -4944,8 +4956,8 @@ return function()
 
 					local observable = queryManager:watchQuery({ query = query })
 					return observableToPromise({ observable = observable }, function(result)
-						jestExpect(stripSymbols(result.data)).toEqual(data)
-					end)
+							jestExpect(stripSymbols(result.data)).toEqual(data)
+						end)
 						:andThen(function()
 							-- The subscription has been stopped already
 							return queryManager:mutate({
@@ -5596,32 +5608,32 @@ return function()
 					local isRefetchErrorCaught = false
 					local mutationComplete = false
 					return observableToPromise({ observable = observable }, function(result)
-						jestExpect(stripSymbols(result.data)).toEqual(queryData)
-						local mutateOptions: MutationOptions_<any, any, any> = {
-							mutation = mutation,
-							refetchQueries = { "getAuthors" },
-						}
-						if awaitRefetchQueries then
-							mutateOptions.awaitRefetchQueries = awaitRefetchQueries
-						end
-						queryManager
-							:mutate(mutateOptions)
-							:andThen(function()
-								mutationComplete = true
-							end)
-							:catch(function(error_)
-								jestExpect(error_).toBeDefined()
-								isRefetchErrorCaught = true
-							end)
-					end, function(result)
-						if awaitRefetchQueries then
-							jestExpect(mutationComplete).never.toBeTruthy()
-						else
-							jestExpect(mutationComplete).toBeTruthy()
-						end
-						jestExpect(stripSymbols(observable:getCurrentResult().data)).toEqual(secondReqData)
-						jestExpect(stripSymbols(result.data)).toEqual(secondReqData)
-					end)
+							jestExpect(stripSymbols(result.data)).toEqual(queryData)
+							local mutateOptions: MutationOptions_<any, any, any> = {
+								mutation = mutation,
+								refetchQueries = { "getAuthors" },
+							}
+							if awaitRefetchQueries then
+								mutateOptions.awaitRefetchQueries = awaitRefetchQueries
+							end
+							queryManager
+								:mutate(mutateOptions)
+								:andThen(function()
+									mutationComplete = true
+								end)
+								:catch(function(error_)
+									jestExpect(error_).toBeDefined()
+									isRefetchErrorCaught = true
+								end)
+						end, function(result)
+							if awaitRefetchQueries then
+								jestExpect(mutationComplete).never.toBeTruthy()
+							else
+								jestExpect(mutationComplete).toBeTruthy()
+							end
+							jestExpect(stripSymbols(observable:getCurrentResult().data)).toEqual(secondReqData)
+							jestExpect(stripSymbols(result.data)).toEqual(secondReqData)
+						end)
 						:andThen(function()
 							return resolve()
 						end)
@@ -5713,10 +5725,12 @@ return function()
 				):setOnError(reject)
 				local cache = InMemoryCache.new()
 
-				local queryManager = (QueryManager.new({
-					link = link,
-					cache = cache,
-				}) :: any) :: QueryManager<NormalizedCacheObject>
+				local queryManager = (
+					QueryManager.new({
+						link = link,
+						cache = cache,
+					}) :: any
+				) :: QueryManager<NormalizedCacheObject>
 
 				return queryManager
 					:query({ query = query1 })

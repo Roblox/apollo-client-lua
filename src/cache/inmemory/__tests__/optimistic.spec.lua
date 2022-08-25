@@ -24,9 +24,7 @@ return function()
 			local cache = InMemoryCache.new({
 				resultCaching = true,
 				dataIdFromObject = function(_self, value: any)
-					local condition = if Boolean.toJSBoolean(value)
-						then value.__typename
-						else value
+					local condition = if Boolean.toJSBoolean(value) then value.__typename else value
 					if condition == "Book" then
 						return "Book:" .. value.isbn
 					end
@@ -194,9 +192,7 @@ return function()
 			local cache = InMemoryCache.new({
 				resultCaching = true,
 				dataIdFromObject = function(_self, value: any)
-					local condition = if Boolean.toJSBoolean(value)
-						then value.__typename
-						else value
+					local condition = if Boolean.toJSBoolean(value) then value.__typename else value
 					if condition == "Book" then
 						return "Book:" .. value.isbn
 					end

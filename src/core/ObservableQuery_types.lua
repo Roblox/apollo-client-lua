@@ -6,9 +6,8 @@ local rootWorkspace = srcWorkspace.Parent
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 type Array<T> = LuauPolyfill.Array<T>
 type Object = LuauPolyfill.Object
+type Promise<T> = LuauPolyfill.Promise<T>
 
-local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
-type Promise<T> = PromiseTypeModule.Promise<T>
 type Partial<T> = Object
 
 local GraphQL = require(rootWorkspace.GraphQL)
@@ -101,7 +100,7 @@ export type ObservableQuery<TData, TVariables> = Observable<ApolloQueryResult<TD
 		self: ObservableQuery<TData, TVariables>,
 		mapFn: (
 			previousQueryResult: TData,
-			options: Object--[[Pick<WatchQueryOptions<TVars, TData>, "variables">]]
+			options: Object --[[Pick<WatchQueryOptions<TVars, TData>, "variables">]]
 		) -> TData
 	) -> (),
 	startPolling: (self: ObservableQuery<TData, TVariables>, pollInterval: number) -> (),

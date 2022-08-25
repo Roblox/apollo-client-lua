@@ -58,7 +58,7 @@ return function()
       query One { user { name } }
     ]]
 			jestExpect(function()
-				parser((query :: any))
+				parser(query :: any)
 			end).toThrowError(RegExp("not a valid GraphQL DocumentNode"))
 		end)
 		it("should return the name of the operation", function()

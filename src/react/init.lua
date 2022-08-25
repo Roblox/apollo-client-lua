@@ -29,25 +29,49 @@ exports.parser = parserModule.parser
 
 local typesModule = require(script.types.types)
 Object.assign(exports, typesModule)
-export type BaseMutationOptions<TData, TVariables, TContext, TCache> =
-	typesModule.BaseMutationOptions<TData, TVariables, TContext, TCache>
+export type BaseMutationOptions<TData, TVariables, TContext, TCache> = typesModule.BaseMutationOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 export type BaseQueryOptions<TVariables> = typesModule.BaseQueryOptions<TVariables>
 export type BaseSubscriptionOptions<TData, TVariables> = typesModule.BaseSubscriptionOptions<TData, TVariables>
 export type CommonOptions<TOptions> = typesModule.CommonOptions<TOptions>
 export type Context = typesModule.Context
 export type LazyQueryHookOptions<TData, TVariables> = typesModule.LazyQueryHookOptions<TData, TVariables>
 export type LazyQueryResult<TData, TVariables> = typesModule.LazyQueryResult<TData, TVariables>
-export type MutationDataOptions<TData, TVariables, TContext, TCache> =
-	typesModule.MutationDataOptions<TData, TVariables, TContext, TCache>
-export type MutationFunction<TData, TVariables, TContext, TCache> =
-	typesModule.MutationFunction<TData, TVariables, TContext, TCache>
-export type MutationFunctionOptions<TData, TVariables, TContext, TCache> =
-	typesModule.MutationFunctionOptions<TData, TVariables, TContext, TCache>
-export type MutationHookOptions<TData, TVariables, TContext, TCache> =
-	typesModule.MutationHookOptions<TData, TVariables, TContext, TCache>
+export type MutationDataOptions<TData, TVariables, TContext, TCache> = typesModule.MutationDataOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
+export type MutationFunction<TData, TVariables, TContext, TCache> = typesModule.MutationFunction<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
+export type MutationFunctionOptions<TData, TVariables, TContext, TCache> = typesModule.MutationFunctionOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
+export type MutationHookOptions<TData, TVariables, TContext, TCache> = typesModule.MutationHookOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 export type MutationResult<TData> = typesModule.MutationResult<TData>
-export type MutationTuple<TData, TVariables, TContext, TCache> =
-	typesModule.MutationTuple<TData, TVariables, TContext, TCache>
+export type MutationTuple<TData, TVariables, TContext, TCache> = typesModule.MutationTuple<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 export type ObservableQueryFields<TData, TVariables> = typesModule.ObservableQueryFields<TData, TVariables>
 export type OnSubscriptionDataOptions<TData> = typesModule.OnSubscriptionDataOptions<TData>
 export type QueryDataOptions<TData, TVariables> = typesModule.QueryDataOptions<TData, TVariables>

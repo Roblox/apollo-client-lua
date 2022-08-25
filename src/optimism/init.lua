@@ -8,8 +8,6 @@ local Array = LuauPolyfill.Array
 local Set = LuauPolyfill.Set
 local Boolean = LuauPolyfill.Boolean
 local Object = LuauPolyfill.Object
--- ROBLOX TODO: remove when implemented in LuauPolyfill
-Object.freeze = (table :: any).freeze
 
 type Function = (...any) -> ...any
 
@@ -81,11 +79,18 @@ exports.KeyTrie = Trie
 
 -- ROBLOX deviation: types are moved to separate file to avoid circular dependencies
 local initTypesModule = require(script.initTypes)
-export type OptimisticWrapperFunction<TArgs, TResult, TKeyArgs, TCacheKey> =
-	initTypesModule.OptimisticWrapperFunction<TArgs, TResult, TKeyArgs, TCacheKey>
+export type OptimisticWrapperFunction<TArgs, TResult, TKeyArgs, TCacheKey> = initTypesModule.OptimisticWrapperFunction<
+	TArgs,
+	TResult,
+	TKeyArgs,
+	TCacheKey
+>
 
-export type OptimisticWrapOptions<TArgs, TKeyArgs, TCacheKey> =
-	initTypesModule.OptimisticWrapOptions<TArgs, TKeyArgs, TCacheKey>
+export type OptimisticWrapOptions<TArgs, TKeyArgs, TCacheKey> = initTypesModule.OptimisticWrapOptions<
+	TArgs,
+	TKeyArgs,
+	TCacheKey
+>
 
 local caches = Set.new()
 
@@ -119,81 +124,81 @@ local function wrap<TArgs, TResult, TKeyArgs, TCacheKey>(
 
 	-- ROBLOX deviation: function can't be have properties in Lua. Using __call metatable property instead
 	local optimistic = (
-			setmetatable({}, {
-				__call = function(_self, selfOrFirstArg, ...): TResult
-					-- ROBLOX deviation: there is no implicit arguments param available in Lua
-					local arguments
-					if thisArg ~= nil then
-						-- ROBLOX deviation: in case we're wrapping a method the second argument is the real "self"
-						arguments = { ... }
-					else
-						-- ROBLOX deviation: in case we're NOT wrapping a method the second argument should be included in arguments
-						arguments = { selfOrFirstArg, ... }
-					end
+		setmetatable({}, {
+			__call = function(_self, selfOrFirstArg, ...): TResult
+				-- ROBLOX deviation: there is no implicit arguments param available in Lua
+				local arguments
+				if thisArg ~= nil then
+					-- ROBLOX deviation: in case we're wrapping a method the second argument is the real "self"
+					arguments = { ... }
+				else
+					-- ROBLOX deviation: in case we're NOT wrapping a method the second argument should be included in arguments
+					arguments = { selfOrFirstArg, ... }
+				end
 
-					local key = makeCacheKey(
-						nil,
-						table.unpack((function()
-							if Boolean.toJSBoolean(keyArgs) then
-								return (keyArgs :: any)(nil, table.unpack(arguments :: any))
-							else
-								return arguments :: any
-							end
-						end)())
-					)
-
-					if key == nil then
-						return originalFunction(table.unpack(arguments :: any))
-					end
-
-					local entry = cache:get(key)
-					if entry == nil then
-						entry = Entry.new(originalFunction)
-						cache:set(key, entry :: Entry<any, any>);
-						(entry :: Entry<any, any>).subscribe = options.subscribe;
-						-- Give the Entry the ability to trigger cache.delete(key), even though
-						-- the Entry itself does not know about key or cache.
-						(entry :: Entry<any, any>).forget = function()
-							return cache:delete(key)
+				local key = makeCacheKey(
+					nil,
+					table.unpack((function()
+						if Boolean.toJSBoolean(keyArgs) then
+							return (keyArgs :: any)(nil, table.unpack(arguments :: any))
+						else
+							return arguments :: any
 						end
+					end)())
+				)
+
+				if key == nil then
+					return originalFunction(table.unpack(arguments :: any))
+				end
+
+				local entry = cache:get(key)
+				if entry == nil then
+					entry = Entry.new(originalFunction)
+					cache:set(key, entry :: Entry<any, any>);
+					(entry :: Entry<any, any>).subscribe = options.subscribe;
+					-- Give the Entry the ability to trigger cache.delete(key), even though
+					-- the Entry itself does not know about key or cache.
+					(entry :: Entry<any, any>).forget = function()
+						return cache:delete(key)
 					end
+				end
 
-					local value = (entry :: Entry<any, any>):recompute((Array.slice(arguments) :: any) :: TArgs)
+				local value = (entry :: Entry<any, any>):recompute((Array.slice(arguments) :: any) :: TArgs)
 
-					-- Move this entry to the front of the least-recently used queue,
-					-- since we just finished computing its value.
-					cache:set(key, entry :: Entry<any, any>)
+				-- Move this entry to the front of the least-recently used queue,
+				-- since we just finished computing its value.
+				cache:set(key, entry :: Entry<any, any>)
 
-					caches:add(cache)
+				caches:add(cache)
 
-					-- Clean up any excess entries in the cache, but only if there is no
-					-- active parent entry, meaning we're not in the middle of a larger
-					-- computation that might be flummoxed by the cleaning.
-					if not Boolean.toJSBoolean(parentEntrySlot:hasValue()) then
-						-- ROBLOX deviation: can't use Array.map on a Set in Lua
-						for _, cache in caches:ipairs() do
-							cache:clean()
-						end
-						caches:clear()
+				-- Clean up any excess entries in the cache, but only if there is no
+				-- active parent entry, meaning we're not in the middle of a larger
+				-- computation that might be flummoxed by the cleaning.
+				if not Boolean.toJSBoolean(parentEntrySlot:hasValue()) then
+					-- ROBLOX deviation: can't use Array.map on a Set in Lua
+					for _, cache in caches do
+						cache:clean()
 					end
+					caches:clear()
+				end
 
-					return value
-				end,
-				-- ROBLOX deviation: creating readonly size property
-				__index = function(t, k)
-					if k == "size" then
-						return (cache :: any).map.size
-					end
-					return rawget(t, k)
-				end,
-				__newindex = function(t, k, v)
-					if k == "size" then
-						error("attempt to update a read-only table", 2)
-					end
-					rawset(t, k, v)
-				end,
-			}) :: any
-		) :: OptimisticWrapperFunction<TArgs, TResult, TKeyArgs, TCacheKey>
+				return value
+			end,
+			-- ROBLOX deviation: creating readonly size property
+			__index = function(t, k)
+				if k == "size" then
+					return (cache :: any).map.size
+				end
+				return rawget(t, k)
+			end,
+			__newindex = function(t, k, v)
+				if k == "size" then
+					error("attempt to update a read-only table", 2)
+				end
+				rawset(t, k, v)
+			end,
+		}) :: any
+	) :: OptimisticWrapperFunction<TArgs, TResult, TKeyArgs, TCacheKey>
 
 	--[[
 		ROBLOX deviation:

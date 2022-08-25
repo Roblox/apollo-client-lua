@@ -20,7 +20,11 @@ local exports = {}
 local entryTypesModule = require(script.Parent.entryTypes)
 type AnyEntry = entryTypesModule.AnyEntry
 local initTypesModule = require(script.Parent.initTypes)
-type OptimisticWrapOptions<TArgs, TKeyArgs, TCacheKey> = initTypesModule.OptimisticWrapOptions<TArgs, TKeyArgs, TCacheKey>
+type OptimisticWrapOptions<TArgs, TKeyArgs, TCacheKey> = initTypesModule.OptimisticWrapOptions<
+	TArgs,
+	TKeyArgs,
+	TCacheKey
+>
 local parentEntrySlot = require(script.Parent.context).parentEntrySlot
 local helpersModule = require(script.Parent.helpers)
 local hasOwnProperty = helpersModule.hasOwnProperty
@@ -70,14 +74,15 @@ local function dep<TKey>(options: { subscribe: Dep_Subscribe }?)
 			local parent = parentEntrySlot:getValue()
 			if Boolean.toJSBoolean(parent) then
 				local dep = depsByKey:get(key)
-				if not Boolean.toJSBoolean(dep) then
+				if not dep then
 					dep = Set.new() :: Dep<TKey_>
 					depsByKey:set(key, dep)
 				end
 				parent:dependOn(dep)
 				if typeof(subscribe) == "function" then
-					maybeUnsubscribe(dep)
-					dep.unsubscribe = subscribe(key)
+					-- ROBLOX FIXME Luau: upstream doesn't require this cast
+					maybeUnsubscribe(dep :: Dep<TKey_>);
+					(dep :: Dep<TKey_>).unsubscribe = subscribe(key)
 				end
 			end
 		end,
@@ -85,7 +90,7 @@ local function dep<TKey>(options: { subscribe: Dep_Subscribe }?)
 
 	depend.dirty = function(_self, key: TKey_, entryMethodName: EntryMethodName)
 		local dep = depsByKey:get(key)
-		if Boolean.toJSBoolean(dep) then
+		if dep ~= nil then
 			local m: EntryMethodName = (function()
 				if Boolean.toJSBoolean(entryMethodName) and hasOwnProperty(EntryMethods, entryMethodName) then
 					return entryMethodName
@@ -96,11 +101,11 @@ local function dep<TKey>(options: { subscribe: Dep_Subscribe }?)
 			-- We have to use toArray(dep).forEach instead of dep.forEach, because
 			-- modifying a Set while iterating over it can cause elements in the Set
 			-- to be removed from the Set before they've been iterated over.
-			Array.forEach(toArray(dep), function(entry)
+			Array.forEach(toArray(dep :: Dep<TKey_>), function(entry)
 				entry[m](entry)
 			end)
 			depsByKey:delete(key)
-			maybeUnsubscribe(dep)
+			maybeUnsubscribe(dep :: Dep<TKey_>)
 		end
 	end
 	return depend :: OptimisticDependencyFunction<TKey_>

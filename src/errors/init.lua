@@ -62,12 +62,10 @@ local function generateErrorMessage(err: ApolloError)
 	end
 	if err.networkError ~= nil then
 		-- ROBLOX deviation START: errors returned from Promise have a different shape
-		local networkError = (err.networkError :: any)
+		local networkError = err.networkError :: any
 		local message_ = if typeof(networkError) == "string"
 			then networkError
-			else if networkError.message
-				then networkError.message
-				else networkError.error
+			else if networkError.message then networkError.message else networkError.error
 		message ..= ("%s\n"):format(message_)
 		-- ROBLOX deviation END
 	end

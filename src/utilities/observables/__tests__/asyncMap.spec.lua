@@ -12,12 +12,11 @@ return function()
 	local Error = LuauPolyfill.Error
 
 	type Array<T> = LuauPolyfill.Array<T>
+	type Promise<T> = LuauPolyfill.Promise<T>
+	type PromiseLike<T> = LuauPolyfill.PromiseLike<T>
 
 	local Promise = require(rootWorkspace.Promise)
 
-	local PromiseModule = require(srcWorkspace.luaUtils.Promise)
-	type Promise<T> = PromiseModule.Promise<T>
-	type PromiseLike<T> = PromiseModule.PromiseLike<T>
 	type Function = () -> any
 
 	--[[

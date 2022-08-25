@@ -67,6 +67,7 @@ return function()
 	local MockedProvider = testingModule.MockedProvider
 	local mockSingleLink = testingModule.mockSingleLink
 	local withErrorSpy = testingModule.withErrorSpy
+	type MockedResponse<T> = testingModule.MockedResponse<T>
 
 	local useQuery = require(script.Parent.Parent.useQuery).useQuery
 
@@ -76,10 +77,20 @@ return function()
 	type QueryFunctionOptions<TData, TVariables> = reactModule.QueryFunctionOptions<TData, TVariables>
 
 	local typesModule = require(script.Parent.Parent.Parent.types.types)
-	type MutationTupleFirst<TData, TVariables, TContext, TCache> =
-		typesModule.MutationTupleFirst<TData, TVariables, TContext, TCache>
-	type MutationTupleSecond<TData, TVariables, TContext, TCache> =
-		typesModule.MutationTupleSecond<TData, TVariables, TContext, TCache>
+	type MutationTupleFirst<TData, TVariables, TContext, TCache> = typesModule.MutationTupleFirst<
+		TData,
+		TVariables,
+		TContext,
+		TCache
+	>
+	type MutationTupleSecond<TData, TVariables, TContext, TCache> = typesModule.MutationTupleSecond<
+		TData,
+		TVariables,
+		TContext,
+		TCache
+	>
+
+	type FIX_ANALYZE = any
 
 	-- ROBLOX deviation: replaces Jasmine's fail global
 	local function fail(message: string)
@@ -290,7 +301,7 @@ return function()
 					},
 					React.createElement(Component, {
 						id = 1,
-					}, hookResponse)
+					} :: FIX_ANALYZE, hookResponse)
 				)).rerender
 
 				wait_(function()
@@ -308,7 +319,7 @@ return function()
 					},
 					React.createElement(Component, {
 						id = 2,
-					}, hookResponse)
+					} :: FIX_ANALYZE, hookResponse)
 				))
 				wait_(function()
 					jestExpect(hookResponse).toHaveBeenLastCalledWith({
@@ -370,7 +381,7 @@ return function()
 					},
 					React.createElement(Component, {
 						id = 1,
-					}, hookResponse)
+					} :: FIX_ANALYZE, hookResponse)
 				)).rerender
 
 				wait_(function()
@@ -389,7 +400,7 @@ return function()
 					React.createElement(Component, {
 						id = 2,
 						skip = true,
-					}, hookResponse)
+					} :: FIX_ANALYZE, hookResponse)
 				))
 
 				hookResponse:mockClear()
@@ -401,7 +412,7 @@ return function()
 					},
 					React.createElement(Component, {
 						id = 2,
-					}, hookResponse)
+					} :: FIX_ANALYZE, hookResponse)
 				))
 
 				wait_(function()
@@ -426,8 +437,8 @@ return function()
 						request = { query = CAR_QUERY, variables = { something = something } },
 						result = { data = CAR_RESULT_DATA },
 						delay = 1000,
-					}
-				end, nil)
+					} :: MockedResponse<any>
+				end)
 				local renderCount = 0
 
 				local function InnerComponent(ref)
@@ -448,12 +459,12 @@ return function()
 					return nil
 				end
 
-				local function WrapperComponent(ref)
+				local function WrapperComponent(ref): React.ReactElement<any, any>?
 					local something = ref.something
 					local loading = useQuery(CAR_QUERY, {
 						variables = { something = something },
 					}).loading
-					if Boolean.toJSBoolean(loading) then
+					if loading then
 						return nil
 					else
 						return React.createElement(InnerComponent, {
@@ -483,8 +494,8 @@ return function()
 				))
 
 				wait_(function()
-					jestExpect(renderCount).toBe(3)
-				end)
+						jestExpect(renderCount).toBe(3)
+					end)
 					:finally(function()
 						console.error = consoleError
 					end)
@@ -1163,7 +1174,9 @@ return function()
 							jestExpect(error_).toBeDefined()
 							jestExpect(error_.message).toEqual("forced error")
 							setTimeout(function()
-								forceUpdate()
+								-- ROBLOX deviation START: argument is required
+								forceUpdate(nil)
+								-- ROBLOX deviation END
 							end)
 						elseif condition_ == 3 then
 							jestExpect(error_).toBeDefined()
@@ -1238,7 +1251,9 @@ return function()
 								jestExpect(error_).toBeDefined()
 								jestExpect(error_.message).toEqual("forced error")
 								setTimeout(function()
-									forceUpdate()
+									-- ROBLOX deviation START: argument is required
+									forceUpdate(nil)
+									-- ROBLOX deviation END
 								end)
 							elseif condition_ == 3 then
 								jestExpect(error_).toBeDefined()
@@ -1553,10 +1568,8 @@ return function()
 						local renderCount = 0
 
 						local function App()
-							local ref = useQuery(
-								carQuery,
-								{ variables = { limit = 1 }, notifyOnNetworkStatusChange = true }
-							)
+							local ref =
+								useQuery(carQuery, { variables = { limit = 1 }, notifyOnNetworkStatusChange = true })
 							rejectOnComponentThrow(reject, function()
 								local loading, networkStatus, data, fetchMore =
 									ref.loading, ref.networkStatus, ref.data, ref.fetchMore
@@ -1615,10 +1628,8 @@ return function()
 					itAsync(it)("field policy", function(resolve, reject)
 						local renderCount = 0
 						local function App()
-							local ref = useQuery(
-								carQuery,
-								{ variables = { limit = 1 }, notifyOnNetworkStatusChange = true }
-							)
+							local ref =
+								useQuery(carQuery, { variables = { limit = 1 }, notifyOnNetworkStatusChange = true })
 							local loading, networkStatus, data, fetchMore =
 								ref.loading, ref.networkStatus, ref.data, ref.fetchMore
 							renderCount += 1
@@ -1728,10 +1739,8 @@ return function()
 					itAsync(it)("updateQuery_", function(resolve, reject)
 						local renderCount = 0
 						local function App()
-							local ref = useQuery(
-								carQuery,
-								{ variables = { limit = 1 }, notifyOnNetworkStatusChange = false }
-							)
+							local ref =
+								useQuery(carQuery, { variables = { limit = 1 }, notifyOnNetworkStatusChange = false })
 							local loading, data, fetchMore = ref.loading, ref.data, ref.fetchMore
 
 							local condition_ = renderCount
@@ -1772,10 +1781,8 @@ return function()
 					itAsync(it)("field policy_", function(resolve, reject)
 						local renderCount = 0
 						local function App()
-							local ref = useQuery(
-								carQuery,
-								{ variables = { limit = 1 }, notifyOnNetworkStatusChange = false }
-							)
+							local ref =
+								useQuery(carQuery, { variables = { limit = 1 }, notifyOnNetworkStatusChange = false })
 							local loading, data, fetchMore = ref.loading, ref.data, ref.fetchMore
 							if renderCount == 0 then
 								jestExpect(loading).toBeTruthy()
@@ -3295,7 +3302,7 @@ return function()
 								-- returned as identical (===) objects.
 								jestExpect(resultSet.size).toBe(5)
 								local values: Array<number> = {}
-								for _, result in resultSet:ipairs() do
+								for _, result in resultSet do
 									table.insert(values, result.value)
 								end
 								jestExpect(values).toEqual({ 0, 1, 2, 3, 5 })
@@ -3320,7 +3327,7 @@ return function()
 								-- returned as identical (===) objects.
 								jestExpect(resultSet.size).toBe(6)
 								local values: Array<number> = {}
-								for _, result in resultSet:ipairs() do
+								for _, result in resultSet do
 									table.insert(values, result.value)
 								end
 								jestExpect(values).toEqual({ 0, 1, 2, 3, 5, 8 })

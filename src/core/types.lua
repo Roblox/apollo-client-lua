@@ -9,15 +9,12 @@ type Record<T, U> = { [T]: U }
 type Error = LuauPolyfill.Error
 type Object = LuauPolyfill.Object
 type Map<K, V> = LuauPolyfill.Map<K, V>
+type Promise<T> = LuauPolyfill.Promise<T>
 
 local GraphQL = require(rootWorkspace.GraphQL)
 type DocumentNode = GraphQL.DocumentNode
 type GraphQLError = GraphQL.GraphQLError
 type ExecutionResult = GraphQL.ExecutionResult
-
--- ROBLOX deviation: need to define Promise type for use below
-local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
-type Promise<T> = PromiseTypeModule.Promise<T>
 
 local cacheModule = require(script.Parent.Parent.cache)
 type ApolloCache<TSerialized> = cacheModule.ApolloCache<TSerialized>
@@ -203,8 +200,10 @@ export type InternalRefetchQueriesOptions<TCache, TResult> = RefetchQueriesOptio
 export type InternalRefetchQueriesResult<TResult> = Promise<ApolloQueryResult<any>> | TResult
 
 -- ROBLOX deviation: inline default type args
-export type InternalRefetchQueriesMap<TResult> =
-	Map<ObservableQuery<any, OperationVariables>, InternalRefetchQueriesResult<TResult>>
+export type InternalRefetchQueriesMap<TResult> = Map<
+	ObservableQuery<any, OperationVariables>,
+	InternalRefetchQueriesResult<TResult>
+>
 
 -- TODO Remove this unnecessary type in Apollo Client 4.
 export type PureQueryOptions = QueryOptions<any, any>

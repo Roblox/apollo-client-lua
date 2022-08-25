@@ -5,8 +5,7 @@ local rootWorkspace = srcWorkspace.Parent
 local Promise = require(rootWorkspace.Promise)
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Boolean, Object = LuauPolyfill.Boolean, LuauPolyfill.Object
-local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
-type Promise<T> = PromiseTypeModule.Promise<T>
+type Promise<T> = LuauPolyfill.Promise<T>
 local hasOwnProperty = require(srcWorkspace.luaUtils.hasOwnProperty)
 type Function = (...any) -> ...any
 type ReturnType<T> = any
@@ -26,8 +25,11 @@ type ApolloClient<TCacheShape> = coreModule.ApolloClient<TCacheShape>
 local NetworkStatus = coreModule.NetworkStatus
 type FetchMoreQueryOptions<TVariables, TData> = coreModule.FetchMoreQueryOptions<TVariables, TData>
 type ObservableQuery<TData, TVariables> = coreModule.ObservableQuery<TData, TVariables>
-type SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData> =
-	coreModule.SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData>
+type SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData> = coreModule.SubscribeToMoreOptions<
+	TData,
+	TSubscriptionVariables,
+	TSubscriptionData
+>
 type FetchMoreOptions<TData, TVariables> = coreModule.FetchMoreOptions<TData, TVariables>
 type UpdateQueryOptions<TVariables> = coreModule.UpdateQueryOptions<TVariables>
 type DocumentNode = coreModule.DocumentNode
@@ -47,8 +49,9 @@ type ObservableQueryFields<TData, TVariables> = typesModule.ObservableQueryField
 local operationDataModule = require(script.Parent.OperationData)
 local OperationData = operationDataModule.OperationData
 type OperationData<TOptions> = operationDataModule.OperationData<TOptions>
-type ObservableQueryOptions<TData, TVars> =
-	ReturnType<typeof((({} :: any) :: QueryDataPrivate<TData, TVars>).prepareObservableQueryOptions)>
+type ObservableQueryOptions<TData, TVars> = ReturnType<
+	typeof((({} :: any) :: QueryDataPrivate<TData, TVars>).prepareObservableQueryOptions)
+>
 
 type QueryDataPrivate<TData, TVariables> = {
 	runLazyQuery: (self: QueryData<TData, TVariables>, options: QueryLazyOptions<TVariables>?) -> (),
@@ -102,13 +105,11 @@ export type QueryData<TData, TVariables> = OperationData<QueryDataOptions<TData,
 local QueryData = setmetatable({}, { __index = OperationData })
 QueryData.__index = QueryData
 
-function QueryData.new<TData, TVariables>(
-	ref: {
-		options: QueryDataOptions<TData, TVariables>,
-		context: any,
-		onNewData: (self: QueryData<TData, TVariables>) -> (),
-	}
-): QueryData<TData, TVariables>
+function QueryData.new<TData, TVariables>(ref: {
+	options: QueryDataOptions<TData, TVariables>,
+	context: any,
+	onNewData: (self: QueryData<TData, TVariables>) -> (),
+}): QueryData<TData, TVariables>
 	local options, context, onNewData = ref.options, ref.context, ref.onNewData
 	local self: any = OperationData.new(options, context)
 	self.runLazy = false
@@ -177,9 +178,11 @@ function QueryData.new<TData, TVariables>(
 	--   TSubscriptionData
 	-- >
 	-- )
-	self.obsSubscribeToMore = function<TSubscriptionData, TSubscriptionVariables>(
-		options: SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData>
-	)
+	self.obsSubscribeToMore = function<TSubscriptionData, TSubscriptionVariables>(options: SubscribeToMoreOptions<
+		TData,
+		TSubscriptionVariables,
+		TSubscriptionData
+	>)
 		return if self.currentObservable then self.currentObservable:subscribeToMore(options) else nil
 	end
 
@@ -360,9 +363,9 @@ function QueryData:updateObservableQuery()
 	end
 	if not equal(newObservableQueryOptions, self.previous.observableQueryOptions) then
 		self.previous.observableQueryOptions = newObservableQueryOptions
-		self.currentObservable
+		self
+			.currentObservable
 			:setOptions(newObservableQueryOptions) -- // The error will be passed to the child container, so we don't			-- // need to log it here. We could conceivably log something if			-- // an option was set. OTOH we don't log errors w/ the original			-- // query. See https://github.com/apollostack/react-apollo/issues/404
-
 			:catch(function() end)
 	end
 end
@@ -435,7 +438,8 @@ function QueryData:resubscribeToQuery()
 end
 
 function QueryData:getExecuteResult()
-	local result = self:observableQueryFields()
+	-- ROBLOX FIXME Luau: this cast shouldn't be necessary
+	local result = self:observableQueryFields() :: Object
 	local options = self:getOptions()
 
 	-- // When skipping a query (ie. we're not querying for data but still want
@@ -455,7 +459,8 @@ function QueryData:getExecuteResult()
 			loading = false,
 			networkStatus = NetworkStatus.ready,
 			called = true,
-		})
+			-- ROBLOX FIXME Luau: this cast shouldn't be necessary
+		}) :: Object
 	elseif Boolean.toJSBoolean(self.currentObservable) then
 		-- // Fetch the current result (if any) from the store.
 		local currentResult = self.currentObservable:getCurrentResult()
@@ -476,7 +481,8 @@ function QueryData:getExecuteResult()
 			{},
 			result,
 			{ data = data, loading = loading, networkStatus = networkStatus, ["error"] = error_, called = true }
-		)
+			-- ROBLOX FIXME Luau: this cast shouldn't be necessary
+		) :: Object
 		if Boolean.toJSBoolean(loading) then
 			-- // Fall through without modifying result...
 		elseif Boolean.toJSBoolean(error_) then

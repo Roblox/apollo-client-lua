@@ -13,13 +13,11 @@ return function()
 	local Error = LuauPolyfill.Error
 	local Object = LuauPolyfill.Object
 	local setTimeout = LuauPolyfill.setTimeout
+	type Promise<T> = LuauPolyfill.Promise<T>
 	local Promise = require(rootWorkspace.Promise)
 
 	-- ROBLOX FIXME: remove if better solution is found
 	type FIX_ANALYZE = any
-
-	local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
-	type Promise<T> = PromiseTypeModule.Promise<T>
 
 	local cloneDeep = require(srcWorkspace.utilities.common.cloneDeep).cloneDeep
 	local gql = require(rootWorkspace.GraphQLTag).default
@@ -534,7 +532,6 @@ return function()
 							ROBLOX deviation START: finally implementation is different than in JS.
 							using separate andThen and catch to perform the same logic and not swallow the error
 						]]
-
 					:andThen(function(result)
 						subscriptionHandle:unsubscribe()
 						return result
@@ -1056,7 +1053,7 @@ return function()
 							:andThen(function()
 								return reject(Error.new("Mutation should have failed"))
 							end, function(err)
-								return obsQuery:refetch()
+								return obsQuery:refetch() :: Promise<any>
 							end)
 							:andThen(resolve, reject)
 					end,
@@ -1696,7 +1693,7 @@ return function()
 							:andThen(function()
 								return reject(Error.new("Mutation should have failed"))
 							end, function()
-								return obsQuery:refetch()
+								return obsQuery:refetch() :: Promise<any>
 							end)
 							:andThen(resolve, reject)
 					end,

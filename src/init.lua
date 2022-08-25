@@ -31,11 +31,16 @@ export type DataProxy = coreModule.DataProxy
 export type DataProxy_Query<TVariables, TData> = coreModule.DataProxy_Query<TVariables, TData>
 export type DataProxy_Fragment<TVariables, TData> = coreModule.DataProxy_Fragment<TVariables, TData>
 export type DataProxy_ReadQueryOptions<TData, TVariables> = coreModule.DataProxy_ReadQueryOptions<TData, TVariables>
-export type DataProxy_ReadFragmentOptions<TData, TVariables> = coreModule.DataProxy_ReadFragmentOptions<TData, TVariables>
+export type DataProxy_ReadFragmentOptions<TData, TVariables> = coreModule.DataProxy_ReadFragmentOptions<
+	TData,
+	TVariables
+>
 export type DataProxy_WriteOptions<TData> = coreModule.DataProxy_WriteOptions<TData>
 export type DataProxy_WriteQueryOptions<TData, TVariables> = coreModule.DataProxy_WriteQueryOptions<TData, TVariables>
-export type DataProxy_WriteFragmentOptions<TData, TVariables> =
-	coreModule.DataProxy_WriteFragmentOptions<TData, TVariables>
+export type DataProxy_WriteFragmentOptions<TData, TVariables> = coreModule.DataProxy_WriteFragmentOptions<
+	TData,
+	TVariables
+>
 export type DataProxy_DiffResult<T> = coreModule.DataProxy_DiffResult<T>
 export type DefaultContext = coreModule.DefaultContext
 export type DefaultOptions = coreModule.DefaultOptions
@@ -66,12 +71,20 @@ export type InternalRefetchQueryDescriptor = coreModule.InternalRefetchQueryDesc
 export type MergeInfo = coreModule.MergeInfo
 export type MergeTree = coreModule.MergeTree
 export type MissingFieldError = coreModule.MissingFieldError
-export type MutationOptions<TData, TVariables, TContext, TCache> =
-	coreModule.MutationOptions<TData, TVariables, TContext, TCache>
+export type MutationOptions<TData, TVariables, TContext, TCache> = coreModule.MutationOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 export type MutationQueryReducer<T> = coreModule.MutationQueryReducer<T>
 export type MutationQueryReducersMap<T> = coreModule.MutationQueryReducersMap<T>
-export type MutationUpdaterFunction<TData, TVariables, TContext, TCache> =
-	coreModule.MutationUpdaterFunction<TData, TVariables, TContext, TCache>
+export type MutationUpdaterFunction<TData, TVariables, TContext, TCache> = coreModule.MutationUpdaterFunction<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 export type NetworkStatus = coreModule.NetworkStatus
 export type NextLink = coreModule.NextLink
 export type NormalizedCache = coreModule.NormalizedCache
@@ -104,8 +117,11 @@ export type ServerError = coreModule.ServerError
 export type ServerParseError = coreModule.ServerParseError
 export type StoreObject = coreModule.StoreObject
 export type StoreValue = coreModule.StoreValue
-export type SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData> =
-	coreModule.SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData>
+export type SubscribeToMoreOptions<TData, TSubscriptionVariables, TSubscriptionData> = coreModule.SubscribeToMoreOptions<
+	TData,
+	TSubscriptionVariables,
+	TSubscriptionData
+>
 export type SubscriptionOptions<TVariables, TData> = coreModule.SubscriptionOptions<TVariables, TData>
 export type Transaction<T> = coreModule.Transaction<T>
 export type TypePolicies = coreModule.TypePolicies
@@ -119,8 +135,12 @@ export type WatchQueryOptions<TVariables, TData> = coreModule.WatchQueryOptions<
 local reactModule = require(script.react)
 Object.assign(exports, reactModule)
 export type ApolloContextValue = reactModule.ApolloContextValue
-export type BaseMutationOptions<TData, TVariables, TContext, TCache> =
-	reactModule.BaseMutationOptions<TData, TVariables, TContext, TCache>
+export type BaseMutationOptions<TData, TVariables, TContext, TCache> = reactModule.BaseMutationOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 export type BaseQueryOptions<TVariables> = reactModule.BaseQueryOptions<TVariables>
 export type BaseSubscriptionOptions<TData, TVariables> = reactModule.BaseSubscriptionOptions<TData, TVariables>
 export type CommonOptions<TOptions> = reactModule.CommonOptions<TOptions>
@@ -129,17 +149,37 @@ export type DocumentType = reactModule.DocumentType
 export type IDocumentDefinition = reactModule.IDocumentDefinition
 export type LazyQueryHookOptions<TData, TVariables> = reactModule.LazyQueryHookOptions<TData, TVariables>
 export type LazyQueryResult<TData, TVariables> = reactModule.LazyQueryResult<TData, TVariables>
-export type MutationDataOptions<TData, TVariables, TContext, TCache> =
-	reactModule.MutationDataOptions<TData, TVariables, TContext, TCache>
-export type MutationFunction<TData, TVariables, TContext, TCache> =
-	reactModule.MutationFunction<TData, TVariables, TContext, TCache>
-export type MutationFunctionOptions<TData, TVariables, TContext, TCache> =
-	reactModule.MutationFunctionOptions<TData, TVariables, TContext, TCache>
-export type MutationHookOptions<TData, TVariables, TContext, TCache> =
-	reactModule.MutationHookOptions<TData, TVariables, TContext, TCache>
+export type MutationDataOptions<TData, TVariables, TContext, TCache> = reactModule.MutationDataOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
+export type MutationFunction<TData, TVariables, TContext, TCache> = reactModule.MutationFunction<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
+export type MutationFunctionOptions<TData, TVariables, TContext, TCache> = reactModule.MutationFunctionOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
+export type MutationHookOptions<TData, TVariables, TContext, TCache> = reactModule.MutationHookOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 export type MutationResult<TData> = reactModule.MutationResult<TData>
-export type MutationTuple<TData, TVariables, TContext, TCache> =
-	reactModule.MutationTuple<TData, TVariables, TContext, TCache>
+export type MutationTuple<TData, TVariables, TContext, TCache> = reactModule.MutationTuple<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 export type ObservableQueryFields<TData, TVariables> = reactModule.ObservableQueryFields<TData, TVariables>
 export type OnSubscriptionDataOptions<TData> = reactModule.OnSubscriptionDataOptions<TData>
 export type QueryDataOptions<TData, TVariables> = reactModule.QueryDataOptions<TData, TVariables>
@@ -154,4 +194,4 @@ export type SubscriptionDataOptions<TData, TVariables> = reactModule.Subscriptio
 export type SubscriptionHookOptions<TData, TVariables> = reactModule.SubscriptionHookOptions<TData, TVariables>
 export type SubscriptionResult<TData> = reactModule.SubscriptionResult<TData>
 
-return exports
+return exports :: typeof(exports) & typeof(coreModule) & typeof(reactModule)

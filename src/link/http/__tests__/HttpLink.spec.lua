@@ -40,77 +40,79 @@ return function()
 	-- ROBLOX deviation: using own implementation
 	-- local fetchMock = require(rootWorkspace["fetch-mock"]).default
 	local fetchMock: FetchMock = (
-			setmetatable({
-				calls = {},
-				lastCall = function(self)
-					return self.calls[#self.calls]
-				end,
-				lastUrl = function(self)
-					return self:lastCall()[1]
-				end,
-				responses = {},
-				post = function(self, url_, response)
-					local url = string.sub(url_, 8)
-					if self.responses[url] == nil then
-						self.responses[url] = {}
-					end
+		setmetatable({
+			calls = {},
+			lastCall = function(self)
+				return self.calls[#self.calls]
+			end,
+			lastUrl = function(self)
+				return self:lastCall()[1]
+			end,
+			responses = {},
+			post = function(self, url_, response)
+				local url = string.sub(url_, 8)
+				if self.responses[url] == nil then
+					self.responses[url] = {}
+				end
 
-					self.responses[url].POST = response
-				end,
-				get = function(self, url_, response)
-					local url = string.sub(url_, 8)
-					if self.responses[url] == nil then
-						self.responses[url] = {}
-					end
-					self.responses[url].GET = response
-				end,
-				restore = function(self)
-					self.calls = {}
-					self.responses = {}
-				end,
-			}, {
-				__call = function(self, url: string, options: Object)
-					if string.sub(url, 1, 1) == "/" then
-						table.insert(self.calls, { url, options :: any })
-					else
-						table.insert(self.calls, { "/" .. url, options :: any })
-					end
-					local res
-					if
-						Boolean.toJSBoolean(self.responses[url])
-						and Boolean.toJSBoolean(self.responses[url][options.method])
-					then
-						res = self.responses[url][options.method]
-					else
-						res = { data = {}, errors = {} }
-					end
+				self.responses[url].POST = response
+			end,
+			get = function(self, url_, response)
+				local url = string.sub(url_, 8)
+				if self.responses[url] == nil then
+					self.responses[url] = {}
+				end
+				self.responses[url].GET = response
+			end,
+			restore = function(self)
+				self.calls = {}
+				self.responses = {}
+			end,
+		}, {
+			__call = function(self, url: string, options: Object)
+				if string.sub(url, 1, 1) == "/" then
+					table.insert(self.calls, { url, options :: any })
+				else
+					table.insert(self.calls, { "/" .. url, options :: any })
+				end
+				local res
+				if
+					Boolean.toJSBoolean(self.responses[url])
+					and Boolean.toJSBoolean(self.responses[url][options.method])
+				then
+					res = self.responses[url][options.method]
+				else
+					res = { data = {}, errors = {} }
+				end
 
-					if res.throws then
-						error(res.throws)
-					end
-					if typeof(res.andThen) == "function" then
-						res = res:expect()
-					end
+				if res.throws then
+					error(res.throws)
+				end
+				if typeof(res.andThen) == "function" then
+					res = res:expect()
+				end
 
-					local status = res.status or 200
+				local status = res.status or 200
 
-					return Promise.resolve({
-						text = function(_self)
-							return Promise.resolve(res and HttpService:JSONEncode(res) or "")
-						end,
-						headers = {
-							["Content-Length"] = tostring(string.len(res and HttpService:JSONEncode(res) or "")),
-						},
-						status = status,
-					})
-				end,
-			}) :: any
-		) :: FetchMock
+				return Promise.resolve({
+					text = function(_self)
+						return Promise.resolve(res and HttpService:JSONEncode(res) or "")
+					end,
+					headers = {
+						["Content-Length"] = tostring(string.len(res and HttpService:JSONEncode(res) or "")),
+					},
+					status = status,
+				})
+			end,
+		}) :: any
+	) :: FetchMock
 
 	local print_ = require(rootWorkspace.GraphQL).print
 	local observableModule = require(srcWorkspace.utilities.observables.Observable)
 	local Observable = observableModule.Observable
+	type Observable<T> = observableModule.Observable<T>
 	type Observer<T> = observableModule.Observer<T>
+	type Subscriber<T> = observableModule.Subscriber<T>
 	local apolloLinkModule = require(script.Parent.Parent.Parent.core.ApolloLink)
 	local ApolloLink = apolloLinkModule.ApolloLink
 	type ApolloLink = apolloLinkModule.ApolloLink
@@ -719,9 +721,8 @@ mutation SampleMutation {
 					operation:setContext({ headers = { authorization = "1234" } })
 					return forward(operation)
 				end)
-				local link = middleware:concat(
-					createHttpLink({ uri = "data", headers = { authorization = "no user" } })
-				)
+				local link =
+					middleware:concat(createHttpLink({ uri = "data", headers = { authorization = "no user" } }))
 
 				waitForCompletion(execute(link, { query = sampleQuery, variables = variables }), function(_self, value)
 					makeCallback(function()
@@ -942,7 +943,7 @@ mutation SampleMutation {
 
 			it("sets the raw response on context", function()
 				local middleware = ApolloLink.new(function(_self, operation, forward)
-					return Observable.new(function(ob)
+					return Observable.new(function(ob: any)
 						local op = forward(operation)
 						local sub = op:subscribe({
 							next = function(_self, value)
@@ -961,7 +962,7 @@ mutation SampleMutation {
 						return function()
 							sub:unsubscribe()
 						end
-					end)
+					end :: Subscriber<any>) :: Observable<any>
 				end)
 				local link = middleware:concat(createHttpLink({ uri = "data", fetch = _G.fetch }))
 
@@ -1030,7 +1031,7 @@ mutation SampleMutation {
 
 			it("makes it easy to do stuff on a 401", function()
 				local middleware = ApolloLink.new(function(_self, operation, forward)
-					return Observable.new(function(ob)
+					return Observable.new(function(ob: any)
 						fetch.mockReturnValueOnce(Promise.resolve({ status = 401, text = text }))
 						local op = forward(operation)
 						local sub = op:subscribe({
@@ -1051,7 +1052,7 @@ mutation SampleMutation {
 						return function()
 							sub:unsubscribe()
 						end
-					end)
+					end :: Subscriber<any>) :: Observable<any>
 				end)
 				local link = middleware:concat(createHttpLink({ uri = "data", fetch = fetch :: any }))
 

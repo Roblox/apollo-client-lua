@@ -16,7 +16,9 @@ return function()
 	local wait = reactTestingModule.wait
 	local gql = require(rootWorkspace.GraphQLTag).default
 
-	local MockSubscriptionLink = require(script.Parent.Parent.mockSubscriptionLink).MockSubscriptionLink
+	local mockedSubscriptionModule = require(script.Parent.Parent.mockSubscriptionLink)
+	local MockSubscriptionLink = mockedSubscriptionModule.MockSubscriptionLink
+	type MockedSubscriptionResult = mockedSubscriptionModule.MockedSubscriptionResult
 	local ApolloClient = require(script.Parent.Parent.Parent.Parent.Parent.core).ApolloClient
 	local Cache = require(script.Parent.Parent.Parent.Parent.Parent.cache).InMemoryCache
 	local ApolloProvider = require(script.Parent.Parent.Parent.Parent.Parent.react.context).ApolloProvider
@@ -56,7 +58,7 @@ return function()
 			end
 
 			local results = Array.map({ "Audi", "BMW", "Mercedes", "Hyundai" }, function(make)
-				return { result = { data = { car = { make = make } } } }
+				return { result = { data = { car = { make = make } } } } :: MockedSubscriptionResult
 			end)
 
 			local function Component()

@@ -128,25 +128,18 @@ type KeyArgsResult = policiesTypesModule.KeyArgsResult
 -- data and options.args as input. Usually the same as TIncoming.
 -- ROBLOX deviation: TReadResult = TIncoming,
 -- TReadResult
-export type FieldPolicy<TExisting, TIncoming, TReadResult> =
-	policiesTypesModule.FieldPolicy<TExisting, TIncoming, TReadResult>
+export type FieldPolicy<TExisting, TIncoming, TReadResult> = policiesTypesModule.FieldPolicy<
+	TExisting,
+	TIncoming,
+	TReadResult
+>
 
 export type StorageType = policiesTypesModule.StorageType
 
 local function argsFromFieldSpecifier(spec: FieldSpecifier)
-	return (function()
-		if spec.args ~= nil then
-			return spec.args
-		else
-			return (function()
-				if Boolean.toJSBoolean(spec.field) then
-					return argumentsObjectFromField(spec.field, spec.variables)
-				else
-					return nil
-				end
-			end)()
-		end
-	end)()
+	return if spec.args ~= nil
+		then spec.args
+		else (if Boolean.toJSBoolean(spec.field) then argumentsObjectFromField(spec.field, spec.variables) else nil)
 end
 export type FieldFunctionOptions<TArgs, TVars> = policiesTypesModule.FieldFunctionOptions<TArgs, TVars>
 
@@ -296,7 +289,7 @@ export type PoliciesPrivate = Policies & {
 	updateTypePolicy: (self: PoliciesPrivate, typename: string, incoming: TypePolicy) -> (),
 	setRootTypename: (
 		self: PoliciesPrivate,
-		which: string --[[ ROBLOX TODO: "Query" | "Mutation" | "Subscription" ]],
+		which: string, --[[ ROBLOX TODO: "Query" | "Mutation" | "Subscription" ]]
 		typename: string?
 	) -> (),
 	getTypePolicy: (typename: string) -> any, --[[ ROBLOX TODO: Policies["typePolicies"][string] ]]
@@ -312,14 +305,12 @@ export type PoliciesPrivate = Policies & {
 local Policies = {}
 Policies.__index = Policies
 
-function Policies.new(
-	config: {
-		cache: InMemoryCache,
-		dataIdFromObject: KeyFieldsFunction?,
-		possibleTypes: PossibleTypesMap?,
-		typePolicies: TypePolicies?,
-	}
-): Policies
+function Policies.new(config: {
+	cache: InMemoryCache,
+	dataIdFromObject: KeyFieldsFunction?,
+	possibleTypes: PossibleTypesMap?,
+	typePolicies: TypePolicies?,
+}): Policies
 	local self = (setmetatable({}, Policies) :: any) :: PoliciesPrivate
 
 	self.typePolicies = {}
@@ -632,7 +623,7 @@ function Policies:getTypePolicy(
 		local supertypes = self.supertypeMap:get(typename)
 		if Boolean.toJSBoolean(supertypes) and Boolean.toJSBoolean(supertypes.size) then
 			-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-			for _, supertype in supertypes:ipairs() do
+			for _, supertype in supertypes do
 				local ref = self:getTypePolicy(supertype)
 				local fields, rest = ref.fields, Object.assign({}, ref, { fields = Object.None })
 				Object.assign(policy, rest)
@@ -719,7 +710,7 @@ function Policies:fragmentMatches(
 				and Boolean.toJSBoolean(supertypeSet.size)
 				and Array.indexOf(workQueue, supertypeSet) < 1
 			then
-				table.insert(workQueue:push(supertypeSet))
+				table.insert(workQueue, supertypeSet)
 			end
 		end
 
@@ -729,9 +720,8 @@ function Policies:fragmentMatches(
 		-- strong signal of fragment matching. The StoreReader class calls
 		-- policies.fragmentMatches without passing a result object, so
 		-- needToCheckFuzzySubtypes is always false while reading.
-		local needToCheckFuzzySubtypes = not not Boolean.toJSBoolean(
-			Boolean.toJSBoolean(result) and self.fuzzySubtypes.size
-		)
+		local needToCheckFuzzySubtypes =
+			not not Boolean.toJSBoolean(Boolean.toJSBoolean(result) and self.fuzzySubtypes.size)
 		local checkingFuzzySubtypes = false
 
 		-- It's important to keep evaluating workQueue.length each time through
@@ -916,10 +906,9 @@ function Policies:getMergeFunction(
 	fieldName: string,
 	childTypename: string | nil
 ): FieldMergeFunction<any, any> | nil
-	local policy: any --[[ ROBLOX TODO: Policies["typePolicies"][string] | Policies["typePolicies"][string]["fields"][string] | undefined ]] =
-		(
-			self :: PoliciesPrivate
-		):getFieldPolicy(parentTypename, fieldName, false)
+	local policy: any --[[ ROBLOX TODO: Policies["typePolicies"][string] | Policies["typePolicies"][string]["fields"][string] | undefined ]] = (
+		self :: PoliciesPrivate
+	):getFieldPolicy(parentTypename, fieldName, false)
 	local merge
 	if Boolean.toJSBoolean(policy) then
 		merge = policy.merge
@@ -1020,8 +1009,14 @@ function makeFieldFunctionOptions(
 			-- ROBLOX deviation: format arguments to print helpful message (handle nil, and Object.None)
 			local arguments = {
 				if isNonNullObject(fieldNameOrOptions)
-				then Object.assign({}, fieldNameOrOptions :: ReadFieldOptions, if (fieldNameOrOptions :: ReadFieldOptions).from == Object.None then {from = "<Object.None>"} else nil ::any)
-				else fieldNameOrOptions,
+					then Object.assign(
+						{},
+						fieldNameOrOptions :: ReadFieldOptions,
+						if (fieldNameOrOptions :: ReadFieldOptions).from == Object.None
+							then { from = "<Object.None>" }
+							else nil :: any
+					)
+					else fieldNameOrOptions,
 				if select("#", ...) >= 1 then "<nil>" else nil :: any,
 			} :: Array<any>
 
@@ -1089,24 +1084,27 @@ function makeMergeObjectsFunction(store: NormalizedCache): MergeObjectsFunction
 				return incoming
 			end
 
-			if isReference(existing) and storeValueIsStoreObject(incoming) then
+			if isReference(existing) and storeValueIsStoreObject(incoming :: any) then
 				-- Update the normalized EntityStore for the entity identified by
 				-- existing.__ref, preferring/overwriting any fields contributed by the
 				-- newer incoming StoreObject.
-				store:merge(existing.__ref, incoming)
+				store:merge(((existing :: any) :: Reference).__ref, incoming)
 				return existing
 			end
 
-			if storeValueIsStoreObject(existing) and isReference(incoming) then
+			if storeValueIsStoreObject((existing :: any) :: StoreValue) and isReference(incoming) then
 				-- Update the normalized EntityStore for the entity identified by
 				-- incoming.__ref, taking fields from the older existing object only if
 				-- those fields are not already present in the newer StoreObject
 				-- identified by incoming.__ref.
-				store:merge(existing, incoming.__ref)
+				store:merge(existing, ((incoming :: any) :: Reference).__ref)
 				return incoming
 			end
 
-			if storeValueIsStoreObject(existing) and storeValueIsStoreObject(incoming) then
+			if
+				storeValueIsStoreObject((existing :: any) :: StoreValue)
+				and storeValueIsStoreObject((incoming :: any) :: StoreValue)
+			then
 				return Object.assign({}, existing, incoming)
 			end
 		end
@@ -1194,7 +1192,7 @@ function makeAliasMap(selectionSet: SelectionSetNode, fragmentMap: FragmentMap):
 	local map: AliasMap = {}
 	-- TODO Cache this work, perhaps by storing selectionSet._aliasMap?
 	local workQueue = Set.new({ selectionSet })
-	for _, selectionSet in workQueue:ipairs() do
+	for _, selectionSet in workQueue do
 		Array.forEach(selectionSet.selections, function(selection)
 			if isField(selection) then
 				if Boolean.toJSBoolean(selection.alias) then

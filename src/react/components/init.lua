@@ -7,8 +7,15 @@ exports.Mutation = require(script.Mutation).Mutation
 
 local typesModule = require(script.types)
 export type QueryComponentOptions<TData, TVariables> = typesModule.QueryComponentOptions<TData, TVariables>
-export type MutationComponentOptions<TData, TVariables, TContext, TCache> =
-	typesModule.MutationComponentOptions<TData, TVariables, TContext, TCache>
-export type SubscriptionComponentOptions<TData, TVariables> = typesModule.SubscriptionComponentOptions<TData, TVariables>
+export type MutationComponentOptions<TData, TVariables, TContext, TCache> = typesModule.MutationComponentOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
+export type SubscriptionComponentOptions<TData, TVariables> = typesModule.SubscriptionComponentOptions<
+	TData,
+	TVariables
+>
 
 return exports

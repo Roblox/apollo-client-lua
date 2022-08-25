@@ -13,13 +13,10 @@ return function()
 
 	type Array<T> = LuauPolyfill.Array<T>
 	type Error = LuauPolyfill.Error
-	-- ROBLOX FIXME: fix in LuauPolyfill
-	type Object = { [string]: any }
+	type Object = LuauPolyfill.Object
+	type Promise<T> = LuauPolyfill.Promise<T>
 
 	local Promise = require(rootWorkspace.Promise)
-
-	local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
-	type Promise<T> = PromiseTypeModule.Promise<T>
 
 	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
 	local jestExpect = JestGlobals.expect
@@ -50,20 +47,18 @@ return function()
 
 	-- Helper method that sets up a mockQueryManager and then passes on the
 	-- results to an observer.
-	local function assertWithObserver(
-		ref: {
-			reject: (any) -> any,
-			resolvers: Resolvers?,
-			query: DocumentNode,
-			serverQuery: DocumentNode?,
-			variables: Object?,
-			queryOptions: Object?,
-			error: Error?,
-			serverResult: ExecutionResult?,
-			delay: number?,
-			observer: Observer<ApolloQueryResult<any>>,
-		}
-	)
+	local function assertWithObserver(ref: {
+		reject: (any) -> any,
+		resolvers: Resolvers?,
+		query: DocumentNode,
+		serverQuery: DocumentNode?,
+		variables: Object?,
+		queryOptions: Object?,
+		error: Error?,
+		serverResult: ExecutionResult?,
+		delay: number?,
+		observer: Observer<ApolloQueryResult<any>>,
+	})
 		local reject, resolvers, query, serverQuery, variables, queryOptions, serverResult, error_, delay, observer =
 			ref.reject, ref.resolvers, ref.query, ref.serverQuery, (function()
 				return if ref.variables == nil then {} else ref.variables
@@ -76,7 +71,8 @@ return function()
 				query = serverQuery or query,
 				variables = variables,
 			},
-			result = serverResult,
+			-- ROBLOX FIXME Luau: upstream doesn't need this cast
+			result = serverResult :: any,
 			error = error_,
 			delay = delay,
 		})
@@ -580,7 +576,8 @@ return function()
 			return client
 				:mutate({ mutation = mutation })
 				:andThen(function()
-					return client:query({ query = query })
+					-- ROBLOX FIXME Luau: upstream TS doesn't need cast, infers as Promise<ApolloQueryResult<any>>
+					return client:query({ query = query }) :: Promise<any>
 				end)
 				:andThen(function(ref)
 					local data = ref.data
@@ -639,7 +636,7 @@ return function()
 			return client
 				:mutate({ mutation = mutation })
 				:andThen(function()
-					return client:query({ query = query })
+					return client:query({ query = query }) :: Promise<any>
 				end)
 				:andThen(function(ref)
 					local data = ref.data
@@ -705,7 +702,7 @@ return function()
 			return client
 				:mutate({ mutation = mutation })
 				:andThen(function()
-					return client:query({ query = query })
+					return client:query({ query = query }) :: Promise<any>
 				end)
 				:andThen(function(ref)
 					local data = ref.data
@@ -989,9 +986,11 @@ return function()
 
 						-- When the resolver isn't defined, there isn't anything to force, so
 						-- make sure the query resolves from the cache properly.
-						local data1 = client:query({
-							query = query,
-						}):expect().data
+						local data1 = client
+							:query({
+								query = query,
+							})
+							:expect().data
 						jestExpect(data1.author.isLoggedIn).toEqual(false)
 
 						client:addResolvers({
@@ -1005,9 +1004,11 @@ return function()
 						-- A resolver is defined, so make sure it's forced, and the result
 						-- resolves properly as a combination of cache and local resolver
 						-- data.
-						local data2 = client:query({
-							query = query,
-						}):expect().data
+						local data2 = client
+							:query({
+								query = query,
+							})
+							:expect().data
 						jestExpect(data2.author.isLoggedIn).toEqual(true)
 					end)
 					:expect()
@@ -1055,9 +1056,11 @@ return function()
 							},
 						})
 
-						local data = client:query({
-							query = query,
-						}):expect().data
+						local data = client
+							:query({
+								query = query,
+							})
+							:expect().data
 						jestExpect(data.author.isLoggedIn).toEqual(true)
 						jestExpect(count).toEqual(1)
 					end)
@@ -1241,9 +1244,11 @@ return function()
 				},
 			})
 
-			local isLoggedIn = client:query({
-				query = query,
-			}):expect().data.isLoggedIn
+			local isLoggedIn = client
+				:query({
+					query = query,
+				})
+				:expect().data.isLoggedIn
 			jestExpect(isLoggedIn).toBe(true)
 			return resolve()
 		end)
@@ -1294,9 +1299,11 @@ return function()
 					},
 				})
 
-				local member = client:query({
-					query = query,
-				}):expect().data.member
+				local member = client
+					:query({
+						query = query,
+					})
+					:expect().data.member
 				jestExpect(member.name).toBe(testMember.name)
 				jestExpect(member.isLoggedIn).toBe(testMember.isLoggedIn)
 				jestExpect(member.sessionCount).toBe(testMember.sessionCount)

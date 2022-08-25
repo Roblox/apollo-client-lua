@@ -919,13 +919,15 @@ return function()
 				console.error = function() end
 
 				jestExpect(function()
-					render(React.createElement(
-						MockedProvider,
-						nil,
-						React.createElement(Query, { query = mutation }, function()
-							return nil
-						end)
-					))
+					render(
+						React.createElement(
+							MockedProvider,
+							nil,
+							React.createElement(Query, { query = mutation }, function()
+								return nil
+							end)
+						)
+					)
 				end).toThrowError(
 					"Running a Query requires a graphql Query, but a Mutation was used " .. "instead."
 				)
@@ -949,13 +951,15 @@ return function()
 				console.error = function() end
 
 				jestExpect(function()
-					render(React.createElement(
-						MockedProvider,
-						nil,
-						React.createElement(Query, { query = subscription }, function()
-							return nil
-						end)
-					))
+					render(
+						React.createElement(
+							MockedProvider,
+							nil,
+							React.createElement(Query, { query = subscription }, function()
+								return nil
+							end)
+						)
+					)
 				end).toThrowError(
 					"Running a Query requires a graphql Query, but a Subscription was " .. "used instead."
 				)
@@ -1400,9 +1404,8 @@ return function()
 			end
 
 			function Component:componentDidCatch(error_)
-				local expectedError = Error.new(
-					"Running a Query requires a graphql Query, but a Subscription was " .. "used instead."
-				)
+				local expectedError =
+					Error.new("Running a Query requires a graphql Query, but a Subscription was " .. "used instead.")
 				-- ROBLOX deviation: compare error message and not whole error
 				jestExpect(error_.message).toEqual(expectedError.message)
 			end

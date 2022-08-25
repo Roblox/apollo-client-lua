@@ -27,7 +27,7 @@ return function()
 			jestExpect(bKeys).toEqual({ "b", "bee" })
 		end)
 		it("should clean undefined values from single objects", function()
-			local source = { zero = 0, undef = 0 and nil or nil, three = 3 }
+			local source = { zero = 0, undef = nil, three = 3 }
 			local result = compact(source)
 			jestExpect(result).toEqual({ zero = 0, three = 3 })
 			-- ROBLOX deviation: can't rely on order of keys
@@ -36,14 +36,14 @@ return function()
 			jestExpect(resultKeys).toEqual({ "three", "zero" })
 		end)
 		it("should skip over undefined values in later objects", function()
-			jestExpect(compact({ a = 1, b = 2 }, { b = 0 and nil or nil, c = 3 }, { a = 4, c = 0 and nil or nil })).toEqual({
+			jestExpect(compact({ a = 1, b = 2 }, { b = nil, c = 3 }, { a = 4, c = nil })).toEqual({
 				a = 4,
 				b = 2,
 				c = 3,
 			})
 		end)
 		it("should not leave undefined properties in result object", function()
-			local result = compact({ a = 1, b = 0 and nil or nil }, { a = 2, c = 0 and nil or nil })
+			local result = compact({ a = 1, b = nil }, { a = 2, c = nil })
 			jestExpect(hasOwn(result, "a")).toBe(true)
 			jestExpect(hasOwn(result, "b")).toBe(false)
 			jestExpect(hasOwn(result, "c")).toBe(false)

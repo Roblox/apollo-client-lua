@@ -11,12 +11,11 @@ local Set = LuauPolyfill.Set
 local setTimeout = LuauPolyfill.setTimeout
 local clearTimeout = LuauPolyfill.clearTimeout
 type Object = LuauPolyfill.Object
+type Promise<T> = LuauPolyfill.Promise<T>
 
 local isCallable = require(srcWorkspace.luaUtils.isCallable)
 
 local Promise = require(rootWorkspace.Promise)
-local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
-type Promise<T> = PromiseTypeModule.Promise<T>
 type Function = (...any) -> ...any
 
 -- ROBLOX TODO: generic temp types
@@ -395,7 +394,11 @@ function ObservableQuery:fetchMore(
 				return fetchMoreOptions
 			else
 				return Object.assign({}, self.options, fetchMoreOptions, {
-					variables = Object.assign({}, self.options.variables, fetchMoreOptions.variables),
+					variables = Object.assign(
+						{},
+						(self.options :: WatchQueryOptions<TVariables_, TData_>).variables,
+						fetchMoreOptions.variables
+					),
 				})
 			end
 		end)(),
@@ -416,7 +419,8 @@ function ObservableQuery:fetchMore(
 		self:observe()
 	end
 
-	return self.queryManager
+	return self
+		.queryManager
 		:fetchQuery(qid, combinedOptions, NetworkStatus.fetchMore)
 		:andThen(function(fetchMoreResult)
 			local data = fetchMoreResult.data :: TData_
@@ -482,7 +486,11 @@ end
 -- if you want to update subscription variables, right now you have to do that separately,
 -- and you can only do it by stopping the subscription and then subscribing again with new variables.
 function ObservableQuery:subscribeToMore(
-	options: SubscribeToMoreOptions<TData_, TSubscriptionVariables_, TSubscriptionData_>
+	options: SubscribeToMoreOptions<
+		TData_,
+		TSubscriptionVariables_,
+		TSubscriptionData_
+	>
 )
 	local subscription = self.queryManager
 		:startGraphQLSubscription({
@@ -578,7 +586,6 @@ function ObservableQuery:updateQuery(
 		previousQueryResult: TData_,
 		options: any --[[Pick<WatchQueryOptions<TVars, TData>, "variables">]]
 	) -> TData_
-
 ): ()
 	local queryManager = self.queryManager
 
@@ -725,10 +732,10 @@ function ObservableQuery:reobserve(
 	local oldVariables = self.options.variables
 
 	local options = if useDisposableConcast
-	-- Disposable Concast fetches receive a shallow copy of this.options
-    -- (merged with newOptions), leaving this.options unmodified.
-	then compact(self.options, newOptions)
-	else Object.assign(self.options, compact(newOptions))
+		-- Disposable Concast fetches receive a shallow copy of this.options
+		-- (merged with newOptions), leaving this.options unmodified.
+		then compact(self.options, newOptions)
+		else Object.assign(self.options, compact(newOptions))
 
 	if not useDisposableConcast then
 		-- We can skip calling updatePolling if we're not changing this.options.
@@ -795,7 +802,7 @@ function ObservableQuery:tearDownQuery()
 	self:stopPolling()
 
 	-- stop all active GraphQL subscriptions
-	for _, sub in self.subscriptions:ipairs() do
+	for _, sub in self.subscriptions do
 		sub:unsubscribe()
 	end
 	self.subscriptions:clear()

@@ -13,9 +13,6 @@ return function()
 	local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 	local Array = LuauPolyfill.Array
 	local Object = LuauPolyfill.Object
-	-- ROBLOX TODO: remove when availble in LuauPolyfill
-	Object.isFrozen = (table :: any).isfrozen
-
 	local Boolean = LuauPolyfill.Boolean
 	local console = LuauPolyfill.console
 	local function fail(message: string)
@@ -2380,7 +2377,7 @@ return function()
 
 			jestExpect(merges).toEqual({
 				{
-					existing = 0 and nil or nil,
+					existing = nil,
 					incoming = {
 						__typename = "Account",
 						contact = "billing@example.com",

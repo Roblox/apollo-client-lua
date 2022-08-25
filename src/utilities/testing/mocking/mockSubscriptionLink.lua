@@ -60,9 +60,9 @@ function MockSubscriptionLink.new(): MockSubscriptionLink
 	return (self :: any) :: MockSubscriptionLink
 end
 
-function MockSubscriptionLink:request(
-	operation: Operation
-): Observable<FetchResult<{ [string]: any }, Record<string, any>, Record<string, any>>>
+function MockSubscriptionLink:request(operation: Operation): Observable<
+	FetchResult<{ [string]: any }, Record<string, any>, Record<string, any>>
+>
 	self.operation = operation
 	return Observable.new(function(observer)
 		Array.forEach(self.setups, function(x)

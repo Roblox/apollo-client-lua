@@ -22,9 +22,8 @@ return function()
 	local stripSymbols = require(script.Parent.Parent.Parent.Parent.utilities.testing.stripSymbols).stripSymbols
 
 	-- mocks
-	local MockSubscriptionLink = require(
-		script.Parent.Parent.Parent.Parent.utilities.testing.mocking.mockSubscriptionLink
-	).MockSubscriptionLink
+	local MockSubscriptionLink =
+		require(script.Parent.Parent.Parent.Parent.utilities.testing.mocking.mockSubscriptionLink).MockSubscriptionLink
 
 	-- core
 	local QueryManagerModule = require(script.Parent.Parent.Parent.QueryManager)
@@ -83,11 +82,11 @@ return function()
 				local link = MockSubscriptionLink.new()
 				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
 				local queryManager = (
-						QueryManager.new({
-							cache = InMemoryCache.new({ addTypename = false }),
-							link = link,
-						}) :: any
-					) :: QueryManager<NormalizedCacheObject>
+					QueryManager.new({
+						cache = InMemoryCache.new({ addTypename = false }),
+						link = link,
+					}) :: any
+				) :: QueryManager<NormalizedCacheObject>
 
 				local observable = queryManager:watchQuery({
 					query = query,
@@ -112,7 +111,9 @@ return function()
 
 				-- fire off first result
 				link:simulateResult({ result = { data = initialData } })
-			end):timeout(3):expect()
+			end)
+				:timeout(3)
+				:expect()
 		end)
 
 		it("allows multiple query results from link with ignored errors", function()
@@ -149,11 +150,11 @@ return function()
 				local link = MockSubscriptionLink.new()
 				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
 				local queryManager = (
-						QueryManager.new({
-							cache = InMemoryCache.new({ addTypename = false }),
-							link = link,
-						}) :: any
-					) :: QueryManager<NormalizedCacheObject>
+					QueryManager.new({
+						cache = InMemoryCache.new({ addTypename = false }),
+						link = link,
+					}) :: any
+				) :: QueryManager<NormalizedCacheObject>
 
 				local observable = queryManager:watchQuery({
 					query = query,
@@ -197,7 +198,9 @@ return function()
 
 				-- fire off first result
 				link:simulateResult({ result = { data = initialData } })
-			end):timeout(3):expect()
+			end)
+				:timeout(3)
+				:expect()
 		end)
 
 		it("strips errors from a result if ignored", function()
@@ -233,11 +236,11 @@ return function()
 				local link = MockSubscriptionLink.new()
 				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
 				local queryManager = (
-						QueryManager.new({
-							cache = InMemoryCache.new({ addTypename = false }),
-							link = link,
-						}) :: any
-					) :: QueryManager<NormalizedCacheObject>
+					QueryManager.new({
+						cache = InMemoryCache.new({ addTypename = false }),
+						link = link,
+					}) :: any
+				) :: QueryManager<NormalizedCacheObject>
 
 				local observable = queryManager:watchQuery({
 					query = query,
@@ -282,7 +285,9 @@ return function()
 
 				-- fire off first result
 				link:simulateResult({ result = { data = initialData } })
-			end):timeout(3):expect()
+			end)
+				:timeout(3)
+				:expect()
 		end)
 
 		-- ROBLOX comment: this test is skipped upstream
@@ -319,11 +324,11 @@ return function()
 				local link = MockSubscriptionLink.new()
 				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
 				local queryManager = (
-						QueryManager.new({
-							cache = InMemoryCache.new({ addTypename = false }),
-							link = link,
-						}) :: any
-					) :: QueryManager<NormalizedCacheObject>
+					QueryManager.new({
+						cache = InMemoryCache.new({ addTypename = false }),
+						link = link,
+					}) :: any
+				) :: QueryManager<NormalizedCacheObject>
 
 				local observable = queryManager:watchQuery({
 					query = query,
@@ -370,7 +375,9 @@ return function()
 
 				-- fire off first result
 				link:simulateResult({ result = { data = initialData } })
-			end):timeout(3):expect()
+			end)
+				:timeout(3)
+				:expect()
 		end)
 
 		it("closes the observable if an error is set with the none policy", function()
@@ -398,11 +405,11 @@ return function()
 				local link = MockSubscriptionLink.new()
 				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
 				local queryManager = (
-						QueryManager.new({
-							cache = InMemoryCache.new({ addTypename = false }),
-							link = link,
-						}) :: any
-					) :: QueryManager<NormalizedCacheObject>
+					QueryManager.new({
+						cache = InMemoryCache.new({ addTypename = false }),
+						link = link,
+					}) :: any
+				) :: QueryManager<NormalizedCacheObject>
 
 				local observable = queryManager:watchQuery({
 					query = query,
@@ -435,7 +442,9 @@ return function()
 
 				-- fire off first result
 				link:simulateResult({ result = { data = initialData } })
-			end):timeout(3):expect()
+			end)
+				:timeout(3)
+				:expect()
 		end)
 	end)
 end

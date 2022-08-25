@@ -10,7 +10,10 @@ return function()
 	local console = LuauPolyfill.console
 	local setTimeout = LuauPolyfill.setTimeout
 
+	type Array<T> = LuauPolyfill.Array<T>
 	type Error = LuauPolyfill.Error
+
+	type FIX_ANALYZE = any
 
 	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
 	local jestExpect = JestGlobals.expect
@@ -118,7 +121,7 @@ return function()
 	local mocks = {
 		{ request = { query = mutation }, result = { data = data } },
 		{ request = { query = mutation }, result = { data = data2 } },
-	}
+	} :: Array<any>
 
 	local cache = Cache.new({ addTypename = false })
 
@@ -167,7 +170,7 @@ return function()
 					{ client = contextClient },
 					React.createElement(
 						Mutation,
-						{ client = props.propsClient, mutation = mutation },
+						{ client = props.propsClient, mutation = mutation } :: FIX_ANALYZE,
 						function(createTodo: any)
 							return React.createElement("button", {
 								onClick = function()
@@ -215,25 +218,29 @@ return function()
 			Promise.new(function(resolve, reject)
 				local count = 0
 				local function Component()
-					return React.createElement(Mutation, { mutation = mutation }, function(createTodo: any, result: any)
-						rejectOnComponentThrow(reject, function()
-							if count == 0 then
-								jestExpect(result.loading).toEqual(false)
-								jestExpect(result.called).toEqual(false)
-								createTodo()
-							elseif count == 1 then
-								jestExpect(result.called).toEqual(true)
-								jestExpect(result.loading).toEqual(true)
-							elseif count == 2 then
-								jestExpect(result.called).toEqual(true)
-								jestExpect(result.loading).toEqual(false)
-								jestExpect(result.data).toEqual(data)
-							end
-							count += 1
-						end)
-						-- ROBLOX deviation: using text element instead of div
-						return React.createElement("TextLabel", { Text = "" })
-					end)
+					return React.createElement(
+						Mutation,
+						{ mutation = mutation } :: FIX_ANALYZE,
+						function(createTodo: any, result: any)
+							rejectOnComponentThrow(reject, function()
+								if count == 0 then
+									jestExpect(result.loading).toEqual(false)
+									jestExpect(result.called).toEqual(false)
+									createTodo()
+								elseif count == 1 then
+									jestExpect(result.called).toEqual(true)
+									jestExpect(result.loading).toEqual(true)
+								elseif count == 2 then
+									jestExpect(result.called).toEqual(true)
+									jestExpect(result.loading).toEqual(false)
+									jestExpect(result.data).toEqual(data)
+								end
+								count += 1
+							end)
+							-- ROBLOX deviation: using text element instead of div
+							return React.createElement("TextLabel", { Text = "" })
+						end
+					)
 				end
 				render(React.createElement(MockedProvider, { mocks = mocks }, React.createElement(Component, nil)))
 				wait_():andThen(resolve, reject)
@@ -247,7 +254,7 @@ return function()
 				local function Component()
 					return React.createElement(
 						Mutation,
-						{ mutation = mutation, ignoreResults = true },
+						{ mutation = mutation, ignoreResults = true } :: FIX_ANALYZE,
 						function(createTodo: any, result: any)
 							rejectOnComponentThrow(reject, function()
 								if count == 0 then
@@ -277,17 +284,21 @@ return function()
 			Promise.new(function(resolve, reject)
 				local called = false
 				local function Component()
-					return React.createElement(Mutation, { mutation = mutation }, function(createTodo: any)
-						rejectOnComponentThrow(reject, function()
-							if not called then
-								createTodo():andThen(function(result: any)
-									jestExpect((result :: any).data).toEqual(data)
-								end)
-							end
-							called = true
-						end)
-						return nil
-					end)
+					return React.createElement(
+						Mutation,
+						{ mutation = mutation } :: FIX_ANALYZE,
+						function(createTodo: any)
+							rejectOnComponentThrow(reject, function()
+								if not called then
+									createTodo():andThen(function(result: any)
+										jestExpect((result :: any).data).toEqual(data)
+									end)
+								end
+								called = true
+							end)
+							return nil
+						end
+					)
 				end
 				render(React.createElement(MockedProvider, { mocks = mocks }, React.createElement(Component, nil)))
 				wait_():andThen(resolve, reject)
@@ -298,18 +309,22 @@ return function()
 			Promise.new(function(resolve, reject)
 				local called = false
 				local function Component()
-					return React.createElement(Mutation, { mutation = mutation }, function(createTodo: any)
-						rejectOnComponentThrow(reject, function()
-							if not called then
-								createTodo():catch(function(error_)
-									-- ROBLOX deviation: comparing error messages
-									jestExpect(error_.message).toEqual(Error.new("Error 1").message)
-								end)
-							end
-							called = true
-						end)
-						return nil
-					end)
+					return React.createElement(
+						Mutation,
+						{ mutation = mutation } :: FIX_ANALYZE,
+						function(createTodo: any)
+							rejectOnComponentThrow(reject, function()
+								if not called then
+									createTodo():catch(function(error_)
+										-- ROBLOX deviation: comparing error messages
+										jestExpect(error_.message).toEqual(Error.new("Error 1").message)
+									end)
+								end
+								called = true
+							end)
+							return nil
+						end
+					)
 				end
 
 				local mocksWithErrors = { { request = { query = mutation }, error = Error.new("Error 1") } }
@@ -341,7 +356,7 @@ return function()
 				local function Component()
 					return React.createElement(
 						Mutation,
-						{ mutation = mutation, onCompleted = onCompleted },
+						{ mutation = mutation, onCompleted = onCompleted } :: FIX_ANALYZE,
 						function(createTodo: any, result: any)
 							rejectOnComponentThrow(reject, function()
 								if count == 0 then
@@ -385,7 +400,7 @@ return function()
 				local function Component()
 					return React.createElement(
 						Mutation,
-						{ mutation = mutation, onError = onError },
+						{ mutation = mutation, onError = onError } :: FIX_ANALYZE,
 						function(createTodo: any, result: any)
 							rejectOnComponentThrow(reject, function()
 								if count == 0 then
@@ -451,7 +466,7 @@ return function()
 				function Component:render()
 					return React.createElement(
 						Mutation,
-						{ mutation = mutation, onCompleted = self.onCompleted },
+						{ mutation = mutation, onCompleted = self.onCompleted } :: FIX_ANALYZE,
 						function(createTodo: any, result: any)
 							rejectOnComponentThrow(reject, function()
 								if not Boolean.toJSBoolean(result.called) then
@@ -473,7 +488,7 @@ return function()
 
 		it("renders result of the children render prop", function()
 			local function Component()
-				return React.createElement(Mutation, { mutation = mutation }, function()
+				return React.createElement(Mutation, { mutation = mutation } :: FIX_ANALYZE, function()
 					-- ROBLOX deviation: using text element instead of div
 					return React.createElement("TextLabel", { Text = "result" })
 				end)
@@ -490,24 +505,28 @@ return function()
 				local count = 0
 
 				local function Component()
-					return React.createElement(Mutation, { mutation = mutation }, function(createTodo: any, result: any)
-						rejectOnComponentThrow(reject, function()
-							if count == 0 then
-								createTodo():catch(function(err: any)
+					return React.createElement(
+						Mutation,
+						{ mutation = mutation } :: FIX_ANALYZE,
+						function(createTodo: any, result: any)
+							rejectOnComponentThrow(reject, function()
+								if count == 0 then
+									createTodo():catch(function(err: any)
+										-- ROBLOX deviation: compare error message
+										jestExpect(err.message).toEqual(Error.new("error occurred").message)
+									end)
+								elseif count == 1 then
+									jestExpect(result.loading).toBeTruthy()
+								elseif count == 2 then
 									-- ROBLOX deviation: compare error message
-									jestExpect(err.message).toEqual(Error.new("error occurred").message)
-								end)
-							elseif count == 1 then
-								jestExpect(result.loading).toBeTruthy()
-							elseif count == 2 then
-								-- ROBLOX deviation: compare error message
-								jestExpect(result.error.message).toEqual(Error.new("error occurred").message)
-							end
-							count += 1
-						end)
-						-- ROBLOX deviation: using text element instead of div
-						return React.createElement("TextLabel", { Text = "" })
-					end)
+									jestExpect(result.error.message).toEqual(Error.new("error occurred").message)
+								end
+								count += 1
+							end)
+							-- ROBLOX deviation: using text element instead of div
+							return React.createElement("TextLabel", { Text = "" })
+						end
+					)
 				end
 
 				local mockError = { { request = { query = mutation }, error = Error.new("error occurred") } }
@@ -525,28 +544,32 @@ return function()
 				local expectedError = ApolloError.new({ graphQLErrors = { GraphQLError.new("error occurred") } })
 
 				local function Component()
-					return React.createElement(Mutation, { mutation = mutation }, function(createTodo: any, result: any)
-						rejectOnComponentThrow(reject, function()
-							if count == 0 then
-								createTodo()
-									:andThen(function()
-										error(Error.new("Did not expect a result"))
-									end)
-									:catch(function(e: any)
-										-- ROBLOX deviation: comparing error messages
-										jestExpect(e.message).toEqual(expectedError.message)
-									end)
-							elseif count == 1 then
-								jestExpect(result.loading).toBeTruthy()
-							elseif count == 2 then
-								-- ROBLOX deviation: comparing error messages
-								jestExpect(result.error.message).toEqual(expectedError.message)
-							end
-							count += 1
-						end)
-						-- ROBLOX deviation: using text element instead of div
-						return React.createElement("TextLabel", { Text = "" })
-					end)
+					return React.createElement(
+						Mutation,
+						{ mutation = mutation } :: FIX_ANALYZE,
+						function(createTodo: any, result: any)
+							rejectOnComponentThrow(reject, function()
+								if count == 0 then
+									createTodo()
+										:andThen(function()
+											error(Error.new("Did not expect a result"))
+										end)
+										:catch(function(e: any)
+											-- ROBLOX deviation: comparing error messages
+											jestExpect(e.message).toEqual(expectedError.message)
+										end)
+								elseif count == 1 then
+									jestExpect(result.loading).toBeTruthy()
+								elseif count == 2 then
+									-- ROBLOX deviation: comparing error messages
+									jestExpect(result.error.message).toEqual(expectedError.message)
+								end
+								count += 1
+							end)
+							-- ROBLOX deviation: using text element instead of div
+							return React.createElement("TextLabel", { Text = "" })
+						end
+					)
 				end
 
 				local mockError = {
@@ -564,46 +587,51 @@ return function()
 				local count = 0
 
 				local function Component()
-					return React.createElement(Mutation, { mutation = mutation }, function(createTodo: any, result: any)
-						rejectOnComponentThrow(reject, function()
-							if count == 0 then
-								createTodo()
-									:andThen(function(fetchResult: any)
-										if
-											Boolean.toJSBoolean(fetchResult) and Boolean.toJSBoolean(fetchResult.errors)
-										then
-											jestExpect(#fetchResult.errors).toEqual(1)
-											-- ROBLOX deviation: compare error message
-											jestExpect(fetchResult.errors[1].message).toEqual(
-												GraphQLError.new("error occurred").message
-											)
-										else
-											error(
-												Error.new(
-													("Expected an object with array of errors but got %s"):format(
-														fetchResult
+					return React.createElement(
+						Mutation,
+						{ mutation = mutation } :: FIX_ANALYZE,
+						function(createTodo: any, result: any)
+							rejectOnComponentThrow(reject, function()
+								if count == 0 then
+									createTodo()
+										:andThen(function(fetchResult: any)
+											if
+												Boolean.toJSBoolean(fetchResult)
+												and Boolean.toJSBoolean(fetchResult.errors)
+											then
+												jestExpect(#fetchResult.errors).toEqual(1)
+												-- ROBLOX deviation: compare error message
+												jestExpect(fetchResult.errors[1].message).toEqual(
+													GraphQLError.new("error occurred").message
+												)
+											else
+												error(
+													Error.new(
+														("Expected an object with array of errors but got %s"):format(
+															fetchResult
+														)
 													)
 												)
-											)
-										end
-									end)
-									:catch(function(e: any)
-										error(e)
-									end)
-							elseif count == 1 then
-								jestExpect(result.loading).toBeTruthy()
-							elseif count == 2 then
-								-- ROBLOX deviation: compare error message
-								jestExpect(result.error.message).toEqual(
-									ApolloError.new({ graphQLErrors = { GraphQLError.new("error occurred") } }).message
-								)
-							end
+											end
+										end)
+										:catch(function(e: any)
+											error(e)
+										end)
+								elseif count == 1 then
+									jestExpect(result.loading).toBeTruthy()
+								elseif count == 2 then
+									-- ROBLOX deviation: compare error message
+									jestExpect(result.error.message).toEqual(
+										ApolloError.new({ graphQLErrors = { GraphQLError.new("error occurred") } }).message
+									)
+								end
 
-							count += 1
-						end)
-						-- ROBLOX deviation: using text element instead of div
-						return React.createElement("TextLabel", { Text = "" })
-					end)
+								count += 1
+							end)
+							-- ROBLOX deviation: using text element instead of div
+							return React.createElement("TextLabel", { Text = "" })
+						end
+					)
 				end
 
 				local mockError = {
@@ -628,30 +656,34 @@ return function()
 				local expectedError = ApolloError.new({ networkError = Error.new("network error") })
 
 				local function Component()
-					return React.createElement(Mutation, { mutation = mutation }, function(createTodo: any, result: any)
-						rejectOnComponentThrow(reject, function()
-							if count == 0 then
-								createTodo()
-									:andThen(function()
-										error(Error.new("Did not expect a result"))
-									end)
-									:catch(function(e: any)
-										-- ROBLOX deviation: compare error message
-										jestExpect(e.message).toEqual(expectedError.message)
-									end)
-							elseif count == 1 then
-								jestExpect(result.loading).toBeTruthy()
-							elseif count == 2 then
-								-- ROBLOX deviation: compare error message
+					return React.createElement(
+						Mutation,
+						{ mutation = mutation } :: FIX_ANALYZE,
+						function(createTodo: any, result: any)
+							rejectOnComponentThrow(reject, function()
+								if count == 0 then
+									createTodo()
+										:andThen(function()
+											error(Error.new("Did not expect a result"))
+										end)
+										:catch(function(e: any)
+											-- ROBLOX deviation: compare error message
+											jestExpect(e.message).toEqual(expectedError.message)
+										end)
+								elseif count == 1 then
+									jestExpect(result.loading).toBeTruthy()
+								elseif count == 2 then
+									-- ROBLOX deviation: compare error message
 
-								jestExpect(result.error.message).toEqual(expectedError.message)
-							end
+									jestExpect(result.error.message).toEqual(expectedError.message)
+								end
 
-							count += 1
-						end)
-						-- ROBLOX deviation: using text element instead of div
-						return React.createElement("TextLabel", { Text = "" })
-					end)
+								count += 1
+							end)
+							-- ROBLOX deviation: using text element instead of div
+							return React.createElement("TextLabel", { Text = "" })
+						end
+					)
 				end
 
 				local mockError = { { request = { query = mutation }, error = Error.new("network error") } }
@@ -690,7 +722,7 @@ return function()
 					local mutationError = self.state.mutationError
 					return React.createElement(
 						Mutation,
-						{ mutation = mutation, onError = self.onError },
+						{ mutation = mutation, onError = self.onError } :: FIX_ANALYZE,
 						function(createTodo: any, result: any)
 							rejectOnComponentThrow(reject, function()
 								if not Boolean.toJSBoolean(result.called) then
@@ -723,7 +755,7 @@ return function()
 				local function Component()
 					return React.createElement(
 						Mutation,
-						{ mutation = mutation, variables = variables },
+						{ mutation = mutation, variables = variables } :: FIX_ANALYZE,
 						function(createTodo: any, result: any)
 							rejectOnComponentThrow(reject, function()
 								if count == 0 then
@@ -760,24 +792,28 @@ return function()
 				local count = 0
 
 				local function Component()
-					return React.createElement(Mutation, { mutation = mutation }, function(createTodo: any, result: any)
-						rejectOnComponentThrow(reject, function()
-							if count == 0 then
-								createTodo({ variables = variables })
-							elseif count == 1 then
-								jestExpect(result.loading).toEqual(true)
-								jestExpect(result.called).toEqual(true)
-							elseif count == 2 then
-								jestExpect(result.loading).toEqual(false)
-								jestExpect(result.called).toEqual(true)
-								jestExpect(result.data).toEqual(data)
-							end
+					return React.createElement(
+						Mutation,
+						{ mutation = mutation } :: FIX_ANALYZE,
+						function(createTodo: any, result: any)
+							rejectOnComponentThrow(reject, function()
+								if count == 0 then
+									createTodo({ variables = variables })
+								elseif count == 1 then
+									jestExpect(result.loading).toEqual(true)
+									jestExpect(result.called).toEqual(true)
+								elseif count == 2 then
+									jestExpect(result.loading).toEqual(false)
+									jestExpect(result.called).toEqual(true)
+									jestExpect(result.data).toEqual(data)
+								end
 
-							count += 1
-						end)
-						-- ROBLOX deviation: using text element instead of div
-						return React.createElement("TextLabel", { Text = "" })
-					end)
+								count += 1
+							end)
+							-- ROBLOX deviation: using text element instead of div
+							return React.createElement("TextLabel", { Text = "" })
+						end
+					)
 				end
 
 				local mocks1 = { { request = { query = mutation, variables = variables }, result = { data = data } } }
@@ -809,7 +845,7 @@ return function()
 				local function Component()
 					return React.createElement(
 						Mutation,
-						{ mutation = mutation, optimisticResponse = optimisticResponse },
+						{ mutation = mutation, optimisticResponse = optimisticResponse } :: FIX_ANALYZE,
 						function(createTodo: any, result: any)
 							rejectOnComponentThrow(reject, function()
 								if count == 0 then
@@ -858,22 +894,26 @@ return function()
 				local count = 0
 
 				local function Component()
-					return React.createElement(Mutation, { mutation = mutation }, function(createTodo: any, result: any)
-						rejectOnComponentThrow(reject, function()
-							if count == 0 then
-								createTodo({ optimisticResponse = optimisticResponse })
-								local dataInStore = client.cache:extract(true)
-								jestExpect(dataInStore["Todo:99"]).toEqual(optimisticResponse.createTodo)
-							elseif count == 2 then
-								jestExpect(result.loading).toEqual(false)
-								jestExpect(result.called).toEqual(true)
-								jestExpect(result.data).toEqual(data)
-							end
-							count += 1
-						end)
-						-- ROBLOX deviation: using text element instead of div
-						return React.createElement("TextLabel", { Text = "" })
-					end)
+					return React.createElement(
+						Mutation,
+						{ mutation = mutation } :: FIX_ANALYZE,
+						function(createTodo: any, result: any)
+							rejectOnComponentThrow(reject, function()
+								if count == 0 then
+									createTodo({ optimisticResponse = optimisticResponse })
+									local dataInStore = client.cache:extract(true)
+									jestExpect(dataInStore["Todo:99"]).toEqual(optimisticResponse.createTodo)
+								elseif count == 2 then
+									jestExpect(result.loading).toEqual(false)
+									jestExpect(result.called).toEqual(true)
+									jestExpect(result.data).toEqual(data)
+								end
+								count += 1
+							end)
+							-- ROBLOX deviation: using text element instead of div
+							return React.createElement("TextLabel", { Text = "" })
+						end
+					)
 				end
 
 				render(React.createElement(ApolloProvider, { client = client }, React.createElement(Component, nil)))
@@ -914,7 +954,7 @@ return function()
 				local function Component()
 					return React.createElement(
 						Mutation,
-						{ mutation = mutation, refetchQueries = refetchQueries },
+						{ mutation = mutation, refetchQueries = refetchQueries } :: FIX_ANALYZE,
 						function(createTodo: any, resultMutation: any)
 							return React.createElement(Query, { query = query }, function(resultQuery: any)
 								rejectOnComponentThrow(reject, function()
@@ -996,7 +1036,7 @@ return function()
 
 					return React.createElement(
 						Mutation,
-						{ mutation = mutation, refetchQueries = refetchQueries },
+						{ mutation = mutation, refetchQueries = refetchQueries } :: FIX_ANALYZE,
 						function(createTodo: any, resultMutation: any)
 							return React.createElement(
 								Query,
@@ -1089,7 +1129,7 @@ return function()
 				local function Component()
 					return React.createElement(
 						Mutation,
-						{ mutation = mutation },
+						{ mutation = mutation } :: FIX_ANALYZE,
 						function(createTodo: any, resultMutation: any)
 							return React.createElement(Query, { query = query }, function(resultQuery: any)
 								rejectOnComponentThrow(reject, function()
@@ -1140,7 +1180,7 @@ return function()
 				local function Component()
 					return React.createElement(
 						Mutation,
-						{ mutation = mutation, update = update },
+						{ mutation = mutation, update = update } :: FIX_ANALYZE,
 						function(createTodo: any)
 							rejectOnComponentThrow(reject, function()
 								if count == 0 then
@@ -1170,18 +1210,22 @@ return function()
 				local count = 0
 
 				local function Component()
-					return React.createElement(Mutation, { mutation = mutation }, function(createTodo: any)
-						rejectOnComponentThrow(reject, function()
-							if count == 0 then
-								createTodo({ update = update }):andThen(function(response: any)
-									jestExpect((response :: any).data).toEqual(data)
-								end)
-							end
+					return React.createElement(
+						Mutation,
+						{ mutation = mutation } :: FIX_ANALYZE,
+						function(createTodo: any)
+							rejectOnComponentThrow(reject, function()
+								if count == 0 then
+									createTodo({ update = update }):andThen(function(response: any)
+										jestExpect((response :: any).data).toEqual(data)
+									end)
+								end
 
-							count += 1
-						end)
-						return nil
-					end)
+								count += 1
+							end)
+							return nil
+						end
+					)
 				end
 
 				render(React.createElement(MockedProvider, { mocks = mocks }, React.createElement(Component, nil)))
@@ -1201,7 +1245,7 @@ return function()
 				local function Component()
 					return React.createElement(
 						Mutation,
-						{ mutation = mutation, variables = variablesProp },
+						{ mutation = mutation, variables = variablesProp } :: FIX_ANALYZE,
 						function(createTodo: any, result: any)
 							rejectOnComponentThrow(reject, function()
 								if count == 0 then
@@ -1267,28 +1311,32 @@ return function()
 					return React.createElement(
 						ApolloProvider,
 						{ client = self.state.client },
-						React.createElement(Mutation, { mutation = mutation }, function(createTodo: any, result: any)
-							rejectOnComponentThrow(reject, function()
-								if count == 0 then
-									jestExpect(result.called).toEqual(false)
-									jestExpect(result.loading).toEqual(false)
-									createTodo()
-								elseif count == 2 and Boolean.toJSBoolean(result) then
-									jestExpect(result.data).toEqual(data)
-									setTimeout(function()
-										self:setState({ client = client2 })
-									end)
-								elseif count == 3 then
-									jestExpect(result.loading).toEqual(false)
-									createTodo()
-								elseif count == 5 then
-									jestExpect(result.data).toEqual(data3)
-								end
+						React.createElement(
+							Mutation,
+							{ mutation = mutation } :: FIX_ANALYZE,
+							function(createTodo: any, result: any)
+								rejectOnComponentThrow(reject, function()
+									if count == 0 then
+										jestExpect(result.called).toEqual(false)
+										jestExpect(result.loading).toEqual(false)
+										createTodo()
+									elseif count == 2 and Boolean.toJSBoolean(result) then
+										jestExpect(result.data).toEqual(data)
+										setTimeout(function()
+											self:setState({ client = client2 })
+										end)
+									elseif count == 3 then
+										jestExpect(result.loading).toEqual(false)
+										createTodo()
+									elseif count == 5 then
+										jestExpect(result.data).toEqual(data3)
+									end
 
-								count += 1
-							end)
-							return nil
-						end)
+									count += 1
+								end)
+								return nil
+							end
+						)
 					)
 				end
 
@@ -1312,31 +1360,33 @@ return function()
 
 				local count = 0
 
-				render(React.createElement(
-					ApolloProvider,
-					{ client = client1 },
+				render(
 					React.createElement(
-						Mutation,
-						{ client = client2, mutation = mutation },
-						function(createTodo: any, result: any)
-							rejectOnComponentThrow(reject, function()
-								if not Boolean.toJSBoolean(result.called) then
-									act(function()
-										createTodo()
-									end)
-								end
-								if count == 2 then
-									jestExpect(result.loading).toEqual(false)
-									jestExpect(result.called).toEqual(true)
-									jestExpect(result.data).toEqual(data2)
-								end
-								count += 1
-							end)
-							-- ROBLOX deviation: using text element instead of div
-							return React.createElement("TextLabel", { Text = "" })
-						end
+						ApolloProvider,
+						{ client = client1 },
+						React.createElement(
+							Mutation,
+							{ client = client2, mutation = mutation } :: FIX_ANALYZE,
+							function(createTodo: any, result: any)
+								rejectOnComponentThrow(reject, function()
+									if not Boolean.toJSBoolean(result.called) then
+										act(function()
+											createTodo()
+										end)
+									end
+									if count == 2 then
+										jestExpect(result.loading).toEqual(false)
+										jestExpect(result.called).toEqual(true)
+										jestExpect(result.data).toEqual(data2)
+									end
+									count += 1
+								end)
+								-- ROBLOX deviation: using text element instead of div
+								return React.createElement("TextLabel", { Text = "" })
+							end
+						)
 					)
-				))
+				)
 
 				wait_(function()
 					jestExpect(count).toBe(3)
@@ -1360,13 +1410,15 @@ return function()
 			console.error = function() end
 
 			jestExpect(function()
-				render(React.createElement(
-					MockedProvider,
-					nil,
-					React.createElement(Mutation, { mutation = query }, function()
-						return nil
-					end)
-				))
+				render(
+					React.createElement(
+						MockedProvider,
+						nil,
+						React.createElement(Mutation, { mutation = query } :: FIX_ANALYZE, function()
+							return nil
+						end)
+					)
+				)
 			end).toThrowError("Running a Mutation requires a graphql Mutation, but a Query was used " .. "instead.")
 
 			console.log = errorLogger
@@ -1401,7 +1453,7 @@ return function()
 				end
 
 				function Component:render()
-					return React.createElement(Mutation, { mutation = self.state.query }, function()
+					return React.createElement(Mutation, { mutation = self.state.query } :: FIX_ANALYZE, function()
 						setTimeout(function()
 							self:setState({ query = query })
 						end)
@@ -1434,13 +1486,15 @@ return function()
 			console.error = function() end
 
 			jestExpect(function()
-				render(React.createElement(
-					MockedProvider,
-					nil,
-					React.createElement(Mutation, { mutation = subscription }, function()
-						return nil
-					end)
-				))
+				render(
+					React.createElement(
+						MockedProvider,
+						nil,
+						React.createElement(Mutation, { mutation = subscription } :: FIX_ANALYZE, function()
+							return nil
+						end)
+					)
+				)
 			end).toThrowError(
 				"Running a Mutation requires a graphql Mutation, but a Subscription " .. "was used instead."
 			)
@@ -1479,7 +1533,7 @@ return function()
 				end
 
 				function Component:render()
-					return React.createElement(Mutation, { mutation = self.state.query }, function()
+					return React.createElement(Mutation, { mutation = self.state.query } :: FIX_ANALYZE, function()
 						setTimeout(function()
 							self:setState({ query = subscription })
 						end)
@@ -1529,7 +1583,7 @@ return function()
 						else
 							return React.createElement(
 								Mutation,
-								{ mutation = mutation, onCompleted = onCompletedFn },
+								{ mutation = mutation, onCompleted = onCompletedFn } :: FIX_ANALYZE,
 								function(createTodo: any)
 									setTimeout(function()
 										createTodo()
@@ -1564,11 +1618,11 @@ return function()
 				local function Component()
 					return React.createElement(
 						Mutation,
-						{ mutation = mutation, onError = onError },
+						{ mutation = mutation, onError = onError } :: FIX_ANALYZE,
 						function(createTodo: any, ref)
 							local called = ref.called
 							if not called then
-								createTodo()
+								return createTodo()
 							end
 							return nil
 						end

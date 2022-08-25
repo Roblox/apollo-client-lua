@@ -40,7 +40,7 @@ local function wrapTestFunction(fn: (...any) -> any, consoleMethodName: string)
 	end
 end
 
-local function withErrorSpy<TArgs, TResult>(it: (...any) -> TResult, ...: any)
+local function withErrorSpy<TArgs, TResult>(it: (...any) -> ...TResult, ...: any)
 	local args = { ... } -- TArgs
 	args[2] = wrapTestFunction(args[2], "error")
 	return it(table.unpack(args))

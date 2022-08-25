@@ -181,9 +181,9 @@ local function act(callback: (() -> Thenable<any>) | () -> ())
 			if result ~= nil then
 				console.error(
 					(
-							"The callback passed to act(...) function "
-							.. "must return undefined, or a Promise. You returned %s"
-						),
+						"The callback passed to act(...) function "
+						.. "must return undefined, or a Promise. You returned %s"
+					),
 					result
 				)
 			end

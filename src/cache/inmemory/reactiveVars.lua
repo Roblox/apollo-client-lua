@@ -64,7 +64,7 @@ end
 
 local function forgetCache(cache: ApolloCache<any>)
 	-- ROBLOX deviation: can't use Array.forEach on a Set in Lua
-	for _, rv in getCacheInfo(cache).vars:ipairs() do
+	for _, rv in getCacheInfo(cache).vars do
 		rv:forgetCache(cache)
 	end
 end
@@ -80,7 +80,7 @@ exports.forgetCache = forgetCache
 -- automatically disappear from the varsByCache WeakMap.
 local function recallCache(cache: ApolloCache<any>)
 	-- ROBLOX deviation: can't use Array.forEach on a Set in Lua
-	for _, rv in getCacheInfo(cache).vars:ipairs() do
+	for _, rv in getCacheInfo(cache).vars do
 		rv:attachCache(cache)
 	end
 end
@@ -94,45 +94,45 @@ local function makeVar<T>(value: T): ReactiveVar<T>
 	local attach
 
 	rv = (
-			setmetatable({}, {
-				__call = function(_self: any, ...: T?): ...T?
-					if select("#", ...) >= 1 then
-						local arguments = { ... }
-						local newValue = arguments[1] :: T
-						if value ~= newValue then
-							value = newValue
-							-- ROBLOX deviation: can't use Array.forEach on a Set in Lua
-							for _, cache in caches:ipairs() do
-								-- Invalidate any fields with custom read functions that
-								-- consumed this variable, so query results involving those
-								-- fields will be recomputed the next time we read them.
-								getCacheInfo(cache).dep:dirty(rv)
-								-- Broadcast changes to any caches that have previously read
-								-- from this variable.
-								broadcast(cache)
-							end
-							-- Finally, notify any listeners added via rv.onNextChange.
-							local oldListeners = Array.from(listeners)
-							listeners:clear()
-							Array.forEach(oldListeners, function(listener)
-								listener(value)
-							end)
+		setmetatable({}, {
+			__call = function(_self: any, ...: T?): ...T?
+				if select("#", ...) >= 1 then
+					local arguments = { ... }
+					local newValue = arguments[1] :: T
+					if value ~= newValue then
+						value = newValue
+						-- ROBLOX deviation: can't use Array.forEach on a Set in Lua
+						for _, cache in caches do
+							-- Invalidate any fields with custom read functions that
+							-- consumed this variable, so query results involving those
+							-- fields will be recomputed the next time we read them.
+							getCacheInfo(cache).dep:dirty(rv)
+							-- Broadcast changes to any caches that have previously read
+							-- from this variable.
+							broadcast(cache)
 						end
-					else
-						-- When reading from the variable, obtain the current cache from
-						-- context via cacheSlot. This isn't entirely foolproof, but it's
-						-- the same system that powers varDep.
-						local cache = cacheSlot:getValue()
-						if Boolean.toJSBoolean(cache) then
-							attach(cache)
-							getCacheInfo(cache).dep(rv)
-						end
+						-- Finally, notify any listeners added via rv.onNextChange.
+						local oldListeners = Array.from(listeners)
+						listeners:clear()
+						Array.forEach(oldListeners, function(listener)
+							listener(value)
+						end)
 					end
+				else
+					-- When reading from the variable, obtain the current cache from
+					-- context via cacheSlot. This isn't entirely foolproof, but it's
+					-- the same system that powers varDep.
+					local cache = cacheSlot:getValue()
+					if Boolean.toJSBoolean(cache) then
+						attach(cache)
+						getCacheInfo(cache).dep(rv)
+					end
+				end
 
-					return value
-				end,
-			}) :: any
-		) :: ReactiveVar<T>
+				return value
+			end,
+		}) :: any
+	) :: ReactiveVar<T>
 
 	rv.onNextChange = function(_self, listener)
 		listeners:add(listener)
@@ -166,8 +166,9 @@ type Broadcastable = ApolloCache<any> & {
 }
 
 function broadcast(cache: Broadcastable)
-	if Boolean.toJSBoolean(cache.broadcastWatches) then
-		cache:broadcastWatches()
+	if cache.broadcastWatches ~= nil then
+		-- ROBLOX FIXME Luau: bradcastWatches is not nil
+		(cache :: any):broadcastWatches()
 	end
 end
 

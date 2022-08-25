@@ -51,16 +51,14 @@ return function()
 			function MyPortal:render()
 				return React.createElement(
 					Portal,
-					{ target = rootInstance },
+					{ target = rootInstance } :: any,
 					React.createElement(Greet, { greeting = "Hello", subject = "World" })
 				)
 			end
 			-- end MyPortal class definition
 
-			local renderReturnTable = render(
-				React.createElement(MyPortal),
-				{ container = ReactRoblox.createLegacyRoot(rootInstance) }
-			)
+			local renderReturnTable =
+				render(React.createElement(MyPortal), { container = ReactRoblox.createLegacyRoot(rootInstance) })
 			-- ROBLOX deviation: not converting getByTestId functions
 			-- const {getByTestId} = render(<MyPortal />)
 			local getByText = renderReturnTable.getByText
@@ -122,7 +120,7 @@ return function()
 			local wrapperChildren = firstChild:GetChildren()
 			jestExpect(#wrapperChildren).toBe(1)
 			jestExpect(wrapperChildren[1].ClassName).toBe("TextLabel")
-			jestExpect(wrapperChildren[1].Text).toBe("Inner")
+			jestExpect((wrapperChildren[1] :: TextLabel).Text).toBe("Inner")
 		end)
 	end)
 end

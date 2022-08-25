@@ -19,9 +19,6 @@ return function()
 	local Error = LuauPolyfill.Error
 	local Map = LuauPolyfill.Map
 	local Object = LuauPolyfill.Object
-	-- ROBLOX TODO: replace when available in LuauPolyfill
-	Object.isFrozen = (table :: any).isfrozen
-
 	local String = LuauPolyfill.String
 	type Array<T> = LuauPolyfill.Array<T>
 	type Map<K, V> = LuauPolyfill.Map<K, V>
@@ -1703,8 +1700,7 @@ return function()
 			local query: TypedDocumentNode<{ currentlyReading: { title: string, isbn: string, author: { name: string } } }, {
 				[string]: any,
 			}> =
-				gql(
-					[[
+				gql([[
 
       query {
         currentlyReading {
@@ -1715,8 +1711,7 @@ return function()
           }
         }
       }
-    ]]
-				)
+    ]])
 
 			local currentlyReading = {
 				__typename = "Book",
@@ -1992,7 +1987,10 @@ return function()
 									_self,
 									existing: Array<Reference>,
 									incoming: Array<Reference>,
-									ref: FieldFunctionOptions<{ offset: number, limit: number }, Record<string, any>>
+									ref: FieldFunctionOptions<
+										{ offset: number, limit: number },
+										Record<string, any>
+									>
 								)
 									local args = ref.args :: { offset: number, limit: number }
 									local merged

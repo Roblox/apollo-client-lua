@@ -138,10 +138,8 @@ return function()
 			local mockedResponses = { ... }
 
 			return Promise.resolve():andThen(function()
-				local link = mockSingleLink(
-					{ request = { query = query }, result = result },
-					table.unpack(mockedResponses)
-				)
+				local link =
+					mockSingleLink({ request = { query = query }, result = result }, table.unpack(mockedResponses))
 
 				local client = ApolloClient.new({
 					link = link,
@@ -843,10 +841,8 @@ return function()
 								optimisticResponse = todoListOptimisticResponse,
 								update = function(_self, proxy: any, mResult: any)
 									updateCount += 1
-									local data: any = proxy:readFragment(
-										{ id = "TodoList5", fragment = todoListFragment },
-										true
-									)
+									local data: any =
+										proxy:readFragment({ id = "TodoList5", fragment = todoListFragment }, true)
 									if updateCount == 1 then
 										jestExpect(data.todos[1].text).toEqual(
 											todoListOptimisticResponse.createTodo.todos[1].text
@@ -880,10 +876,8 @@ return function()
 								optimisticResponse = todoListOptimisticResponse,
 								update = function(_self, proxy: any, mResult: any)
 									local incomingText = mResult.data.createTodo.todos[1].text
-									local data: any = proxy:readFragment(
-										{ id = "TodoList5", fragment = todoListFragment },
-										false
-									)
+									local data: any =
+										proxy:readFragment({ id = "TodoList5", fragment = todoListFragment }, false)
 									jestExpect(data.todos[1].text).toEqual(incomingText)
 								end,
 							})
@@ -1906,9 +1900,7 @@ return function()
 						query = query,
 						data = Object.assign({}, data, {
 							items = Array.concat({}, (function()
-								local ref = if Boolean.toJSBoolean(data) and data ~= nil
-										then  data.items
-										else data
+								local ref = if Boolean.toJSBoolean(data) and data ~= nil then data.items else data
 								return Boolean.toJSBoolean(ref) and ref
 							end)() or {}, { item }),
 						}),
@@ -1985,13 +1977,11 @@ return function()
 				local mutationItem = makeItem("mutation")
 
 				-- ROBLOX deviation: need to type single TArg instead of TArgs
-				local function wrapReject<TArg, TResult>(
-					fn: (self: any, ...TArg) -> ...TResult
-				): (self: any, ...TArg) -> ...TResult
+				local function wrapReject<TArg, TResult>(fn: (self: any, ...TArg) -> ...TResult): (self: any, ...TArg) -> ...TResult
 					return function(self, ...)
 						local arguments = { ... }
 						local ok, result = pcall(function()
-							return fn(self, table.unpack(arguments)), true
+							return fn(self, table.unpack(arguments))
 						end)
 						if not ok then
 							reject(result)

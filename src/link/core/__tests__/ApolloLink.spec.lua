@@ -24,6 +24,7 @@ return function()
 	local observableModule = require(srcWorkspace.utilities.observables.Observable)
 	local Observable = observableModule.Observable
 	type Observable<T> = observableModule.Observable<T>
+	type Subscriber<T> = observableModule.Subscriber<T>
 	local typesModule = require(script.Parent.Parent.types)
 	type FetchResult<TData, C, E> = typesModule.FetchResult<TData, C, E>
 	type Operation = typesModule.Operation
@@ -198,7 +199,7 @@ return function()
 					return Observable.new(function(observer)
 						observer:next({ data = op:getContext().add })
 						observer:error(error_)
-					end)
+					end) :: Observable<any>
 				end)
 				local link = returnOne:concat(mock)
 				-- ROBLOX FIXME: Luau needs to stop insisting that mixed arrays can't exist
@@ -294,9 +295,8 @@ return function()
 				]])
 
 				local link = ApolloLink.new(function(_self, operation)
-					local str = HttpService:JSONEncode(
-						Object.assign({}, operation, { query = print_(operation.query) })
-					)
+					local str =
+						HttpService:JSONEncode(Object.assign({}, operation, { query = print_(operation.query) }))
 					jestExpect(str).toBe(HttpService:JSONEncode({
 						variables = { id = 1 },
 						extensions = { cache = true },
@@ -494,7 +494,7 @@ return function()
 				local chain = ApolloLink.from({
 					ApolloLink.new(function(_self, op: Operation, forward: NextLink)
 						local observable = forward(op)
-						return Observable.new(function(observer)
+						return Observable.new(function(observer: any)
 							observable:subscribe({
 								next = function(self, actualData)
 									jestExpect(data).toEqual(actualData)
@@ -509,7 +509,7 @@ return function()
 									return observer:complete()
 								end,
 							})
-						end)
+						end :: Subscriber<any>) :: Observable<any>
 					end),
 					ApolloLink.new(function(_self)
 						return Observable.of(data)

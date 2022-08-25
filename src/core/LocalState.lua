@@ -12,10 +12,8 @@ local Promise = require(rootWorkspace.Promise)
 
 type Array<T> = LuauPolyfill.Array<T>
 type Object = LuauPolyfill.Object
+type Promise<T> = LuauPolyfill.Promise<T>
 type Record<T, U> = { [T]: U }
-
-local PromiseTypeModule = require(srcWorkspace.luaUtils.Promise)
-type Promise<T> = PromiseTypeModule.Promise<T>
 
 local nullModule = require(srcWorkspace.utilities.globals.null)
 local NULL = nullModule.NULL
@@ -223,15 +221,13 @@ end
 -- Locally resolved field values are merged with the incoming remote data,
 -- and returned. Note that locally resolved fields will overwrite
 -- remote data using the same field name.
-function LocalState:runResolvers(
-	ref: {
-		document: DocumentNode | nil,
-		remoteResult: FetchResult<TData_, Record<string, any>, Record<string, any>>,
-		context: Record<string, any>?,
-		variables: Record<string, any>?,
-		onlyRunForcedResolvers: boolean?,
-	}
-): Promise<FetchResult<TData_, Record<string, any>, Record<string, any>>>
+function LocalState:runResolvers(ref: {
+	document: DocumentNode | nil,
+	remoteResult: FetchResult<TData_, Record<string, any>, Record<string, any>>,
+	context: Record<string, any>?,
+	variables: Record<string, any>?,
+	onlyRunForcedResolvers: boolean?,
+}): Promise<FetchResult<TData_, Record<string, any>, Record<string, any>>>
 	local document, remoteResult, context, variables, onlyRunForcedResolvers =
 		ref.document, ref.remoteResult, ref.context, ref.variables, ref.onlyRunForcedResolvers
 	if ref.onlyRunForcedResolvers == nil then
@@ -280,9 +276,7 @@ function LocalState:serverQuery(document: DocumentNode): DocumentNode | nil
 	return removeClientSetsFromDocument(document)
 end
 
-function LocalState:prepareContext(
-	context: Record<string, any>?
-): Record<string, any> & {
+function LocalState:prepareContext(context: Record<string, any>?): Record<string, any> & {
 	cache: ApolloCache<TCacheShape_>,
 	getCacheKey: (self: any, obj: StoreObject) -> string | nil,
 }

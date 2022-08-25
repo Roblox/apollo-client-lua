@@ -28,19 +28,32 @@ export type Cache_BatchOptions<C> = cacheTypesModule.Cache_BatchOptions<C>
 export type Cache_ReadQueryOptions<TData, TVariables> = cacheTypesModule.Cache_ReadQueryOptions<TData, TVariables>
 export type Cache_ReadFragmentOptions<TData, TVariables> = cacheTypesModule.Cache_ReadFragmentOptions<TData, TVariables>
 export type Cache_WriteQueryOptions<TData, TVariables> = cacheTypesModule.Cache_WriteQueryOptions<TData, TVariables>
-export type Cache_WriteFragmentOptions<TData, TVariables> = cacheTypesModule.Cache_WriteFragmentOptions<TData, TVariables>
+export type Cache_WriteFragmentOptions<TData, TVariables> = cacheTypesModule.Cache_WriteFragmentOptions<
+	TData,
+	TVariables
+>
 export type Cache_Fragment<TData, TVariables> = cacheTypesModule.Cache_Fragment<TData, TVariables>
 
 local dataProxyModule = require(script.core.types.DataProxy)
 export type DataProxy_Query<TVariables, TData> = dataProxyModule.DataProxy_Query<TVariables, TData>
 export type DataProxy_Fragment<TVariables, TData> = dataProxyModule.DataProxy_Fragment<TVariables, TData>
-export type DataProxy_ReadQueryOptions<TData, TVariables> = dataProxyModule.DataProxy_ReadQueryOptions<TData, TVariables>
-export type DataProxy_ReadFragmentOptions<TData, TVariables> =
-	dataProxyModule.DataProxy_ReadFragmentOptions<TData, TVariables>
+export type DataProxy_ReadQueryOptions<TData, TVariables> = dataProxyModule.DataProxy_ReadQueryOptions<
+	TData,
+	TVariables
+>
+export type DataProxy_ReadFragmentOptions<TData, TVariables> = dataProxyModule.DataProxy_ReadFragmentOptions<
+	TData,
+	TVariables
+>
 export type DataProxy_WriteOptions<TData> = dataProxyModule.DataProxy_WriteOptions<TData>
-export type DataProxy_WriteQueryOptions<TData, TVariables> = dataProxyModule.DataProxy_WriteQueryOptions<TData, TVariables>
-export type DataProxy_WriteFragmentOptions<TData, TVariables> =
-	dataProxyModule.DataProxy_WriteFragmentOptions<TData, TVariables>
+export type DataProxy_WriteQueryOptions<TData, TVariables> = dataProxyModule.DataProxy_WriteQueryOptions<
+	TData,
+	TVariables
+>
+export type DataProxy_WriteFragmentOptions<TData, TVariables> = dataProxyModule.DataProxy_WriteFragmentOptions<
+	TData,
+	TVariables
+>
 export type DataProxy_DiffResult<T> = dataProxyModule.DataProxy_DiffResult<T>
 export type DataProxy = dataProxyModule.DataProxy
 
@@ -74,7 +87,11 @@ local policiesModule = require(script.inmemory.policies)
 exports.defaultDataIdFromObject = policiesModule.defaultDataIdFromObject
 export type TypePolicies = policiesModule.TypePolicies
 export type TypePolicy = policiesModule.TypePolicy
-export type FieldPolicy<TExisting, TIncoming, TReadResult> = policiesModule.FieldPolicy<TExisting, TIncoming, TReadResult>
+export type FieldPolicy<TExisting, TIncoming, TReadResult> = policiesModule.FieldPolicy<
+	TExisting,
+	TIncoming,
+	TReadResult
+>
 export type FieldReadFunction<T, V> = policiesModule.FieldReadFunction<T, V>
 export type FieldMergeFunction<T, V> = policiesModule.FieldMergeFunction<T, V>
 export type FieldFunctionOptions<TArgs, TVars> = policiesModule.FieldFunctionOptions<TArgs, TVars>

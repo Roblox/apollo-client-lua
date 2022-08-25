@@ -22,10 +22,18 @@ return function()
 	local jest = JestGlobals.jest
 
 	local typesModule = require(script.Parent.Parent.Parent.types.types)
-	type MutationTupleFirst<TData, TVariables, TContext, TCache> =
-		typesModule.MutationTupleFirst<TData, TVariables, TContext, TCache>
-	type MutationTupleSecond<TData, TVariables, TContext, TCache> =
-		typesModule.MutationTupleSecond<TData, TVariables, TContext, TCache>
+	type MutationTupleFirst<TData, TVariables, TContext, TCache> = typesModule.MutationTupleFirst<
+		TData,
+		TVariables,
+		TContext,
+		TCache
+	>
+	type MutationTupleSecond<TData, TVariables, TContext, TCache> = typesModule.MutationTupleSecond<
+		TData,
+		TVariables,
+		TContext,
+		TCache
+	>
 
 	local React = require(rootWorkspace.React)
 	local useEffect = React.useEffect
@@ -599,29 +607,30 @@ return function()
 							jestExpect(result.data).toBeUndefined()
 
 							mutate({
-								update = function(_self, cache, ref)
-									local __typename, time = ref.data.doSomething.__typename, ref.data.doSomething.time
-									jestExpect(__typename).toBe("MutationPayload")
-									-- ROBLOX deviation START: not Date object in Lua
-									jestExpect(typeof(time)).toBe("DateTime")
-									jestExpect(time.UnixTimestampMillis).toBe(startTime)
-									-- ROBLOX deviation END
-									jestExpect(timeReadCount).toBe(1)
-									jestExpect(timeMergeCount).toBe(1)
-									-- The contents of the ROOT_MUTATION object exist only briefly,
-									-- for the duration of the mutation update, and are removed
-									-- after the mutation write is finished.
-									jestExpect(cache:extract()).toEqual({
-										ROOT_MUTATION = {
-											__typename = "Mutation",
-											doSomething = {
-												__typename = "MutationPayload",
-												time = startTime,
+									update = function(_self, cache, ref)
+										local __typename, time =
+											ref.data.doSomething.__typename, ref.data.doSomething.time
+										jestExpect(__typename).toBe("MutationPayload")
+										-- ROBLOX deviation START: not Date object in Lua
+										jestExpect(typeof(time)).toBe("DateTime")
+										jestExpect(time.UnixTimestampMillis).toBe(startTime)
+										-- ROBLOX deviation END
+										jestExpect(timeReadCount).toBe(1)
+										jestExpect(timeMergeCount).toBe(1)
+										-- The contents of the ROOT_MUTATION object exist only briefly,
+										-- for the duration of the mutation update, and are removed
+										-- after the mutation write is finished.
+										jestExpect(cache:extract()).toEqual({
+											ROOT_MUTATION = {
+												__typename = "Mutation",
+												doSomething = {
+													__typename = "MutationPayload",
+													time = startTime,
+												},
 											},
-										},
-									})
-								end,
-							})
+										})
+									end,
+								})
 								:andThen(function(ref: any)
 									local __typename, time = ref.data.doSomething.__typename, ref.data.doSomething.time
 									jestExpect(__typename).toBe("MutationPayload")
@@ -722,26 +731,27 @@ return function()
 							jestExpect(result.called).toBe(false)
 							jestExpect(result.data).toBeUndefined()
 							mutate({
-								update = function(_self, cache, ref)
-									local __typename, time = ref.data.doSomething.__typename, ref.data.doSomething.time
-									jestExpect(__typename).toBe("MutationPayload")
-									-- ROBLOX deviation START: not Date object in Lua
-									jestExpect(typeof(time)).toBe("DateTime")
-									jestExpect(time.UnixTimestampMillis).toBe(startTime)
-									-- ROBLOX deviation END
-									jestExpect(timeReadCount).toBe(1)
-									jestExpect(timeMergeCount).toBe(1)
-									jestExpect(cache:extract()).toEqual({
-										ROOT_MUTATION = {
-											__typename = "Mutation",
-											doSomething = {
-												__typename = "MutationPayload",
-												time = startTime,
+									update = function(_self, cache, ref)
+										local __typename, time =
+											ref.data.doSomething.__typename, ref.data.doSomething.time
+										jestExpect(__typename).toBe("MutationPayload")
+										-- ROBLOX deviation START: not Date object in Lua
+										jestExpect(typeof(time)).toBe("DateTime")
+										jestExpect(time.UnixTimestampMillis).toBe(startTime)
+										-- ROBLOX deviation END
+										jestExpect(timeReadCount).toBe(1)
+										jestExpect(timeMergeCount).toBe(1)
+										jestExpect(cache:extract()).toEqual({
+											ROOT_MUTATION = {
+												__typename = "Mutation",
+												doSomething = {
+													__typename = "MutationPayload",
+													time = startTime,
+												},
 											},
-										},
-									})
-								end,
-							})
+										})
+									end,
+								})
 								:andThen(function(ref: any)
 									local __typename, time = ref.data.doSomething.__typename, ref.data.doSomething.time
 									jestExpect(__typename).toBe("MutationPayload")
@@ -1038,7 +1048,8 @@ return function()
 		end)
 
 		describe("refetching queries", function()
-			itAsync(it)("can pass onQueryUpdated to useMutation", function(resolve, reject)
+			-- ROBLOX FIXME: flaky test
+			itAsync(itFIXME)("can pass onQueryUpdated to useMutation", function(resolve, reject)
 				type TData = {
 					todoCount: number,
 				}
@@ -1134,7 +1145,11 @@ return function()
 						act(function()
 							createTodo({
 								variables = variables,
-								onQueryUpdated = function(_self, obsQuery: ObservableQuery<any, OperationVariables>, diff: Cache_DiffResult<any>)
+								onQueryUpdated = function(
+									_self,
+									obsQuery: ObservableQuery<any, OperationVariables>,
+									diff: Cache_DiffResult<any>
+								)
 									return obsQuery:reobserve():andThen(function(result)
 										finishedReobserving = true
 										resolveOnUpdate({
@@ -1311,8 +1326,8 @@ return function()
 				render(React.createElement(ApolloProvider, { client = client }, React.createElement(QueryComponent)))
 
 				return wait_(function()
-					return jestExpect(renderCount).toBe(5)
-				end)
+						return jestExpect(renderCount).toBe(5)
+					end)
 					:andThen(function()
 						jestExpect(client:readQuery({ query = GET_TODOS_QUERY })).toEqual(mocks[3].result.data)
 					end)
@@ -1383,8 +1398,8 @@ return function()
 				render(React.createElement(ApolloProvider, { client = client }, React.createElement(QueryComponent)))
 
 				return wait_(function()
-					return jestExpect(renderCount).toBe(5)
-				end)
+						return jestExpect(renderCount).toBe(5)
+					end)
 					:andThen(function()
 						jestExpect(client:readQuery({ query = GET_TODOS_QUERY })).toEqual(mocks[3].result.data)
 					end)
@@ -1476,15 +1491,15 @@ return function()
 				)
 
 				return wait_(function()
-					jestExpect(renderCount).toBe(3)
-					--[[
+						jestExpect(renderCount).toBe(3)
+						--[[
 						ROBLOX deviation:
 						ROBLOX FIXME
 						due to the the order of delayed task not following the same sequence as in JS
 						waiting for unmount to be called
 					]]
-					jestExpect(unmount).toHaveBeenCalled()
-				end)
+						jestExpect(unmount).toHaveBeenCalled()
+					end)
 					:andThen(function()
 						jestExpect(client:readQuery({ query = GET_TODOS_QUERY })).toEqual(mocks[3].result.data)
 					end)

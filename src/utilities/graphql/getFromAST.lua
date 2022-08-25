@@ -121,13 +121,13 @@ local function getMainDefinition(queryDoc: DocumentNode): OperationDefinitionNod
 			local operation = (definition :: OperationDefinitionNode).operation
 
 			if operation == "query" or operation == "mutation" or operation == "subscription" then
-				return (definition :: OperationDefinitionNode)
+				return definition :: OperationDefinitionNode
 			end
 		end
 		if definition.kind == "FragmentDefinition" and not Boolean.toJSBoolean(fragmentDefinition) then
 			-- we do this because we want to allow multiple fragment definitions
 			-- to precede an operation definition.
-			fragmentDefinition = (definition :: FragmentDefinitionNode)
+			fragmentDefinition = definition :: FragmentDefinitionNode
 		end
 	end
 

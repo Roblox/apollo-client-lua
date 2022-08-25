@@ -385,7 +385,7 @@ end
 function QueryInfo:notify()
 	cancelNotifyTimeout(self)
 	if ((self :: any) :: QueryInfoPrivate & QueryInfo):shouldNotify() then
-		for _, listener in (self.listeners :: any):ipairs() do
+		for _, listener in self.listeners :: any do
 			listener(self)
 		end
 	end
@@ -416,7 +416,7 @@ function QueryInfo:stop()
 		-- QueryInfo.prototype.
 		self.cancel = QueryInfo.cancel
 
-		for _, sub in self.subscriptions:ipairs() do
+		for _, sub in self.subscriptions do
 			sub:unsubscribe()
 		end
 

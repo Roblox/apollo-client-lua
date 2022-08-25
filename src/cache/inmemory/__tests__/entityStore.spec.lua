@@ -117,8 +117,7 @@ return function()
 					author: { __typename: string, name: string },
 				},
 			}, Object> =
-				gql(
-					[[
+				gql([[
 
       query {
         book {
@@ -128,8 +127,7 @@ return function()
           }
         }
       }
-    ]]
-				)
+    ]])
 
 			return {
 				cache = cache,
@@ -2103,7 +2101,12 @@ return function()
 							end,
 
 							books = {
-								merge = function(_self, existing: Array<Reference>?, incoming: Array<any>, ref_: ModifierDetails)
+								merge = function(
+									_self,
+									existing: Array<Reference>?,
+									incoming: Array<any>,
+									ref_: ModifierDetails
+								)
 									if existing == nil then
 										existing = {}
 									end
@@ -2385,7 +2388,7 @@ return function()
 								local rootQueryRef = ref:toReference("ROOT_QUERY")
 								jestExpect(rootQueryRef).toEqual(makeReference("ROOT_QUERY"))
 								local favoritedBooks = ref:readField("favoritedBooks", rootQueryRef)
-								return Array.some((favoritedBooks :: any), function(bookRef)
+								return Array.some(favoritedBooks :: any, function(bookRef)
 									return ref:readField("isbn") == ref:readField("isbn", bookRef)
 								end)
 							end,

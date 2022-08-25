@@ -24,7 +24,7 @@ function InvariantError.new(message_: (string | number)?): InvariantError
 			tostring(message)
 		)
 	else
-		error_ = (message :: string)
+		error_ = message :: string
 	end
 
 	local self: any = Error.new(error_)

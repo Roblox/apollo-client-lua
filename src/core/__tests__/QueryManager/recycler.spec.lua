@@ -25,9 +25,8 @@ return function()
 	local gql = require(rootWorkspace.GraphQLTag).default
 	local InMemoryCache = require(script.Parent.Parent.Parent.Parent.cache.inmemory.inMemoryCache).InMemoryCache
 	local stripSymbols = require(script.Parent.Parent.Parent.Parent.utilities.testing.stripSymbols).stripSymbols
-	local MockSubscriptionLink = require(
-		script.Parent.Parent.Parent.Parent.utilities.testing.mocking.mockSubscriptionLink
-	).MockSubscriptionLink
+	local MockSubscriptionLink =
+		require(script.Parent.Parent.Parent.Parent.utilities.testing.mocking.mockSubscriptionLink).MockSubscriptionLink
 
 	-- core
 	local QueryManagerModule = require(script.Parent.Parent.Parent.QueryManager)
@@ -82,11 +81,11 @@ return function()
 
 				-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
 				local queryManager = (
-						QueryManager.new({
-							cache = InMemoryCache.new({ addTypename = false }),
-							link = link,
-						}) :: any
-					) :: QueryManager<NormalizedCacheObject>
+					QueryManager.new({
+						cache = InMemoryCache.new({ addTypename = false }),
+						link = link,
+					}) :: any
+				) :: QueryManager<NormalizedCacheObject>
 
 				-- step 1, get some data
 				local observable = queryManager:watchQuery({
@@ -150,7 +149,9 @@ return function()
 					-- ROBLOX deviation: using multiple of TICK for timeout as it looks like the minimum value to ensure the correct order of execution
 					10 * TICK
 				)
-			end):timeout(3):expect()
+			end)
+				:timeout(3)
+				:expect()
 		end)
 	end)
 end

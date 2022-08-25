@@ -59,13 +59,13 @@ local tTable = {
 }
 
 local function getMean(data: Array<number>)
-	return Array.reduce(data, function(sum, a)
+	return Array.reduce(data, function(sum: number, a)
 		return sum + a
 	end, 0) / #data
 end
 
 local function getVariance(data: Array<number>, mean: number)
-	return Array.reduce(data, function(sum, x)
+	return Array.reduce(data, function(sum: number, x)
 		return sum + math.pow(x - mean, 2)
 	end, 0) / (#data - 1)
 end

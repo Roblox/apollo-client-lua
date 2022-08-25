@@ -37,19 +37,19 @@ return function()
 			}
 
 			local fakeReadOptions = (
-					{
-						canRead = function(_self)
-							return true
-						end,
-						readField = function(_self, key: string, obj: StoreObject)
-							if Boolean.toJSBoolean(obj) then
-								return obj[key]
-							else
-								return obj
-							end
-						end,
-					} :: any
-				) :: FieldFunctionOptions<any, any>
+				{
+					canRead = function(_self)
+						return true
+					end,
+					readField = function(_self, key: string, obj: StoreObject)
+						if Boolean.toJSBoolean(obj) then
+							return obj[key]
+						else
+							return obj
+						end
+					end,
+				} :: any
+			) :: FieldFunctionOptions<any, any>
 
 			it("should prefer existing.pageInfo.startCursor", function()
 				local resultWithStartCursor = (policy :: any):read({
@@ -72,7 +72,9 @@ return function()
 			it("should prefer existing.pageInfo.endCursor", function()
 				local resultWithEndCursor = (policy :: any):read({
 					edges = fakeEdges,
-					pageInfo = ({ endCursor = "preferredEndCursor", hasPreviousPage = false, hasNextPage = true } :: any) :: TRelayPageInfo,
+					pageInfo = (
+							{ endCursor = "preferredEndCursor", hasPreviousPage = false, hasNextPage = true } :: any
+						) :: TRelayPageInfo,
 				}, fakeReadOptions)
 
 				jestExpect(resultWithEndCursor and resultWithEndCursor.pageInfo).toEqual({

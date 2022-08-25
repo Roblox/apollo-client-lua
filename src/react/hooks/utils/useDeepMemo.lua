@@ -3,8 +3,6 @@ local exports = {}
 
 local srcWorkspace = script.Parent.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.parent
-local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
-local Boolean = LuauPolyfill.Boolean
 
 local React = require(rootWorkspace.React)
 local useRef = React.useRef
@@ -21,10 +19,11 @@ local equal = require(srcWorkspace.jsutils.equal)
 ]]
 local function useDeepMemo(memoFn: (() -> any), key: any): any
 	local ref = useRef(nil)
-	if not Boolean.toJSBoolean(ref.current) or not equal(key, ref.current.key) then
-		ref.current = { key = key, value = memoFn() }
+	if not ref.current or not equal(key, ref.current.key) then
+		ref.current = { key = key, value = memoFn() } :: any
 	end
-	return ref.current.value
+	-- ROBLOX FIXME Luau: ref current is not nil
+	return (ref.current :: any).value
 end
 exports.useDeepMemo = useDeepMemo
 return exports

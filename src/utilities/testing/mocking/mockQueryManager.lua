@@ -16,11 +16,11 @@ type NormalizedCacheObject = inmemoryTypesModule.NormalizedCacheObject
 exports.default = function(reject: (reason: any) -> ...any, ...: MockedResponse_)
 	-- ROBLOX FIXME: explicit cast to QueryManager<NormalizedCacheObject> when it should be inferred
 	return (
-			QueryManager.new({
-				link = mockSingleLink(...),
-				cache = InMemoryCache.new({ addTypename = false }),
-			}) :: any
-		) :: QueryManager<NormalizedCacheObject>
+		QueryManager.new({
+			link = mockSingleLink(...),
+			cache = InMemoryCache.new({ addTypename = false }),
+		}) :: any
+	) :: QueryManager<NormalizedCacheObject>
 end
 
 return exports
