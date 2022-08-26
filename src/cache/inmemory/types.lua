@@ -18,10 +18,10 @@ type FieldNode = GraphQL.FieldNode
 -- local Transaction = require(script.Parent.Parent.core.cache).Transaction
 type Transaction<T> = (c: { [string]: any }) -> ()
 
-local utilitiesModule = require(srcWorkspace.utilities)
-export type StoreObject = utilitiesModule.StoreObject
-export type StoreValue = utilitiesModule.StoreValue
-export type Reference = utilitiesModule.Reference
+local utilitiesGraphqlTypesModule = require(srcWorkspace.utilities.graphql.types)
+export type StoreObject = utilitiesGraphqlTypesModule.StoreObject
+export type StoreValue = utilitiesGraphqlTypesModule.StoreValue
+export type Reference = utilitiesGraphqlTypesModule.Reference
 
 -- local FieldValueGetter = require(script.Parent.entityStore).FieldValueGetter
 -- ROBLOX deviation: bringing the type inline to avoid circular dependency

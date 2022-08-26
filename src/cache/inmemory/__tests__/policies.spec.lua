@@ -15,6 +15,7 @@ return function()
 	local Error = LuauPolyfill.Error
 	local setTimeout = LuauPolyfill.setTimeout
 	type Array<T> = LuauPolyfill.Array<T>
+	type Set<T> = LuauPolyfill.Set<T>
 	type Record<T, U> = { [T]: U }
 
 	type ReturnType<T> = any
@@ -909,7 +910,7 @@ return function()
 				-- ROBLOX deviation: predefine function
 				local compute
 
-				local storageSet = Set.new()
+				local storageSet = Set.new() :: Set<Record<string, any>>
 
 				local cache = InMemoryCache.new({
 					typePolicies = {
@@ -993,9 +994,9 @@ return function()
 					},
 				})
 
-				for _, storage in storageSet do
+				storageSet:forEach(function(storage)
 					storage.result = nil
-				end
+				end)
 
 				local result3 = cache:readQuery({
 					query = gql([[

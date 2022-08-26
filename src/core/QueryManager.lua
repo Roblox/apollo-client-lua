@@ -15,7 +15,6 @@ local Set = LuauPolyfill.Set
 local WeakMap = LuauPolyfill.WeakMap
 
 local Promise = require(rootWorkspace.Promise)
-local mapForEach = require(srcWorkspace.luaUtils.mapForEach)
 local HttpService = game:GetService("HttpService")
 
 type Array<T> = LuauPolyfill.Array<T>
@@ -383,8 +382,7 @@ end
  * to dispose of this QueryManager instance.
 ]]
 function QueryManager:stop(): ()
-	-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-	mapForEach(self.queries, function(_info, queryId)
+	self.queries:forEach(function(_info, queryId)
 		self:stopQueryNoBroadcast(queryId)
 	end)
 
@@ -392,8 +390,7 @@ function QueryManager:stop(): ()
 end
 
 function QueryManager:cancelPendingFetches(error_: Error): ()
-	-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-	mapForEach(self.fetchCancelFns, function(cancel, _)
+	self.fetchCancelFns:forEach(function(cancel)
 		return cancel(error_)
 	end)
 	self.fetchCancelFns:clear()
@@ -594,8 +591,7 @@ function QueryManager:markMutationResult(
 
 		local updateQueries = mutation.updateQueries
 		if updateQueries ~= nil then
-			-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-			mapForEach(self.queries, function(ref, queryId)
+			self.queries:forEach(function(ref, queryId)
 				local observableQuery = ref.observableQuery
 				local queryName
 				if Boolean.toJSBoolean(observableQuery) then
@@ -661,9 +657,8 @@ function QueryManager:markMutationResult(
 	then
 		local results: Array<any> = {}
 
-		-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-		mapForEach(
-			self:refetchQueries({
+		self
+			:refetchQueries({
 				updateCache = function(_self, cache: TCache_)
 					if not skipCache then
 						Array.forEach(cacheWrites, function(write)
@@ -734,11 +729,10 @@ function QueryManager:markMutationResult(
 				-- If no onQueryUpdated function was provided for this mutation, pass
 				-- null instead of undefined to disable the default refetching behavior.
 				onQueryUpdated = Boolean.toJSBoolean(mutation.onQueryUpdated) and mutation.onQueryUpdated or nil,
-			}),
-			function(result)
+			})
+			:forEach(function(result)
 				return table.insert(results, result)
-			end
-		)
+			end)
 
 		if mutation.awaitRefetchQueries or Boolean.toJSBoolean(mutation.onQueryUpdated) then
 			-- Returning a promise here makes the mutation await that promise, so we
@@ -795,8 +789,7 @@ end
 
 function QueryManager:getQueryStore(): Record<string, QueryStoreValue>
 	local store: Record<string, QueryStoreValue> = {}
-	-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-	mapForEach(self.queries, function(info, queryId)
+	self.queries:forEach(function(info, queryId)
 		store[queryId] = {
 			variables = info.variables,
 			networkStatus = info.networkStatus,
@@ -979,8 +972,7 @@ function QueryManager:clearStore(): Promise<nil>
 	-- so far and not yet resolved (in the case of queries).
 	self:cancelPendingFetches(InvariantError.new("Store reset while query was in flight (not completed in link chain)"))
 
-	-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-	mapForEach(self.queries, function(queryInfo, _)
+	self.queries:forEach(function(queryInfo, _)
 		if Boolean.toJSBoolean(queryInfo.observableQuery) then
 			-- Set loading to true so listeners don't trigger unless they want
 			-- results with partial data.
@@ -1036,8 +1028,7 @@ function QueryManager:getObservableQueries(
 		end)
 	end
 
-	-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-	mapForEach(self.queries, function(ref, queryId)
+	self.queries:forEach(function(ref, queryId)
 		local oq, document = ref.observableQuery, ref.document
 		if Boolean.toJSBoolean(oq) then
 			if include == "all" then
@@ -1089,8 +1080,7 @@ function QueryManager:getObservableQueries(
 	end
 
 	if _G.__DEV__ and Boolean.toJSBoolean(queryNamesAndDocs.size) then
-		-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-		mapForEach(queryNamesAndDocs, function(included, nameOrDoc)
+		queryNamesAndDocs:forEach(function(included, nameOrDoc)
 			if not included then
 				invariant.warn(
 					("Unknown query %s%s requested in refetchQueries options.include array"):format(
@@ -1112,18 +1102,16 @@ function QueryManager:reFetchObservableQueries(includeStandby: boolean?): Promis
 
 	local observableQueryPromises: Array<Promise<ApolloQueryResult<any>>> = {}
 
-	-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-	mapForEach(
-		self:getObservableQueries(Boolean.toJSBoolean(includeStandby) and "all" or "active"),
-		function(observableQuery, queryId)
+	self
+		:getObservableQueries(Boolean.toJSBoolean(includeStandby) and "all" or "active")
+		:forEach(function(observableQuery, queryId)
 			local fetchPolicy = observableQuery.options.fetchPolicy
 			observableQuery:resetLastResults()
 			if Boolean.toJSBoolean(includeStandby) or (fetchPolicy ~= "standby" and fetchPolicy ~= "cache-only") then
 				table.insert(observableQueryPromises, observableQuery:refetch())
 			end
 			self:getQuery(queryId):setDiff(nil)
-		end
-	)
+		end)
 
 	self:broadcastQueries()
 
@@ -1222,8 +1210,8 @@ function QueryManager:broadcastQueries(): ()
 	if Boolean.toJSBoolean(self.onBroadcast) then
 		self:onBroadcast()
 	end
-	-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-	mapForEach(self.queries, function(info, _)
+
+	self.queries:forEach(function(info, _)
 		return info:notify()
 	end)
 end
@@ -1497,8 +1485,7 @@ function QueryManager:refetchQueries<TResult>(
 	}>
 
 	if Boolean.toJSBoolean(include) then
-		-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-		mapForEach(self:getObservableQueries(include), function(oq, queryId)
+		self:getObservableQueries(include):forEach(function(oq, queryId)
 			includedQueriesById:set(queryId, {
 				oq = oq,
 				lastDiff = self:getQuery(queryId):getDiff(),
@@ -1601,8 +1588,7 @@ function QueryManager:refetchQueries<TResult>(
 	end
 
 	if Boolean.toJSBoolean(includedQueriesById.size) then
-		-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-		mapForEach(includedQueriesById, function(
+		includedQueriesById:forEach(function(
 			ref__: {
 				oq: ObservableQuery<any, OperationVariables>,
 				lastDiff: Cache_DiffResult<any>?,

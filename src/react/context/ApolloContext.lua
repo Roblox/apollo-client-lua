@@ -3,6 +3,8 @@
 local rootWorkspace = script.Parent.Parent.Parent.Parent
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local WeakMap = LuauPolyfill.WeakMap
+type WeakMap<T, V> = LuauPolyfill.WeakMap<T, V>
+
 local React = require(rootWorkspace.React)
 local coreModule = require(script.Parent.Parent.Parent.core)
 type ApolloClient<TCacheShape> = coreModule.ApolloClient<TCacheShape>
@@ -14,7 +16,7 @@ export type ApolloContextValue = {
 	renderPromises: Record<any, any>?,
 }
 
-local cache = WeakMap.new()
+local cache: WeakMap<typeof(React.createContext), React.Context<ApolloContextValue>> = WeakMap.new()
 
 -- To make sure Apollo Client doesn't create more than one React context
 -- (which can lead to problems like having an Apollo Client instance added

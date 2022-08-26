@@ -17,8 +17,12 @@ type OperationVariables = coreTypesModule.OperationVariables
 
 local exports = {}
 
-local function useLazyQuery(query: DocumentNode | TypedDocumentNode<any, any>, options: LazyQueryHookOptions<any, any>)
-	return useBaseQuery(query, options, true) :: QueryTuple<any, any>
+local function useLazyQuery<TData, TVariables>(
+	query: DocumentNode | TypedDocumentNode<TData, TVariables>,
+	options: LazyQueryHookOptions<TData, TVariables>?
+)
+	-- ROBLOX FIXME Luau: this typecheck doesn't work, very very long analyze error
+	return useBaseQuery(query, options, true) -- :: QueryTuple<TData, TVariables>
 end
 
 exports.useLazyQuery = useLazyQuery

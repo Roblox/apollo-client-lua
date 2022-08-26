@@ -12,7 +12,7 @@ type ReturnType<T> = any
 type Object = { [string]: any }
 
 -- ROBLOX TODO: Partial type not available
-type Partial<T> = any
+type Partial<T> = Object
 
 local equal = require(srcWorkspace.jsutils.equal)
 
@@ -43,7 +43,7 @@ local DocumentType = require(script.Parent.Parent.parser).DocumentType
 local typesModule = require(script.Parent.Parent.types.types)
 type QueryResult<TData, TVariables> = typesModule.QueryResult<TData, TVariables>
 type QueryDataOptions<TData, TVariables> = typesModule.QueryDataOptions<TData, TVariables>
-type QueryTupleAsReturnType<TData, TVariables> = typesModule.QueryTupleAsReturnType<TData, TVariables>
+type QueryTuple<TData, TVariables> = typesModule.QueryTuple<TData, TVariables>
 type QueryLazyOptions<TVariables> = typesModule.QueryLazyOptions<TVariables>
 type ObservableQueryFields<TData, TVariables> = typesModule.ObservableQueryFields<TData, TVariables>
 local operationDataModule = require(script.Parent.OperationData)
@@ -94,9 +94,9 @@ type QueryDataPrivate<TData, TVariables> = {
 export type QueryData<TData, TVariables> = OperationData<QueryDataOptions<TData, TVariables>> & {
 	onNewData: ((self: QueryData<TData, TVariables>) -> ()),
 	execute: ((self: QueryData<TData, TVariables>) -> QueryResult<TData, TVariables>),
-	executeLazy: ((self: QueryData<TData, TVariables>) -> QueryTupleAsReturnType<TData, TVariables>),
+	executeLazy: ((self: QueryData<TData, TVariables>) -> QueryTuple<TData, TVariables>),
 	fetchData: ((self: QueryData<TData, TVariables>) -> Promise<nil> | boolean),
-	afterExecute: ((self: QueryData<TData, TVariables>, ref: { lazy: boolean? }) -> any),
+	afterExecute: ((self: QueryData<TData, TVariables>, ref: { lazy: boolean? }?) -> () -> ()),
 	cleanup: ((self: QueryData<TData, TVariables>) -> ()),
 	getOptions: ((self: QueryData<TData, TVariables>) -> QueryDataOptions<TData, TVariables>),
 	ssrInitiated: ((self: QueryData<TData, TVariables>) -> any),
@@ -202,6 +202,7 @@ function QueryData:execute()
 	return self:getExecuteSsrResult() or self:getExecuteResult()
 end
 
+-- ROBLOX ???: why does this need to be typed as 'any'? the table.pack appears to be a big deviation
 function QueryData:executeLazy(): any
 	if not Boolean.toJSBoolean(self.runLazy) then
 		return table.pack(
@@ -224,8 +225,9 @@ function QueryData:fetchData()
 	end)
 end
 
-function QueryData:afterExecute(ref: { lazy: boolean? })
-	local lazy = ref.lazy or false
+function QueryData:afterExecute(ref_: { lazy: boolean? }?)
+	local ref = (if ref_ then ref_ else {}) :: { lazy: boolean? }
+	local lazy = (if ref.lazy then ref.lazy else false) :: boolean
 	self.isMounted = true
 	local options = self:getOptions()
 	local ssrDisabled = options.ssr == false
@@ -438,7 +440,6 @@ function QueryData:resubscribeToQuery()
 end
 
 function QueryData:getExecuteResult()
-	-- ROBLOX FIXME Luau: this cast shouldn't be necessary
 	local result = self:observableQueryFields() :: Object
 	local options = self:getOptions()
 
@@ -459,7 +460,6 @@ function QueryData:getExecuteResult()
 			loading = false,
 			networkStatus = NetworkStatus.ready,
 			called = true,
-			-- ROBLOX FIXME Luau: this cast shouldn't be necessary
 		}) :: Object
 	elseif Boolean.toJSBoolean(self.currentObservable) then
 		-- // Fetch the current result (if any) from the store.
@@ -481,7 +481,6 @@ function QueryData:getExecuteResult()
 			{},
 			result,
 			{ data = data, loading = loading, networkStatus = networkStatus, ["error"] = error_, called = true }
-			-- ROBLOX FIXME Luau: this cast shouldn't be necessary
 		) :: Object
 		if Boolean.toJSBoolean(loading) then
 			-- // Fall through without modifying result...

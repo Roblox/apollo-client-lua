@@ -384,10 +384,11 @@ end
 
 function QueryInfo:notify()
 	cancelNotifyTimeout(self)
+
 	if ((self :: any) :: QueryInfoPrivate & QueryInfo):shouldNotify() then
-		for _, listener in self.listeners :: any do
-			listener(self)
-		end
+		self.listeners:forEach(function(listener)
+			return listener(self)
+		end)
 	end
 	((self :: any) :: QueryInfoPrivate).dirty = false
 end
@@ -416,9 +417,9 @@ function QueryInfo:stop()
 		-- QueryInfo.prototype.
 		self.cancel = QueryInfo.cancel
 
-		for _, sub in self.subscriptions do
-			sub:unsubscribe()
-		end
+		self.subscriptions:forEach(function(sub)
+			return sub:unsubscribe()
+		end)
 
 		local oq = self.observableQuery
 

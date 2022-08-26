@@ -1,6 +1,7 @@
 -- ROBLOX upstream: https://github.com/testing-library/react-testing-library/blob/v12.1.2/src/index.js
 
-local cleanup = require(script.pure).cleanup
+local pureModule = require(script.pure)
+local cleanup = pureModule.cleanup
 
 -- ROBLOX deviation: passing afterEach/teardown as a function parameter
 -- if we're running in a test runner that supports afterEach
@@ -24,11 +25,11 @@ local cleanup = require(script.pure).cleanup
 --     })
 --   }
 
-return function(afterEach)
+return function(afterEach): typeof(pureModule)
 	if not _G.RTL_SKIP_AUTO_CLEANUP and typeof(afterEach) == "function" then
 		afterEach(function()
 			cleanup()
 		end)
 	end
-	return require(script.pure)
+	return pureModule
 end

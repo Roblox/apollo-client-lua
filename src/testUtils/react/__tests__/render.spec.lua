@@ -114,7 +114,7 @@ return function()
 				)
 				getFirstChild = ref.getFirstChild
 			end
-			local firstChild = getFirstChild()
+			local firstChild = getFirstChild() :: Instance
 			-- ROBLOX deviation: checking the structure manually instead of using snapshot comparison
 			jestExpect(firstChild.ClassName).toBe("Folder")
 			local wrapperChildren = firstChild:GetChildren()

@@ -54,7 +54,6 @@ return function()
 		evict: (self: TestCache) -> boolean,
 		extract: (self: TestCache, optimistic: boolean) -> any,
 		performTransaction: (self: TestCache, transaction: <TSerialized>(c: ApolloCache<TSerialized>) -> ()) -> (),
-		-- ROBLOX TODO: add generic default type
 		read: <T, TVariables>(self: TestCache, query: Cache_ReadOptions<TVariables, any>) -> T | nil,
 		recordOptimisticTransaction: (
 			self: TestCache,
@@ -65,7 +64,6 @@ return function()
 		reset: (self: TestCache) -> Promise<nil>,
 		restore: (self: TestCache, serializedState: any) -> ApolloCache<any>,
 		watch: (self: TestCache, watch: Cache_WatchOptions<Record<string, any>>) -> (() -> ()),
-		-- ROBLOX TODO: add generic default types
 		write: <TResult, TVariables>(self: TestCache, _: Cache_WriteOptions<TResult, TVariables>) -> Reference | nil,
 	}
 
@@ -145,6 +143,7 @@ return function()
 
 			it("defaults optimistic to false", function()
 				local test = TestCache.new()
+				-- ROBLOX FIXME Luau: without the :: FIX_ANALYZE below, I get PAGES of " Not all intersection parts are compatible."
 				test.read = function(_self: TestCache, ref)
 					local optimistic = ref.optimistic
 					return optimistic :: any
@@ -176,6 +175,7 @@ return function()
 
 			it("defaults optimistic to false", function()
 				local test = TestCache.new()
+				-- ROBLOX FIXME Luau: without the :: FIX_ANALYZE below, I get PAGES of " Not all intersection parts are compatible."
 				test.read = function(_self: TestCache, ref)
 					local optimistic = ref.optimistic
 					return optimistic :: any

@@ -17,13 +17,13 @@ local equal = require(srcWorkspace.jsutils.equal)
  * optimization (see https://reactjs.org/docs/hooks-reference.html#usememo).
  */
 ]]
-local function useDeepMemo(memoFn: (() -> any), key: any): any
-	local ref = useRef(nil)
+local function useDeepMemo<TKey, TValue>(memoFn: (() -> TValue), key: TKey): TValue
+	local ref = useRef((nil :: any) :: { key: TKey, value: TValue })
 	if not ref.current or not equal(key, ref.current.key) then
-		ref.current = { key = key, value = memoFn() } :: any
+		ref.current = { key = key, value = memoFn() }
 	end
-	-- ROBLOX FIXME Luau: ref current is not nil
-	return (ref.current :: any).value
+	-- ROBLOX FIXME Luau: analyze fails to narrow based on 'not .current' and '.current =' above
+	return (ref.current :: { key: TKey, value: TValue }).value
 end
 exports.useDeepMemo = useDeepMemo
 return exports

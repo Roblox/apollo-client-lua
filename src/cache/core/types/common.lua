@@ -8,22 +8,29 @@ local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Error = LuauPolyfill.Error
 type Array<T> = LuauPolyfill.Array<T>
 type Object = LuauPolyfill.Object
-
--- ROBLOX deviation: defining Record type from TypeScript
 type Record<T, U> = { [T]: U }
 
 local GraphQL = require(rootWorkspace.GraphQL)
 type FieldNode = GraphQL.FieldNode
 type DocumentNode = GraphQL.DocumentNode
 
-local utilitiesModule = require(srcWorkspace.utilities)
-type Reference = utilitiesModule.Reference
-type StoreObject = utilitiesModule.StoreObject
-type StoreValue = utilitiesModule.StoreValue
+-- ROBLOX deviation START: more directly require the original type export to avoid a circular dependency
+-- import {
+-- 	Reference,
+-- 	StoreObject,
+-- 	StoreValue,
+-- 	isReference,
+--   } from '../../../utilities';
+local utilitiesGraphqlTypesModule = require(srcWorkspace.utilities.graphql.types)
+type Reference = utilitiesGraphqlTypesModule.Reference
+type StoreObject = utilitiesGraphqlTypesModule.StoreObject
+type StoreValue = utilitiesGraphqlTypesModule.StoreValue
+-- ROBLOX deviation end
 
--- ROBLOX deviation: causes circular dep, inline trivial type
--- local Policies = require(script.Parent.Parent.Parent.inmemory.policies)
+-- ROBLOX deviation START: causes circular dep, inline trivial type
+-- import { StorageType } from '../../inmemory/policies';
 type StorageType = Record<string, any> -- Policies.StorageType
+-- ROBLOX deviation END
 
 --[[
  * The Readonly<T> type only really works for object types, since it marks
@@ -34,7 +41,7 @@ type StorageType = Record<string, any> -- Policies.StorageType
  * assignable to SafeReadonly<any>, whereas string is not assignable to
  * Readonly<any>, somewhat surprisingly.
 ]]
-export type SafeReadonly<T> = { [string]: any }
+export type SafeReadonly<T> = T
 
 export type MissingFieldError = {
 	message: string,
@@ -76,10 +83,8 @@ export type FieldSpecifier = {
 
 export type ReadFieldOptions = FieldSpecifier & { from: (StoreObject | Reference)? }
 
--- ROBLOX deviation: luau doesnt support function generics yet. defining type to preserve information
-type V = StoreValue
--- ROBLOX deviation: luau doesnt support function type overloading
-export type ReadFieldFunction = (
+-- ROBLOX FIXME Luau: this is a union upstream, but Luau can't currently disambiguate function unions by arity
+export type ReadFieldFunction<V = StoreValue> = (
 	self: any,
 	optionsOrFieldName: ReadFieldOptions | string,
 	from: (StoreObject | Reference)?

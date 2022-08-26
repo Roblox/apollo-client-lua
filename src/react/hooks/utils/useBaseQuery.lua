@@ -23,9 +23,12 @@ type TypedDocumentNode<Result, Variables> = typedDocumentNodeModule.TypedDocumen
 local typesModule = require(script.Parent.Parent.Parent.types.types)
 type QueryHookOptions<TData, TVariables> = typesModule.QueryHookOptions<TData, TVariables>
 type QueryDataOptions<TData, TVariables> = typesModule.QueryDataOptions<TData, TVariables>
-type QueryTupleAsReturnType<TData, TVariables> = typesModule.QueryTupleAsReturnType<TData, TVariables>
+type QueryTuple<TData, TVariables> = typesModule.QueryTuple<TData, TVariables>
+type LazyQueryResult<TData, TVariables> = typesModule.LazyQueryResult<TData, TVariables>
 type QueryResult<TData, TVariables> = typesModule.QueryResult<TData, TVariables>
-local QueryData = require(script.Parent.Parent.Parent.data).QueryData
+local dataModule = require(script.Parent.Parent.Parent.data)
+local QueryData = dataModule.QueryData
+type QueryData<TData, TVariables> = dataModule.QueryData<TData, TVariables>
 local useDeepMemo = require(script.Parent.useDeepMemo).useDeepMemo
 local coreModule = require(script.Parent.Parent.Parent.Parent.core)
 type OperationVariables = coreModule.OperationVariables
@@ -36,55 +39,58 @@ local useAfterFastRefresh = require(script.Parent.useAfterFastRefresh).useAfterF
 -- ROBLOX deviation: error is triggered because array with nil values has a different count
 local NIL = { __value = "nil placeholder" }
 
--- <TData, TVariables>
-local function useBaseQuery(
-	query: DocumentNode | TypedDocumentNode<any, any>,
-	options: QueryHookOptions<any, any>?,
+local function useBaseQuery<TData, TVariables>(
+	query: DocumentNode | TypedDocumentNode<TData, TVariables>,
+	options: QueryHookOptions<TData, TVariables>?,
 	lazy: boolean?
 )
 	if lazy == nil then
 		lazy = false
 	end
 	local context = useContext(getApolloContext())
-	local tick, forceUpdate = useReducer(function(x: any)
+	-- ROBLOX FIXME Luau: we shouldn't need to annotate x, bidirectional inference should work
+	local tick, forceUpdate = useReducer(function(x: number)
 		return x + 1
 	end, 0)
 	local updatedOptions = Boolean.toJSBoolean(options) and Object.assign({}, options, { query = query })
 		or { query = query }
-	local queryDataRef = useRef(nil) :: { current: any }
-	local queryData
-	queryData = if queryDataRef.current
-		then queryDataRef.current
-		else
-			(function()
-				queryDataRef.current = QueryData.new({
-					options = updatedOptions :: QueryDataOptions<any, any>,
-					context = context,
-					onNewData = function(_self)
-						if not Boolean.toJSBoolean(queryData:ssrInitiated()) then
-							-- // When new data is received from the `QueryData` object, we want to
-							-- // force a re-render to make sure the new data is displayed. We can't
-							-- // force that re-render if we're already rendering however so to be
-							-- // safe we'll trigger the re-render in a microtask. In case the
-							-- // component gets unmounted before this callback fires, we re-check
-							-- // queryDataRef.current.isMounted before calling forceUpdate().
-							Promise.delay(0):andThen(function()
-								if queryDataRef.current ~= nil and queryDataRef.current.isMounted then
-									-- ROBLOX deviation: Roact forces us to provide a value here
-									return forceUpdate(nil)
-								end
-								return
-							end)
-						else
-							-- // If we're rendering on the server side we can force an update at
-							-- // any point.
-							-- ROBLOX deviation: Roact forces us to provide a value here
-							forceUpdate(nil)
-						end
-					end,
-				} :: FIX_ANALYZE)
-				return queryDataRef.current
-			end)() :: any
+	local queryDataRef = useRef((nil :: any) :: QueryData<TData, TVariables>)
+	local queryData: QueryData<TData, TVariables>
+	queryData = queryDataRef.current
+		or (function(): QueryData<TData, TVariables>
+			queryDataRef.current = QueryData.new({
+				options = updatedOptions :: QueryDataOptions<TData, TVariables>,
+				context = context,
+				onNewData = function(_self)
+					if not Boolean.toJSBoolean(queryData:ssrInitiated()) then
+						-- // When new data is received from the `QueryData` object, we want to
+						-- // force a re-render to make sure the new data is displayed. We can't
+						-- // force that re-render if we're already rendering however so to be
+						-- // safe we'll trigger the re-render in a microtask. In case the
+						-- // component gets unmounted before this callback fires, we re-check
+						-- // queryDataRef.current.isMounted before calling forceUpdate().
+						Promise.delay(0):andThen(function()
+							-- ROBLOX FIXME Luau: analyze fails to narrow based on '.current ~= nil'
+							if
+								queryDataRef.current ~= nil
+								and ((queryDataRef.current :: any) :: QueryData<TData, TVariables>).isMounted
+							then
+								-- ROBLOX deviation: Roact forces us to provide a value here
+								return forceUpdate(nil)
+							end
+							return
+						end)
+					else
+						-- // If we're rendering on the server side we can force an update at
+						-- // any point.
+						-- ROBLOX deviation: Roact forces us to provide a value here
+						forceUpdate(nil)
+					end
+				end,
+			})
+			-- ROBLOX FIXME Luau: analyze fails to narrow based on '.current or (function() .current = QueryData.new() end)'
+			return (queryDataRef.current :: any) :: QueryData<TData, TVariables>
+		end)()
 
 	queryData:setOptions(updatedOptions)
 	queryData.context = context
@@ -98,22 +104,18 @@ local function useBaseQuery(
 		tick = tick,
 	}
 
-	local result = useDeepMemo(function()
-		return (function()
-			if Boolean.toJSBoolean(lazy) then
-				return queryData:executeLazy()
-			else
-				return queryData:execute()
-			end
-		end)()
-	end, memo)
-	local queryResult = (function()
-		if Boolean.toJSBoolean(lazy) then
-			return result[2] --result as QueryTuple<TData, TVariables>
+	-- ROBLOX Luau FIXME: shouldn't need this manual annotation on the return type of the anon function
+	local result = useDeepMemo(function(): QueryTuple<TData, TVariables> | QueryResult<TData, TVariables>
+		if lazy then
+			return queryData:executeLazy()
 		else
-			return result :: QueryResult<any, any>
+			return queryData:execute()
 		end
-	end)()
+	end, memo)
+	-- ROBLOX FIXME Luau: this if-expression requires explicit annotation of each branch, due a bunch of errors: TypeError: Key 'loading' is missing
+	local queryResult = if lazy
+		then (result :: QueryTuple<TData, TVariables>)[2] :: LazyQueryResult<TData, TVariables>
+		else result :: QueryResult<TData, TVariables>
 
 	if _G.__DEV__ then
 		-- ensure we run an update after refreshing so that we reinitialize
@@ -135,7 +137,8 @@ local function useBaseQuery(
 		queryResult.loading ~= nil and queryResult.loading or NIL,
 		queryResult.networkStatus ~= nil and queryResult.networkStatus or NIL,
 		queryResult.error ~= nil and queryResult.error or NIL,
-		queryResult.data ~= nil and queryResult.data or NIL,
+		-- ROBLOX FIXME Luau: `any` required to eliminate TypeError: Type 'NIL | TData' could not be converted into 'NIL | boolean'
+		queryResult.data ~= nil and queryResult.data :: any or NIL,
 	})
 	return result
 end

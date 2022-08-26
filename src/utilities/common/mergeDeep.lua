@@ -51,9 +51,8 @@ export type TupleToIntersection<T> = any
 -- ROBLOX deviation: pre-declaring mergeDeepArray function variable
 local mergeDeepArray
 
--- ROBLOX deviation: Luau doesn't support function generics.
-type T_ = any
-local function mergeDeep(...: T_): TupleToIntersection<T_>
+-- ROBLOX deviation: Luau can't express upstream, so get out of its way to track what it can
+local function mergeDeep(...) -- : TupleToIntersection<...T>
 	return mergeDeepArray({ ... })
 end
 exports.mergeDeep = mergeDeep
@@ -67,8 +66,8 @@ local DeepMerger = {}
 -- trying to convert T[] to an intersection type we just infer the array
 -- element type, which works perfectly when the sources array has a
 -- consistent element type.
-function mergeDeepArray(sources: Array<T_>): T_
-	local target = Boolean.toJSBoolean(sources[1]) and sources[1] or ({} :: T_)
+function mergeDeepArray<T>(sources: Array<T>): T
+	local target = Boolean.toJSBoolean(sources[1]) and sources[1] or ({} :: any) :: T
 	local count = #sources
 	if count > 1 then
 		local merger = DeepMerger.new()
@@ -80,33 +79,31 @@ function mergeDeepArray(sources: Array<T_>): T_
 end
 exports.mergeDeepArray = mergeDeepArray
 
--- ROBLOX deviation: declaring TContextArgs as function generic type
-type TContextArgs = Array<any>
-export type ReconcilerFunction = (
-	self: DeepMerger,
+export type ReconcilerFunction<TContextArgs> = (
+	self: DeepMerger<TContextArgs>,
 	target: Record<string | number, any>,
 	source: Record<string | number, any>,
 	property: string | number,
 	...TContextArgs
 ) -> any
 
--- ROBLOX deviation: need to pass in self as first arg to have access to `this`
-local defaultReconciler: ReconcilerFunction = function(self, target, source, property)
-	return self:merge(target[property], source[property])
-end
-
-type DeepMergerPrivate = { reconciler: ReconcilerFunction, pastCopies: Set<any> }
-
-export type DeepMerger = DeepMergerPrivate & {
-	merge: (self: DeepMerger, target: any, source: any, ...TContextArgs) -> any,
+export type DeepMerger<TContextArgs> = {
+	merge: (self: DeepMerger<TContextArgs>, target: any, source: any, ...TContextArgs) -> any,
 	isObject: typeof(isNonNullObject),
-	shallowCopyForMerge: (self: DeepMerger, value: T_) -> T_,
+	shallowCopyForMerge: <T>(self: DeepMerger<TContextArgs>, value: T) -> T,
+	-- ROBLOX TODO: make these private
+	reconciler: ReconcilerFunction<TContextArgs>,
+	pastCopies: Set<any>,
 }
 
 DeepMerger.__index = DeepMerger
 
-function DeepMerger.new(reconciler: ReconcilerFunction?)
+function DeepMerger.new<TContextArgs>(reconciler: ReconcilerFunction<TContextArgs>?)
 	local self = setmetatable({}, DeepMerger)
+	-- ROBLOX deviation: inline to avoid redefining recursive type, need to pass in self as first arg to have access to `this`
+	local defaultReconciler: ReconcilerFunction<TContextArgs> = function(self, target, source, property)
+		return self:merge(target[property], source[property])
+	end
 	if reconciler == nil then
 		reconciler = defaultReconciler
 	end
@@ -115,10 +112,10 @@ function DeepMerger.new(reconciler: ReconcilerFunction?)
 	self.isObject = isNonNullObject
 	self.pastCopies = Set.new()
 
-	return (self :: any) :: DeepMerger
+	return (self :: any) :: DeepMerger<TContextArgs>
 end
 
-function DeepMerger:merge(target: any, source: any, ...: TContextArgs): any
+function DeepMerger.merge<TContextArgs>(self: DeepMerger<TContextArgs>, target: any, source: any, ...: TContextArgs): any
 	local context = { ... }
 	if isNonNullObject(source) and isNonNullObject(target) then
 		Array.forEach(Object.keys(source), function(sourceKey)
@@ -167,9 +164,11 @@ local function shallowCopy(table: Object): Object
 	return table_copy
 end
 
-function DeepMerger:shallowCopyForMerge(value: T_): T_
+-- ROBLOX deviation: need generic constraints to eliminate any casts
+function DeepMerger:shallowCopyForMerge(value)
 	if isNonNullObject(value) and not self.pastCopies:has(value) then
 		if Array.isArray(value) then
+			-- ROBLOX deviation: need generic constraints to eliminate any casts
 			value = Array.slice(value :: Array<any>, 1)
 		else
 			-- ROBLOX deviation: no spread operator, nor prototypes exists in lua
@@ -177,7 +176,7 @@ function DeepMerger:shallowCopyForMerge(value: T_): T_
 			--   __proto__: Object.getPrototypeOf(value),
 			--   ...value,
 			-- };
-			value = shallowCopy(value)
+			value = shallowCopy((value :: any) :: Object)
 		end
 		self.pastCopies:add(value)
 	end

@@ -144,14 +144,14 @@ local function removeDirectivesFromDocument(
 					end)
 
 					if
-						Boolean.toJSBoolean(shouldRemoveField)
-						and Boolean.toJSBoolean(node.directives)
-						and Array.some(node.directives :: Array<DirectiveNode>, getDirectiveMatcher(directives))
+						shouldRemoveField
+						and node.directives
+						and Array.some(node.directives, getDirectiveMatcher(directives))
 					then
-						if Boolean.toJSBoolean(node.arguments) then
+						if node.arguments then
 							-- Store field argument variables so they can be removed
 							-- from the operation definition.
-							Array.forEach(node.arguments :: Array<ArgumentNode>, function(arg)
+							Array.forEach(node.arguments, function(arg)
 								if arg.value.kind == "Variable" then
 									table.insert(variablesToRemove, {
 										name = (arg.value :: VariableNode).name.value,
@@ -160,12 +160,13 @@ local function removeDirectivesFromDocument(
 							end)
 						end
 
-						if Boolean.toJSBoolean(node.selectionSet) then
+						if node.selectionSet then
 							-- Store fragment spread names so they can be removed from the
 							-- document.
 							Array.forEach(
-								getAllFragmentSpreadsFromSelectionSet(node.selectionSet :: SelectionSetNode),
-								function(frag)
+								getAllFragmentSpreadsFromSelectionSet(node.selectionSet),
+								-- ROBLOX FIXME Luau: explicit annotation needed to avoid false positive error: TypeError: Type '(SelectionSetNode) -> Array<FragmentSpreadNode>' could not be converted into '(SelectionSetNode) -> (Array<{+ name: {+ value: string? +} +}>)'
+								function(frag: FragmentSpreadNode)
 									table.insert(fragmentSpreadsToRemove, { name = frag.name.value })
 								end
 							)
@@ -231,7 +232,7 @@ local addTypenameToDocument = Object.assign(
 		__call = function(_self, doc: DocumentNode): DocumentNode
 			return visit(checkDocument(doc), {
 				SelectionSet = {
-					enter = function(_self, node, _key, parent)
+					enter = function(_self, node: SelectionSetNode, _key, parent)
 						-- Don't add __typename to OperationDefinitions.
 						if
 							Boolean.toJSBoolean(parent)
@@ -522,10 +523,10 @@ local function removeClientSetsFromDocument(document: DocumentNode): DocumentNod
 		modifiedDoc = visit(modifiedDoc, {
 			FragmentDefinition = {
 				enter = function(_self: Object, node: FragmentDefinitionNode)
-					if Boolean.toJSBoolean(node.selectionSet) then
+					if node.selectionSet then
 						local isTypenameOnly = Array.every(node.selectionSet.selections, function(selection)
 							return isField(selection) and (selection :: FieldNode).name.value == "__typename"
-						end, nil)
+						end)
 						if Boolean.toJSBoolean(isTypenameOnly) then
 							return REMOVE
 						end

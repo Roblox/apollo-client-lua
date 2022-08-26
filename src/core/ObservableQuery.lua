@@ -764,7 +764,7 @@ function ObservableQuery:reobserve(
 		-- that we can remove it here without triggering any unsubscriptions,
 		-- because we just want to ignore the old observable, not prematurely shut
 		-- it down, since other consumers may be awaiting this.concast.promise.
-		if Boolean.toJSBoolean(self.concast) then
+		if self.concast then
 			self.concast:removeObserver(self.observer, true)
 		end
 
@@ -802,9 +802,9 @@ function ObservableQuery:tearDownQuery()
 	self:stopPolling()
 
 	-- stop all active GraphQL subscriptions
-	for _, sub in self.subscriptions do
-		sub:unsubscribe()
-	end
+	self.subscriptions:forEach(function(sub)
+		return sub:unsubscribe()
+	end)
 	self.subscriptions:clear()
 	self.queryManager:stopQuery(self.queryId)
 	self.observers:clear()
@@ -813,6 +813,7 @@ end
 
 -- Necessary because the ObservableQuery constructor has a different
 -- signature than the Observable constructor.
+-- ROBLOX FIXME: I don't think this is serving its original intent in the Lua port
 fixObservableSubclass(ObservableQuery)
 
 exports.ObservableQuery = ObservableQuery

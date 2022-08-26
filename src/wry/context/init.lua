@@ -1,3 +1,6 @@
 -- ROBLOX no upstream
 
-return require(script.context)
+local contextModule = require(script.context)
+export type Slot<T> = contextModule.Slot<T>
+
+return contextModule

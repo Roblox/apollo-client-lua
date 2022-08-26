@@ -947,7 +947,7 @@ return function()
 					}, React.createElement(Component, nil)))
 
 					unmount = function()
-						rendered:unmount()
+						rendered.unmount()
 					end
 
 					return wait_(function()
@@ -1174,9 +1174,8 @@ return function()
 							jestExpect(error_).toBeDefined()
 							jestExpect(error_.message).toEqual("forced error")
 							setTimeout(function()
-								-- ROBLOX deviation START: argument is required
-								forceUpdate(nil)
-								-- ROBLOX deviation END
+								-- ROBLOX TODO: upstream this more correct invocation that actually typechecks
+								forceUpdate(0)
 							end)
 						elseif condition_ == 3 then
 							jestExpect(error_).toBeDefined()
@@ -1251,9 +1250,8 @@ return function()
 								jestExpect(error_).toBeDefined()
 								jestExpect(error_.message).toEqual("forced error")
 								setTimeout(function()
-									-- ROBLOX deviation START: argument is required
-									forceUpdate(nil)
-									-- ROBLOX deviation END
+									-- ROBLOX TODO: upstream this more correct invocation that actually typechecks
+									forceUpdate(0)
 								end)
 							elseif condition_ == 3 then
 								jestExpect(error_).toBeDefined()
@@ -2832,7 +2830,7 @@ return function()
 
 				jestExpect(client["queryManager"]["queries"].size).toBe(1)
 
-				app:unmount()
+				app.unmount()
 
 				return wait_(function()
 					jestExpect(client["queryManager"]["queries"].size).toBe(0)
@@ -3302,9 +3300,9 @@ return function()
 								-- returned as identical (===) objects.
 								jestExpect(resultSet.size).toBe(5)
 								local values: Array<number> = {}
-								for _, result in resultSet do
-									table.insert(values, result.value)
-								end
+								resultSet:forEach(function(result)
+									return table.insert(values, result.value)
+								end)
 								jestExpect(values).toEqual({ 0, 1, 2, 3, 5 })
 								act(function()
 									table.insert(results, { __typename = "Result", value = 8 })
@@ -3327,9 +3325,9 @@ return function()
 								-- returned as identical (===) objects.
 								jestExpect(resultSet.size).toBe(6)
 								local values: Array<number> = {}
-								for _, result in resultSet do
-									table.insert(values, result.value)
-								end
+								resultSet:forEach(function(result)
+									return table.insert(values, result.value)
+								end)
 								jestExpect(values).toEqual({ 0, 1, 2, 3, 5, 8 })
 							end
 						else

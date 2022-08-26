@@ -22,7 +22,7 @@ local valueToObjectRepresentation = require(script.Parent.storeUtils).valueToObj
 
 local function checkDocument(doc: DocumentNode)
 	invariant(
-		Boolean.toJSBoolean(doc) and doc.kind == "Document",
+		doc and doc.kind == "Document",
 		[[Expecting a parsed GraphQL document. Perhaps you need to wrap the query string in a "gql" tag? http://docs.apollostack.com/apollo-client/core.html#gql]]
 	)
 

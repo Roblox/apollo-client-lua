@@ -121,13 +121,12 @@ type ObservableQueryPick<TData, TVariables> = {
 export type ObservableQueryFields<TData, TVariables> = ObservableQueryPick<TData, TVariables> & {
 	fetchMore: ((
 		_self: any,
-		fetchMoreOptions: FetchMoreQueryOptions<TVariables, TData> & FetchMoreOptions<TData, TVariables>
-	) -> Promise<ApolloQueryResult<TData>>) & ((<TData2, TVariables2>(
-		_self: any,
-		fetchMoreOptions: { query: (DocumentNode | TypedDocumentNode<TData, TVariables>)? }
+		FetchMoreQueryOptions<TVariables, TData> & FetchMoreOptions<TData, TVariables>
+	) -> Promise<ApolloQueryResult<TData>>) & (<TData2, TVariables2>(
+		{ query: (DocumentNode | TypedDocumentNode<TData, TVariables>)? }
 			& FetchMoreQueryOptions<TVariables2, TData>
 			& FetchMoreOptions<TData2, TVariables2>
-	) -> Promise<ApolloQueryResult<TData2>>)),
+	) -> Promise<ApolloQueryResult<TData2>>),
 }
 
 --[[ ROBLOX deviation: there are no default generic params in Luau: `<TData = any, TVariables = OperationVariables>` ]]
@@ -215,10 +214,6 @@ export type QueryTuple<TData, TVariables> = Tuple<
 	QueryTupleFirst<TData, TVariables>,
 	QueryTupleSecond<TData, TVariables>
 >
-
-export type QueryTupleAsReturnType<TData, TVariables> = (
-	...any
-) -> (((QueryLazyOptions<TVariables>) -> ()), LazyQueryResult<TData, TVariables>)
 
 -- /* Mutation types */
 

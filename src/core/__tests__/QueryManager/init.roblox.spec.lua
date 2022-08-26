@@ -16,7 +16,6 @@ return function()
 	local Promise = require(rootWorkspace.Promise)
 	local RegExp = require(rootWorkspace.LuauRegExp)
 	local NULL = require(srcWorkspace.utilities).NULL
-	local mapForEach = require(srcWorkspace.luaUtils.mapForEach)
 
 	type Array<T> = LuauPolyfill.Array<T>
 	type Error = LuauPolyfill.Error
@@ -62,6 +61,8 @@ return function()
 	local ApolloLink = coreModule.ApolloLink
 	type ApolloLink = coreModule.ApolloLink
 	type GraphQLRequest = coreModule.GraphQLRequest
+	type NextLink = coreModule.NextLink
+	type Operation = coreModule.Operation
 	type RequestHandler = coreModule.RequestHandler
 	export type FetchResult__<TData> = coreModule.FetchResult__<TData>
 	export type FetchResult___ = coreModule.FetchResult___
@@ -4393,7 +4394,11 @@ return function()
 							lastName = "Smith",
 						},
 					}
-					local link = ApolloLink.new(function()
+					local link = ApolloLink.new(function(
+						self: any, -- ApolloLink
+						operation: Operation,
+						forward: NextLink
+					)
 						return Observable.new(function(observer)
 							-- refetch observed queries as soon as we hear about the query
 							queryManager:reFetchObservableQueries()
@@ -4504,13 +4509,11 @@ return function()
 							end,
 						})
 						local results: Array<any> = {}
-						-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-						mapForEach(
-							queryManager:refetchQueries({ include = { "GetAuthor", "GetAuthor2" } }) :: FIX_ANALYZE,
-							function(result)
+						queryManager
+							:refetchQueries({ include = { "GetAuthor", "GetAuthor2" } })
+							:forEach(function(result)
 								return table.insert(results, result)
-							end
-						)
+							end)
 
 						return Promise.all(results):andThen(function()
 							local result = getCurrentQueryResult(observable)
@@ -5051,8 +5054,7 @@ return function()
 							:andThen(function()
 								-- Make sure the QueryManager cleans up legacy one-time queries like
 								-- the one we requested above using refetchQueries.
-								-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-								mapForEach(queryManager["queries"], function(queryInfo, queryId)
+								queryManager["queries"]:forEach(function(queryInfo, queryId)
 									jestExpect(queryId).never.toContain("legacyOneTimeQuery")
 								end)
 							end)
@@ -5637,7 +5639,7 @@ return function()
 						:andThen(function()
 							return resolve()
 						end)
-						:catch(function(error_)
+						:catch(function(error_: Error)
 							local isRefetchError: boolean = awaitRefetchQueries
 								and testQueryError
 								and refetchError

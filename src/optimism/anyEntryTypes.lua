@@ -1,10 +1,7 @@
--- ROBLOX no upstream
+-- ROBLOX no upstream, extracted from optimism/entry.ts to work around circular types/deps
 
 local srcWorkspace = script.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
-
-local depTypesModule = require(script.Parent.depTypes)
-type Dep<TKey> = depTypesModule.Dep<TKey>
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 
@@ -12,9 +9,6 @@ type Array<T> = LuauPolyfill.Array<T>
 type Set<T> = LuauPolyfill.Set<T>
 type Map<K, V> = LuauPolyfill.Map<K, V>
 type Object = LuauPolyfill.Object
-
-local anyEntryTypesModule = require(script.Parent.anyEntryTypes)
-type AnyEntry = anyEntryTypesModule.AnyEntry
 
 --[[
   ROBLOX deviation: no way to handle tuple like types in Luau
@@ -28,7 +22,8 @@ type AnyEntry = anyEntryTypesModule.AnyEntry
 -- way of representing unknown, ordinary, and exceptional values.
 export type Value<T> = Array<T | any>
 
-export type Entry<TArgs, TValue> = {
+-- ROBLOX FIXME: this is a workaround for the 'recursive type with different args' error, remove this once that's fixed
+type _Entry = {
 	-- ROBLOX deviation: original type: OptimisticWrapOptions<TArgs>["subscribe"]
 	subscribe: (((...any) -> ()) | (() -> any))?,
 	-- ROBLOX deviation: original type: Unsubscribable["unsubscribe"]
@@ -44,18 +39,22 @@ export type Entry<TArgs, TValue> = {
 
 	dirty: boolean,
 	recomputing: boolean,
-	value: Value<TValue>,
+	value: Value<any>,
 
-	fn: (...any) -> TValue,
+	fn: (...any) -> any,
 
-	peek: (self: Entry<TArgs, TValue>) -> TValue | nil,
-	recompute: (self: Entry<TArgs, TValue>, args: TArgs) -> TValue,
-	setDirty: (self: Entry<TArgs, TValue>) -> (),
-	dispose: (self: Entry<TArgs, TValue>) -> (),
-	forget: (self: Entry<TArgs, TValue>) -> (),
-	deps: Set<Dep<any>> | nil,
-	dependsOn: (self: Entry<TArgs, TValue>, dep: Dep<any>) -> (),
-	forgetDeps: (self: Entry<TArgs, TValue>) -> (),
+	peek: (self: _Entry) -> any | nil,
+	recompute: (self: _Entry, args: any) -> any,
+	setDirty: (self: _Entry) -> (),
+	dispose: (self: _Entry) -> (),
+	forget: (self: _Entry) -> (),
+	-- ROBLOX deviation: Dep<any> made object to eliminate circular dependency
+	deps: Set<Object> | nil,
+	-- ROBLOX deviation: Dep<any> made object to eliminate circular dependency
+	dependsOn: (self: _Entry, dep: Object) -> (),
+	forgetDeps: (self: _Entry) -> (),
 }
+
+export type AnyEntry = _Entry
 
 return {}

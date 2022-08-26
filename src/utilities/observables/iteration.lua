@@ -28,11 +28,11 @@ local function iterateObserversSafely(
 	-- to just the observers with the given method.
 	local observersWithMethod: Array<Observer<E>> = {}
 
-	for _, obs in observers do
+	observers:forEach(function(obs)
 		if obs[method] ~= nil then
 			table.insert(observersWithMethod, obs)
 		end
-	end
+	end)
 
 	Array.forEach(observersWithMethod, function(obs)
 		obs[method](obs, argument)

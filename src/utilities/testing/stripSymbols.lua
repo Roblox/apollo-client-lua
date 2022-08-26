@@ -7,6 +7,7 @@ local rootWorkspace = srcWorkspace.Parent
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Array = LuauPolyfill.Array
 local Object = LuauPolyfill.Object
+type Object = { [any]: any }
 
 --[[
   * In order to make assertions easier, this function strips `symbol`'s from
@@ -31,9 +32,9 @@ local function stripSymbols<T>(data: T): T
 
 	Array.forEach(Object.keys(copy), function(key)
 		if typeof(key) == "userdata" and string.sub(tostring(key), 1, 7) == "Symbol(" and key ~= tostring(key) then
-			copy[key] = nil
-		elseif typeof(copy[key]) == "table" and not Array.isArray(copy) then
-			copy[key] = stripSymbols(copy[key])
+			(copy :: Object)[key] = nil
+		elseif typeof((copy :: Object)[key]) == "table" and not Array.isArray(copy) then
+			(copy :: Object)[key] = stripSymbols((copy :: Object)[key])
 		end
 	end)
 

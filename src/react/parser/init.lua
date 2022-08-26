@@ -59,10 +59,12 @@ local function parser(document: DocumentNode): IDocumentDefinition
 	end) :: Array<DefinitionNode>
 
 	local queries = Array.filter(document.definitions, function(x: DefinitionNode)
+		-- ROBLOX TODO: OperationDefinitionNode cast could be removed once we adopt singleton type for kind field
 		return x.kind == "OperationDefinition" and (x :: OperationDefinitionNode).operation == "query"
 	end) :: Array<DefinitionNode>
 
 	local mutations = Array.filter(document.definitions, function(x: DefinitionNode)
+		-- ROBLOX TODO: OperationDefinitionNode cast could be removed once we adopt singleton type for kind field
 		return x.kind == "OperationDefinition" and (x :: OperationDefinitionNode).operation == "mutation"
 	end) :: Array<DefinitionNode>
 
@@ -71,7 +73,7 @@ local function parser(document: DocumentNode): IDocumentDefinition
 	end) :: Array<DefinitionNode>
 
 	invariant(
-		not (#fragments > 0) or ((#queries > 0) or (#mutations > 0) or (#subscriptions > 0)),
+		#fragments == 0 or (#queries ~= 0 or #mutations ~= 0 or #subscriptions ~= 0),
 		"Passing only a fragment to 'graphql' is not yet supported. "
 			.. "You must include a query, subscription or mutation as well"
 	)
@@ -83,12 +85,13 @@ local function parser(document: DocumentNode): IDocumentDefinition
 			.. "You can use 'compose' to join multiple operation types to a component"
 	)
 
-	type_ = if #queries > 0 then DocumentType.Query else DocumentType.Mutation
+	type_ = if #queries ~= 0 then DocumentType.Query else DocumentType.Mutation
 
-	if not (#queries > 0) and not (#mutations > 0) then
+	if #queries == 0 and #mutations == 0 then
 		type_ = DocumentType.Subscription
 	end
 
+	-- ROBLOX FIXME Luau: Luau currently needs this manual annotation because unification fails here: CLI-48823
 	local definitions: Array<DefinitionNode> = if #queries > 0
 		then queries
 		else if #mutations > 0 then mutations else subscriptions

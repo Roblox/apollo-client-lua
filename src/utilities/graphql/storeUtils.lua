@@ -20,6 +20,8 @@ local getStoreKeyName
 local stringify
 local isField
 
+-- ROBLOX deviation: extract pure types to break circular dependency between pagination and utilities
+local typesModule = require(script.Parent.types)
 local graphqlModule = require(rootWorkspace.GraphQL)
 type DirectiveNode = graphqlModule.DirectiveNode
 type FieldNode = graphqlModule.FieldNode
@@ -49,7 +51,7 @@ local function getFragmentFromSelection(...): ...any
 	error("fragments are not supported yet")
 end
 
-export type Reference = { __ref: string }
+export type Reference = typesModule.Reference
 
 local function makeReference(id: string): Reference
 	return { __ref = tostring(id) }
@@ -61,8 +63,8 @@ local function isReference(obj: any): boolean
 end
 exports.isReference = isReference
 
-export type StoreValue = number | string | Array<string> | Reference | Array<Reference> | nil | Object
-export type StoreObject = { __typename: string?, [string]: StoreValue }
+export type StoreValue = typesModule.StoreValue
+export type StoreObject = typesModule.StoreObject
 
 local function isDocumentNode(value: any): boolean
 	return isNonNullObject(value)
@@ -146,14 +148,14 @@ local function valueToObjectRepresentation(argObj: any, name: NameNode, value: V
 end
 exports.valueToObjectRepresentation = valueToObjectRepresentation
 
-local function storeKeyNameFromField(field: FieldNode, variables: Object): string
+local function storeKeyNameFromField(field: FieldNode, variables: Object?): string
 	local directivesObj: any = nil
-	if Boolean.toJSBoolean(field.directives) then
+	if field.directives then
 		directivesObj = {}
 		Array.forEach((field.directives :: any) :: Array<DirectiveNode>, function(directive)
 			directivesObj[directive.name.value] = {}
 
-			if Boolean.toJSBoolean(directive.arguments) then
+			if directive.arguments then
 				Array.forEach(directive.arguments, function(ref)
 					local name, value = ref.name, ref.value
 					valueToObjectRepresentation(directivesObj[directive.name.value], name, value, variables)
@@ -163,7 +165,7 @@ local function storeKeyNameFromField(field: FieldNode, variables: Object): strin
 	end
 
 	local argObj: any = nil
-	if Boolean.toJSBoolean(field.arguments) and Boolean.toJSBoolean(#field.arguments :: Array<any>) then
+	if field.arguments and #(field.arguments :: Array<any>) > 0 then
 		argObj = {}
 		Array.forEach(field.arguments :: Array<any>, function(ref)
 			local name, value = ref.name, ref.value
@@ -175,11 +177,7 @@ local function storeKeyNameFromField(field: FieldNode, variables: Object): strin
 end
 exports.storeKeyNameFromField = storeKeyNameFromField
 
-export type Directives = { --[[ ROBLOX TODO: Unhandled node for type: TSIndexSignature ]]
-	[string]: { -- ROBLOX note [directiveName: string]
-		[string]: any, -- note ROBLOX [argName: string]
-	},
-}
+export type Directives = typesModule.Directives
 
 local KNOWN_DIRECTIVES: Array<string> = {
 	"connection",
@@ -372,6 +370,6 @@ local function isInlineFragment(selection: SelectionNode): boolean
 end
 exports.isInlineFragment = isInlineFragment
 
-export type VariableValue = (node: VariableNode) -> any
+export type VariableValue = typesModule.VariableValue
 
 return exports

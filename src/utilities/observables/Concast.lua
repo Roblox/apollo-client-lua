@@ -39,10 +39,10 @@ local fixObservableSubclass = require(script.Parent.subclassing).fixObservableSu
 
 type MaybeAsync<T> = T | PromiseLike<T>
 
--- ROBLOX deviation: Luau doesn't support function generics. Declaring type T_ as placeholder for T.
+-- ROBLOX deviation START: Luau doesn't support generic constraints. Declaring type T_ as placeholder for T.
 -- function isPromiseLike<T>(value: MaybeAsync<T>): value is PromiseLike<T>
-type T_ = any
-local function isPromiseLike(value: MaybeAsync<T_>): boolean
+local function isPromiseLike<T>(value: MaybeAsync<T>): boolean
+	-- ROBLOX deviation END
 	return Boolean.toJSBoolean(value) and typeof((value :: any).andThen) == "function"
 end
 
@@ -81,6 +81,7 @@ export type ConcastSourcesIterable<T> = Iterable<Source<T>>
 -- value in reusing their code, but for now we use zen-observable, which
 -- does not contain any Subject implementations.
 
+-- ROBLOX deviation START: we separate private from public symbols with different tables
 type ConcastPrivate<T> = Concast<T> & {
 	observers: Set<Observer<T>>,
 	sub: ObservableSubscription?,
@@ -92,9 +93,9 @@ type ConcastPrivate<T> = Concast<T> & {
 	-- to deliver latest results immediately to new observers.
 	latest: Tuple<string, any>?,
 	handlers: {
-		next: (_self: any, result: T) -> (),
-		error: (_self: any, error: any) -> (),
-		complete: (_self: any) -> (),
+		next: (_self: Object, result: T) -> (),
+		error: (_self: Object, error: any) -> (),
+		complete: (_self: Object) -> (),
 	},
 	start: (self: Concast<T>, sources: ConcastSourcesIterable<T>) -> (),
 	deliverLastMessage: (self: Concast<T>, observer: Observer<T>) -> (),
@@ -108,13 +109,14 @@ export type Concast<T> = Observable<T> & {
 	cleanup: (self: Concast<T>, callback: () -> ...any) -> (),
 	cancel: (self: Concast<T>, reason: any) -> (),
 }
+-- ROBLOX deviation END
 
 local Concast = setmetatable({}, { __index = Observable })
 Concast.__index = Concast
 
 -- Not only can the individual elements of the iterable be promises, but
 -- also the iterable itself can be wrapped in a promise.
-function Concast.new(sources: MaybeAsync<ConcastSourcesIterable<T_>> | Subscriber<T_>): Concast<T_>
+function Concast.new<T>(sources: MaybeAsync<ConcastSourcesIterable<T>> | Subscriber<T>): Concast<T>
 	-- ROBLOX deviation: predeclaring self so it can be used by call to super()
 	local self
 	self = setmetatable(
@@ -164,7 +166,7 @@ function Concast.new(sources: MaybeAsync<ConcastSourcesIterable<T_>> | Subscribe
 	-- Bound handler functions that can be reused for every internal
 	-- subscription.
 	self.handlers = {
-		next = function(_self: Object, result: T_)
+		next = function(_self: Object, result: T)
 			if self.sub ~= nil then
 				self.latest = { "next" :: any, result }
 				iterateObserversSafely(self.observers, "next", result)
@@ -205,21 +207,21 @@ function Concast.new(sources: MaybeAsync<ConcastSourcesIterable<T_>> | Subscribe
 					-- followed by a 'complete' message (see addObserver).
 					iterateObserversSafely(self.observers, "complete")
 				elseif isPromiseLike(value) then
-					(value :: PromiseLike<Observable<T_>>):andThen(function(obs)
+					(value :: PromiseLike<Observable<T>>):andThen(function(obs)
 						self.sub = obs:subscribe(self.handlers)
 					end)
 				else
-					self.sub = (value :: Observable<T_>):subscribe(self.handlers)
+					self.sub = (value :: Observable<T>):subscribe(self.handlers)
 				end
 			end
 		end,
 	}
 
 	-- A public way to abort observation and broadcast.
-	self.cancel = function(_self: Concast<T_>, reason: any)
+	self.cancel = function(_self: Concast<T>, reason: any)
 		self:reject(reason)
 		self.sources = {};
-		((self :: any) :: ConcastPrivate<T_>).handlers:complete()
+		((self :: any) :: ConcastPrivate<T>).handlers:complete()
 	end
 
 	-- Suppress rejection warnings for this.promise, since it's perfectly
@@ -235,7 +237,7 @@ function Concast.new(sources: MaybeAsync<ConcastSourcesIterable<T_>> | Subscribe
 	end
 
 	if isPromiseLike(sources) then
-		(sources :: PromiseLike<ConcastSourcesIterable<T_>>):andThen(function(iterable)
+		(sources :: PromiseLike<ConcastSourcesIterable<T>>):andThen(function(iterable)
 			self:start(iterable)
 		end, function(...)
 			(self.handlers :: any):error(...) -- ROBLOX note: TypeError: Value of type '((Observer<any>, any) -> ())?' could be nil
@@ -244,9 +246,12 @@ function Concast.new(sources: MaybeAsync<ConcastSourcesIterable<T_>> | Subscribe
 		self:start(sources)
 	end
 
-	return (self :: any) :: Concast<T_>
+	return (self :: any) :: Concast<T>
 end
 
+-- ROBLOX deviation BEGIN: Luau doesn't allow member methods to share the ctor type args
+type T_ = any
+-- ROBLOX deviation END
 function Concast:start(sources: ConcastSourcesIterable<T_>)
 	if self.sub ~= undefined then
 		return
@@ -343,6 +348,7 @@ exports.Concast = Concast
 
 -- Necessary because the Concast constructor has a different signature
 -- than the Observable constructor.
-fixObservableSubclass(Concast)
+-- ROBLOX FIXME Luau: Luau thinks Concat isn't convertible to Object
+fixObservableSubclass(Concast :: any)
 
 return exports

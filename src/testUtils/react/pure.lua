@@ -59,7 +59,7 @@ configureDTL({
 -- ROBLOX deviation: instead of importing getQueriesForElement, we are defining it here
 local function getQueriesForElement(rootInstance: Instance)
 	return {
-		getByText = function(text: string): any
+		getByText = function(text: string): Instance
 			local descendants = rootInstance:GetDescendants()
 			for _index, descendant in ipairs(descendants) do
 				if descendant.Text == text then
@@ -68,7 +68,7 @@ local function getQueriesForElement(rootInstance: Instance)
 			end
 			error(Error.new(("Unable to find an element with the text: %s"):format(text)))
 		end,
-		getAllByText = function(text: string): any
+		getAllByText = function(text: string): { Instance }
 			local results = {}
 			local descendants = rootInstance:GetDescendants()
 			for _index, descendant in ipairs(descendants) do
@@ -81,7 +81,7 @@ local function getQueriesForElement(rootInstance: Instance)
 			end
 			return results
 		end,
-		getFirstChild = function()
+		getFirstChild = function(): Instance
 			return rootInstance:GetChildren()[1]
 		end,
 	}
@@ -148,49 +148,52 @@ local function render(ui: any, renderOptions: RenderOptions?)
 		end
 	end)
 
-	return Object.assign(
-		{
-			container = container,
-			-- ROBLOX deviation: we aren't using baseElement for querying
-			-- baseElement = baseElement,
-			-- ROBLOX deviation: not including debug function, havent converted prettyDOM
-			-- debug = function(el, maxLength, options)
-			-- 	if el == nil then
-			-- 		el = baseElement
-			-- 	end
-			-- 	if Array.isArray(el) then
-			-- 		return Array.forEach(el, function(e)
-			-- 			return console.log(prettyDOM(e, maxLength, options))
-			-- 		end)
-			-- 	else
-			-- 		return console:log(prettyDOM(el, maxLength, options))
-			-- 	end
-			-- end,
-			-- ROBLOX deviation: using ReactRoblox's root's unmount function
-			unmount = function()
-				act(function()
-					container:unmount()
-				end)
-			end,
-			rerender = function(rerenderUi)
-				render(wrapUiIfNeeded(rerenderUi), { container = container })
-				-- Intentionally do not return anything to avoid unnecessarily complicating the API.
-				-- folks can use all the same utilities we return in the first place that are bound to the container
-			end,
-			-- ROBLOX deviation: not using asFragment
-			-- asFragment = function()
-			-- 	if typeof(document.createRange) == "function" then
-			-- 		return document:createRange():createContextualFragment(container.innerHTML)
-			-- 	else
-			-- 		local template = document:createElement("template")
-			-- 		template.innerHTML = container.innerHTML
-			-- 		return template.content
-			--  end
-			-- end,
-		},
-		-- ROBLOX deviation: using rootInstance for querying
-		getQueriesForElement(rootInstance :: Instance)
-	)
+	-- ROBLOX Luau FIXME: Luau doesn't track the keys through Object.assign()
+	local queriesForElement = getQueriesForElement(rootInstance :: Instance)
+
+	return {
+		container = container,
+		-- ROBLOX deviation: we aren't using baseElement for querying
+		-- baseElement = baseElement,
+		-- ROBLOX deviation: not including debug function, havent converted prettyDOM
+		-- debug = function(el, maxLength, options)
+		-- 	if el == nil then
+		-- 		el = baseElement
+		-- 	end
+		-- 	if Array.isArray(el) then
+		-- 		return Array.forEach(el, function(e)
+		-- 			return console.log(prettyDOM(e, maxLength, options))
+		-- 		end)
+		-- 	else
+		-- 		return console:log(prettyDOM(el, maxLength, options))
+		-- 	end
+		-- end,
+		-- ROBLOX deviation: using ReactRoblox's root's unmount function
+		unmount = function()
+			act(function()
+				container:unmount()
+			end)
+		end,
+		rerender = function(rerenderUi)
+			render(wrapUiIfNeeded(rerenderUi), { container = container })
+			-- Intentionally do not return anything to avoid unnecessarily complicating the API.
+			-- folks can use all the same utilities we return in the first place that are bound to the container
+		end,
+		-- ROBLOX deviation: not using asFragment
+		-- asFragment = function()
+		-- 	if typeof(document.createRange) == "function" then
+		-- 		return document:createRange():createContextualFragment(container.innerHTML)
+		-- 	else
+		-- 		local template = document:createElement("template")
+		-- 		template.innerHTML = container.innerHTML
+		-- 		return template.content
+		--  end
+		-- end,
+		-- ROBLOX deviation: manually expand these, since Luau can't track the keys through Object.assign()
+		getByText = queriesForElement.getByText,
+		getAllByText = queriesForElement.getAllByText,
+		getFirstChild = queriesForElement.getFirstChild,
+	}
 end
 exports.render = render
 

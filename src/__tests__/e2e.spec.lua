@@ -87,7 +87,9 @@ return function()
 
 			local resultsLabels = getAllByText("Results:")
 			jestExpect(#resultsLabels).toBe(1)
-			local secondChild = resultsLabels[1].Parent:GetDescendants()[2]
+			-- ROBLOX note: Luau doesn't support type refinements on a subscript, so extract a tmp variable so it tracks the Parent ~= nil
+			local firstResultLabel = resultsLabels[1]
+			local secondChild = firstResultLabel.Parent ~= nil and firstResultLabel.Parent:GetDescendants()[2]
 			jestExpect(secondChild).toBeDefined()
 			local resultsValues = secondChild:GetDescendants()
 			jestExpect(#resultsValues).toBe(10)

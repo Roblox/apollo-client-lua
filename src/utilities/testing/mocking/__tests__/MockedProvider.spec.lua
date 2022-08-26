@@ -357,7 +357,7 @@ return function()
 			local ref = render(React.createElement(MockedProvider, nil, React.createElement(Component, nil)))
 			local unmount = ref.unmount
 
-			unmount(ref)
+			unmount()
 		end)
 
 		itAsync(it)("should support returning mocked results from a function", function(resolve, reject)

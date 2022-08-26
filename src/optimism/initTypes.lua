@@ -1,4 +1,9 @@
 -- ROBLOX no upstream
+local srcWorkspace = script.Parent.Parent
+local rootWorkspace = srcWorkspace.Parent
+
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
+type Object = LuauPolyfill.Object
 
 -- ROBLOX deviation: function can't be have properties in Lua. Using __call metatable property instead
 type CallableFunction<TResult> = typeof(setmetatable({}, {
@@ -56,7 +61,7 @@ export type OptimisticWrapOptions<TArgs, TKeyArgs, TCacheKey> = {
 	makeCacheKey: ((...any) -> TCacheKey)?,
 	-- If provided, the subscribe function should either return an unsubscribe
 	-- function or return nothing.
-	subscribe: (((...any) -> ()) | (() -> any))?,
+	subscribe: ((...TArgs) -> () | (() -> any))?,
 }
 
 return {}

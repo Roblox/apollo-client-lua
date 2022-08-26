@@ -38,8 +38,7 @@ export type Cache_DiffResult<T> = DataProxy_DiffResult<T>
 
 export type Cache_WatchCallback = (self: any, diff: Cache_DiffResult<any>, lastDiff: Cache_DiffResult<any>?) -> ()
 
--- ROBLOX deviation: no generic type parameter defaults in luau
-export type Cache_ReadOptions<TVariables, TData> = DataProxy_Query<TVariables, TData> & {
+export type Cache_ReadOptions<TVariables = any, TData = any> = DataProxy_Query<TVariables, TData> & {
 	rootId: string?,
 	previousResult: any?,
 	optimistic: boolean,
@@ -56,8 +55,7 @@ type Omit_id_from_DataProxy_Query<TVariables, TData> = {
 -- ROBLOX deviation: defining Type returned from using Omit utility type
 type Omit_data_from_DataProxy_WriteOptions<TResult> = { broadcast: boolean?, overwrite: boolean? }
 
--- ROBLOX deviation: no generic type parameter defaults in luau
-export type Cache_WriteOptions<TResult, TVariables> =
+export type Cache_WriteOptions<TResult = any, TVariables = any> =
 	Omit_id_from_DataProxy_Query<TVariables, TResult>
 	& Omit_data_from_DataProxy_WriteOptions<TResult>
 	& { dataId: string?, result: TResult }

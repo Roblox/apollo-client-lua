@@ -30,10 +30,6 @@ type Reference = storeUtilsModule.Reference
 local mergeDeep = require(script.Parent.Parent.common.mergeDeep).mergeDeep
 type KeyArgs = typeof((({} :: any) :: FieldPolicy<any, any, any>).keyArgs)
 
--- ROBLOX TODO: replace when function generics is available
-type T_ = any
-type TNode_ = any
-
 -- ROBLOX deviation: predefine variables
 local getExtras
 local makeEmptyData
@@ -41,14 +37,15 @@ local notExtras
 
 -- A very basic pagination field policy that always concatenates new
 -- results onto the existing array, without examining options.args.
-local function concatPagination(keyArgs: KeyArgs?): FieldPolicy<Array<T_>, any, any>
+-- ROBLOX TODO: use default type args for FieldPolicy<>
+local function concatPagination<T>(keyArgs: KeyArgs?): FieldPolicy<Array<T>, Array<T>, Array<T>>
 	if keyArgs == nil then
 		keyArgs = false
 	end
 	return {
 		keyArgs = keyArgs,
 		merge = function(_self, existing, incoming)
-			return Boolean.toJSBoolean(existing) and Array.concat({}, existing, incoming) or incoming
+			return if existing then Array.concat(existing, incoming) else incoming
 		end,
 	}
 end
@@ -58,7 +55,8 @@ exports.concatPagination = concatPagination
 -- the incoming data into the existing array. If your arguments are called
 -- something different (like args.{start,count}), feel free to copy/paste
 -- this implementation and make the appropriate changes.
-local function offsetLimitPagination(keyArgs: KeyArgs?): FieldPolicy<Array<T_>, any, any>
+-- ROBLOX TODO: use default type args for FieldPolicy<>
+local function offsetLimitPagination<T>(keyArgs: KeyArgs?): FieldPolicy<Array<T>, Array<T>, Array<T>>
 	if keyArgs == nil then
 		keyArgs = false
 	end
@@ -91,7 +89,7 @@ local function offsetLimitPagination(keyArgs: KeyArgs?): FieldPolicy<Array<T_>, 
 				-- to receive any arguments, so you might prefer to throw an
 				-- exception here, instead of recovering by appending incoming
 				-- onto the existing array.
-				table.insert(merged, incoming)
+				merged = Array.concat(merged, incoming)
 			end
 			return merged
 		end,
@@ -131,6 +129,7 @@ export type RelayFieldPolicy<TNode> = FieldPolicy<TExistingRelay<TNode>, TIncomi
 -- As proof of the flexibility of field policies, this function generates
 -- one that handles Relay-style pagination, without Apollo Client knowing
 -- anything about connections, edges, cursors, or pageInfo objects.
+-- ROBLOX TODO: when default type alias is available: TNode = Reference
 local function relayStylePagination<TNode>(keyArgs: KeyArgs?): RelayFieldPolicy<TNode>
 	if keyArgs == nil then
 		keyArgs = false
@@ -139,38 +138,35 @@ local function relayStylePagination<TNode>(keyArgs: KeyArgs?): RelayFieldPolicy<
 	return {
 		keyArgs = keyArgs,
 		read = function(_self, existing_, ref)
-			if not Boolean.toJSBoolean(existing_) then
+			-- ROBLOX FIXME Luau: no matter how I bail, nil-ability of `existing` isn't removed
+			if not existing_ then
 				return
 			end
 
-			-- ROBLOX deviation: help analyze tool
 			local existing = existing_ :: TExistingRelay<TNode>
 
-			local edges: Array<TRelayEdge<TNode_>> = {}
+			local edges: Array<TRelayEdge<TNode>> = {}
 			local firstEdgeCursor = ""
 			local lastEdgeCursor = ""
 
 			Array.forEach(existing.edges, function(edge)
 				-- Edges themselves could be Reference objects, so it's important
 				-- to use readField to access the edge.edge.node property.
-				if ref:canRead(ref:readField("node", edge)) then
+				-- ROBLOX FIXME Luau:
+				if ref:canRead(ref:readField("node", edge :: Reference)) then
 					table.insert(edges, edge)
-					if Boolean.toJSBoolean(edge.cursor) then
-						if Boolean.toJSBoolean(firstEdgeCursor) then
-							firstEdgeCursor = firstEdgeCursor
-						elseif Boolean.toJSBoolean(edge.cursor) then
-							firstEdgeCursor = edge.cursor :: string
-						else
-							firstEdgeCursor = ""
-						end
+					if edge.cursor then
+						firstEdgeCursor = Boolean.toJSBoolean(firstEdgeCursor) and firstEdgeCursor or edge.cursor or ""
 
 						lastEdgeCursor = Boolean.toJSBoolean(edge.cursor) and (edge.cursor :: string) or lastEdgeCursor
 					end
 				end
 			end)
 
-			local ref_ = Boolean.toJSBoolean(existing.pageInfo) and existing.pageInfo or {} :: Object
-			local startCursor, endCursor = ref_.startCursor, ref_.endCursor
+			-- ROBLOX deviation START: upstream has a weird way to default these values: existing.pageInfo || {}
+			local ref_ = existing.pageInfo
+			local startCursor, endCursor = ref_ and ref_.startCursor, ref_ and ref_.endCursor
+			-- ROBLOX deviation END
 
 			return Object.assign(
 				{},
@@ -199,24 +195,26 @@ local function relayStylePagination<TNode>(keyArgs: KeyArgs?): RelayFieldPolicy<
 				existing_ = makeEmptyData()
 			end
 			-- ROBLOX deviation: help analyze tool
-			local existing = existing_ :: TExistingRelay<any>
+			local existing = existing_ :: TExistingRelay<TNode>
 
 			local args = ref.args
 
-			local incomingEdges: Array<any>
-			if Boolean.toJSBoolean(incoming.edges) then
-				incomingEdges = Array.map(incoming.edges, function(edge: Object)
-					edge = Object.assign({}, edge)
-					if ref:isReference(edge) then
-						edge.cursor = ref:readField("cursor", edge)
+			local incomingEdges
+			if incoming.edges then
+				incomingEdges = Array.map(incoming.edges, function(edge)
+					-- ROBLOX FIXME Luau: doesn't correctly infer, needs explicit cursor assignment otherwise Value of type '(Reference & {| cursor: string? |})?' could be nil
+					local edge_ = Object.assign({ cursor = "" }, edge)
+					if ref:isReference(edge_) then
+						-- ROBLOX note: typecheck below is a manual propagation of the TS `is` return operator on usptream isReference(), `string` is because we can't explicitly specify generics
+						edge_.cursor = ref:readField("cursor", edge_ :: Reference) :: string
 					end
-					return edge
-				end)
+					return edge_
+				end) :: Array<TRelayEdge<TNode>>
 			else
-				incomingEdges = {}
+				incomingEdges = {} :: Array<TRelayEdge<TNode>>
 			end
 
-			if Boolean.toJSBoolean(incoming.pageInfo) then
+			if incoming.pageInfo then
 				local pageInfo = incoming.pageInfo
 				local startCursor, endCursor = pageInfo.startCursor, pageInfo.endCursor
 				local firstEdge = incomingEdges[1]
@@ -224,42 +222,34 @@ local function relayStylePagination<TNode>(keyArgs: KeyArgs?): RelayFieldPolicy<
 
 				-- In case we did not request the cursor field for edges in this
 				-- query, we can still infer cursors from pageInfo.
-				if Boolean.toJSBoolean(firstEdge) and Boolean.toJSBoolean(startCursor) then
-					firstEdge.cursor = startCursor
+				if firstEdge and startCursor then
+					-- ROBLOX FIXME Luau: fails to recognize as table
+					(firstEdge :: any).cursor = startCursor
 				end
-				if Boolean.toJSBoolean(lastEdge) and Boolean.toJSBoolean(endCursor) then
-					lastEdge.cursor = endCursor
+				if lastEdge and endCursor then
+					-- ROBLOX FIXME Luau: fails to recognize as table
+					(lastEdge :: any).cursor = endCursor
 				end
 
 				-- Cursors can also come from edges, so we default
 				-- pageInfo.{start,end}Cursor to {first,last}Edge.cursor.
-				local firstCursor
-				if Boolean.toJSBoolean(firstEdge) then
-					firstCursor = firstEdge.cursor
-				else
-					firstCursor = firstEdge
-				end
+				local firstCursor = firstEdge and firstEdge.cursor
 
-				if Boolean.toJSBoolean(firstCursor) and not Boolean.toJSBoolean(startCursor) then
+				if firstCursor and not startCursor then
 					incoming = mergeDeep(incoming, { pageInfo = { startCursor = firstCursor } })
 				end
 
-				local lastCursor
-				if Boolean.toJSBoolean(lastEdge) then
-					lastCursor = lastEdge.cursor
-				else
-					lastCursor = lastEdge
-				end
+				local lastCursor = lastEdge and lastEdge.cursor
 
-				if Boolean.toJSBoolean(lastCursor) and not Boolean.toJSBoolean(endCursor) then
+				if lastCursor and not endCursor then
 					incoming = mergeDeep(incoming, { pageInfo = { endCursor = lastCursor } })
 				end
 			end
 
 			local prefix = existing.edges
-			local suffix: typeof(prefix) = {}
+			local suffix = {} :: typeof(prefix)
 
-			if args ~= nil and Boolean.toJSBoolean(args.after) then
+			if args ~= nil and args.after then
 				-- This comparison does not need to use readField("cursor", edge),
 				-- because we stored the cursor field of any Reference edges as an
 				-- extra property of the Reference object.
@@ -270,7 +260,7 @@ local function relayStylePagination<TNode>(keyArgs: KeyArgs?): RelayFieldPolicy<
 				if
 					index >= 1 --ROBLOX deviation: index starts at 1
 				then
-					prefix = Array.slice(prefix, 1, index + 1)
+					prefix = Array.slice(prefix, 1, index + 1) :: Array<TRelayEdge<TNode>>
 					-- suffix = []; // already true
 				end
 			elseif args ~= nil and Boolean.toJSBoolean(args.before) then
@@ -280,17 +270,17 @@ local function relayStylePagination<TNode>(keyArgs: KeyArgs?): RelayFieldPolicy<
 				if index < 0 then
 					suffix = prefix
 				else
-					suffix = Array.slice(prefix, index)
+					suffix = Array.slice(prefix, index) :: Array<TRelayEdge<TNode>>
 				end
-				prefix = {}
+				prefix = {} :: Array<TRelayEdge<TNode>>
 			elseif Boolean.toJSBoolean(incoming.edges) then
 				-- If we have neither args.after nor args.before, the incoming
 				-- edges cannot be spliced into the existing edges, so they must
 				-- replace the existing edges. See #6592 for a motivating example.
-				prefix = {}
+				prefix = {} :: Array<TRelayEdge<TNode>>
 			end
 
-			local edges = Array.concat({}, prefix, incomingEdges, suffix)
+			local edges = Array.concat(prefix, incomingEdges, suffix)
 
 			local pageInfo: TRelayPageInfo = Object.assign(
 				{},
@@ -303,7 +293,7 @@ local function relayStylePagination<TNode>(keyArgs: KeyArgs?): RelayFieldPolicy<
 				existing.pageInfo
 			)
 
-			if Boolean.toJSBoolean(incoming.pageInfo) then
+			if incoming.pageInfo then
 				local hasPreviousPage, hasNextPage, startCursor, endCursor, extras
 				do
 					local ref_ = incoming.pageInfo

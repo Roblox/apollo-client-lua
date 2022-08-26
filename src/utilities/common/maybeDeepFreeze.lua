@@ -15,6 +15,7 @@ local isNonNullObject = require(script.Parent.objects).isNonNullObject
 
 local function deepFreeze(value: any)
 	local workSet = Set.new({ value })
+	-- ROBLOX deviation START: set is being modified inside the loop, can't use forEach
 	for _, obj in workSet do
 		if isNonNullObject(obj) then
 			if not Object.isFrozen(obj) then
@@ -27,6 +28,7 @@ local function deepFreeze(value: any)
 			end)
 		end
 	end
+	-- ROBLOX deviation END
 	return value
 end
 

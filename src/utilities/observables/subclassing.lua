@@ -1,19 +1,13 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/utilities/observables/subclassing.ts
 
--- ROBLOX deviation: no support for type constraints in Luau
--- S extends new (...args: any[]) => Observable<any>,
-type S_ = any
-
--- ROBLOX TODO:
-type Symbol = any
-
 local exports = {}
 
 local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
-local Symbol = LuauPolyfill.Symbol
+type Object = LuauPolyfill.Object
+type Symbol = LuauPolyfill.Symbol
 
 local Observable = require(script.Parent.Observable).Observable
 
@@ -25,20 +19,25 @@ local Observable = require(script.Parent.Observable).Observable
 -- different parameters. Defining this static Symbol.species property on
 -- the subclass is a hint to generic Observable code to use the default
 -- constructor instead of trying to do `new Subclass(observer => ...)`.
-local function fixObservableSubclass(subclass: S_): S_
+-- ROBLOX deviation START: no support for type constraints in Luau
+-- S extends new (...args: any[]) => Observable<any>,
+local function fixObservableSubclass(subclass: Object)
+	-- ROBLOX deviation END
 	local function set(key: Symbol | string)
 		-- Object.defineProperty is necessary because the Symbol.species
 		-- property is a getter by default in modern JS environments, so we
 		-- can't assign to it with a normal assignment expression.
-		-- ROBLOX deviation: no support for an Object.key type assignment. Assigning normally.
+		-- ROBLOX deviation START: no support for an Object.key type assignment. Assigning normally.
 		-- Object.defineProperty(subclass, key, { value = Observable })
-		subclass[key] = Observable
+		(subclass :: Object)[key] = Observable
+		-- ROBLOX deviation END
 	end
 
-	-- ROBLOX deviation: function can't have properties in Lua. Checking if `Symbol` is a table instead
-	if typeof(Symbol) == "table" and Symbol.species ~= nil then
-		set(Symbol.species)
-	end
+	-- ROBLOX deviation START: this won't work the way it does in JS, skip it since it's optional upstream anyway
+	-- if typeof(Symbol) == "table" and Symbol.species then
+	-- 	set(Symbol.species)
+	-- end
+	-- ROBLOX deviation END
 
 	set("@@species")
 	return subclass

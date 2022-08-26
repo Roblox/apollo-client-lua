@@ -297,9 +297,9 @@ function InMemoryCache:resetResultCache(resetResultIdentities: boolean?): ()
 	-- Since we have thrown away all the cached functions that depend on the
 	-- CacheGroup dependencies maintained by EntityStore, we should also reset
 	-- all CacheGroup dependency information.
-	for _, group in Set.new({ self.data.group, self.optimisticData.group }) do
-		group:resetCaching()
-	end
+	Set.new({ self.data.group, self.optimisticData.group }):forEach(function(group)
+		return group:resetCaching()
+	end)
 end
 
 function InMemoryCache:restore(data: NormalizedCacheObject): InMemoryCache
@@ -325,7 +325,7 @@ function InMemoryCache:extract(optimistic: boolean?): NormalizedCacheObject
 	end
 end
 
-function InMemoryCache:read(options: Cache_ReadOptions<TVariables_, TData_>): T_ | nil
+function InMemoryCache:read<T>(options: Cache_ReadOptions<TVariables_, TData_>): T | nil
 	-- Since read returns data or null, without any additional metadata
 	-- about whether/where there might have been missing fields, the
 	-- default behavior cannot be returnPartialData = true (like it is
@@ -582,9 +582,8 @@ function InMemoryCache:batch(options: Cache_BatchOptions<InMemoryCache>)
 			self.data = self.optimisticData
 		end
 
-		local ok, result = pcall(function()
-			options:update(self)
-		end)
+		-- ROBLOX FIXME Luau: options.update doesnt return any value. pcall expects value to be returned
+		local ok, result = pcall(options.update :: any, options, self)
 		do
 			self.txCount -= 1
 			self.data = data
@@ -656,9 +655,9 @@ function InMemoryCache:batch(options: Cache_BatchOptions<InMemoryCache>)
 		-- Silently re-dirty any watches that were already dirty before the update
 		-- was performed, and were not broadcast just now.
 		if Boolean.toJSBoolean(alreadyDirty.size) then
-			for _, watch in alreadyDirty do
-				self.maybeBroadcastWatch:dirty(watch)
-			end
+			alreadyDirty:forEach(function(watch)
+				return self.maybeBroadcastWatch:dirty(watch)
+			end)
 		end
 	else
 		-- If alreadyDirty is empty or we don't have an onWatchUpdated
@@ -695,9 +694,9 @@ end
 
 function InMemoryCache:broadcastWatches(options: BroadcastOptions?): ()
 	if not Boolean.toJSBoolean(self.txCount) then
-		for _, c in self.watches do
-			self:maybeBroadcastWatch(c, options)
-		end
+		self.watches:forEach(function(c)
+			return self:maybeBroadcastWatch(c, options)
+		end)
 	end
 end
 

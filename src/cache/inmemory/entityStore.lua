@@ -110,11 +110,12 @@ export type EntityStore = {
 	gc: (self: EntityStore) -> Array<string>,
 	findChildRefIds: (self: EntityStore, dataId: string) -> Record<string, boolean>,
 	makeCacheKey: (self: EntityStore, ...any) -> Object,
-	getFieldValue: (
+	-- ROBLOX TODO: default type arg
+	getFieldValue: <T>(
 		self: EntityStore,
 		objectOrReference: StoreObject | Reference | nil,
 		storeFieldName: string
-	) -> SafeReadonly<T_>,
+	) -> SafeReadonly<T>,
 	canRead: (self: EntityStore, value: StoreValue) -> boolean,
 	toReference: (
 		self: EntityStore,
@@ -522,11 +523,11 @@ end
 function EntityStore:extract(): NormalizedCacheObject
 	local obj = self:toObject()
 	local extraRootIds: Array<string> = {}
-	for _, id in self:getRootIdSet() do
+	self:getRootIdSet():forEach(function(id)
 		if not hasOwn(self.policies.rootTypenamesById, id) then
 			table.insert(extraRootIds, id :: string)
 		end
-	end
+	end)
 	if Boolean.toJSBoolean(#extraRootIds) then
 		obj.__META = { extraRootIds = Array.sort(extraRootIds) }
 	end
@@ -600,6 +601,7 @@ end
 function EntityStore:gc()
 	local ids = self:getRootIdSet()
 	local snapshot = self:toObject()
+	-- ROBLOX deviation START: set is being modified inside the loop, can't use forEach
 	for _, id in ids do
 		if hasOwn(snapshot, id) then
 			-- Because we are iterating over an ECMAScript Set, the IDs we add here
@@ -611,6 +613,7 @@ function EntityStore:gc()
 			snapshot[id] = nil
 		end
 	end
+	-- ROBLOX deviation END
 
 	local idsToRemove = Object.keys(snapshot)
 
@@ -636,9 +639,10 @@ function EntityStore:findChildRefIds(dataId: string): Record<string, boolean>
 			return found
 		end
 
-		local workSet = Set.new({ root })
+		local workSet = Set.new({ root }) :: Set<Record<string | number, any>>
 		-- Within the store, only arrays and objects can contain child entity
 		-- references, so we can prune the traversal using this predicate:
+		-- ROBLOX deviation START: set is being modified inside the loop, can't use forEach
 		for _, obj in workSet do
 			if isReference(obj) then
 				found[obj.__ref] = true
@@ -662,6 +666,7 @@ function EntityStore:findChildRefIds(dataId: string): Record<string, boolean>
 				end)
 			end
 		end
+		-- ROBLOX deviation END
 	end
 	return self.refs[dataId]
 end
@@ -702,17 +707,13 @@ function CacheGroup.new(caching: boolean, parent: CacheGroup | nil): CacheGroup
 	local self = setmetatable({}, CacheGroup)
 	self.caching = caching
 	self.parent = parent
-	self.d = nil
+	self.d = nil :: OptimisticDependencyFunction<string>?
 	self:resetCaching()
 	return (self :: any) :: CacheGroup
 end
 
 function CacheGroup:resetCaching()
-	if Boolean.toJSBoolean(self.caching) then
-		self.d = dep()
-	else
-		self.d = nil
-	end
+	self.d = if Boolean.toJSBoolean(self.caching) then dep() else nil
 	self.keyMaker = Trie.new(canUseWeakMap)
 end
 

@@ -4,8 +4,10 @@ local exports = {}
 local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
+type Array<T> = LuauPolyfill.Array<T>
 local Boolean, Object = LuauPolyfill.Boolean, LuauPolyfill.Object
 type Object = { [string]: any }
+type Record<T, U> = { [T]: U }
 
 local equal = require(srcWorkspace.jsutils.equal)
 local DocumentType = require(script.Parent.Parent.parser).DocumentType
@@ -27,20 +29,22 @@ type MutationFunctionOptions<TData, TVariables, TContext, TCache> = typesModule.
 	TCache
 >
 type MutationResult<TData> = typesModule.MutationResult<TData>
-local operationDataModule = require(script.Parent.OperationData)
-local OperationData = operationDataModule.OperationData
-type OperationData<TOptions> = operationDataModule.OperationData<TOptions>
-
+local OperationDataModule = require(script.Parent.OperationData)
+local OperationData = OperationDataModule.OperationData
+type OperationData<TOptions> = OperationDataModule.OperationData<TOptions>
 local coreModule = require(srcWorkspace.core)
--- local MutationOptions = coreModule.MutationOptions
+type MutationOptions<TData, TVariables, TContext, TCache> = coreModule.MutationOptions<
+	TData,
+	TVariables,
+	TContext,
+	TCache
+>
 local mergeOptions = coreModule.mergeOptions
 -- local ApolloCache = coreModule.ApolloCache
 -- local OperationVariables = coreModule.OperationVariables
 -- local DefaultContext = coreModule.DefaultContext
-
--- ROBLOX TODO: use proper type when available
--- local FetchResult = require(script.Parent.Parent.Parent.link.core).FetchResult
-type FetchResult<TData> = { data: TData, errors: any }
+local LinkCoreModule = require(srcWorkspace.link.core)
+type FetchResult<TData, C, E> = LinkCoreModule.FetchResult<TData, C, E>
 
 type MutationResultWithoutClient<TData> = {
 	data: (TData | nil)?,
@@ -67,10 +71,17 @@ type MutationDataConstructorArgs<TData, TVariables, TContext, TCache> = {
 	options: MutationDataOptions<TData, TVariables, TContext, TCache>,
 	context: any,
 	result: MutationResultWithoutClient<TData>,
-	setResult: (MutationResultWithoutClient<TData>) -> any,
+	setResult: (self: any, MutationResultWithoutClient<TData>) -> any,
 }
 
-function MutationData.new(ref: MutationDataConstructorArgs<any, any, any, any>): MutationData<any, any, any, any>
+function MutationData.new<TData, TVariables, TContext, TCache>(
+	ref: MutationDataConstructorArgs<
+		TData,
+		TVariables,
+		TContext,
+		TCache
+	>
+): MutationData<TData, TVariables, TContext, TCache>
 	local self: any = OperationData.new(ref.options, ref.context)
 	self.runMutation = function(mutationFunctionOptions: Object?)
 		if mutationFunctionOptions == nil then
@@ -140,27 +151,18 @@ function MutationData:onMutationStart()
 	end
 end
 
-function MutationData:onMutationCompleted(response: FetchResult<any>, mutationId: number)
+-- ROBLOX TODO: use default type args to acheive FetchResult<TData>
+function MutationData:onMutationCompleted(
+	response: FetchResult<any, Record<string, any>, Record<string, any>>,
+	mutationId: number
+)
 	local options = self:getOptions()
 	local onCompleted, ignoreResults = options.onCompleted, options.ignoreResults
 
 	local data, errors = response.data, response.errors
 
-	local error_ = (function(): ApolloError | nil
-		if
-			Boolean.toJSBoolean((function()
-				if Boolean.toJSBoolean(errors) then
-					return #errors > 0
-				else
-					return errors
-				end
-			end)())
-		then
-			return ApolloError.new({ graphQLErrors = errors })
-		else
-			return nil
-		end
-	end)()
+	-- ROBLOX FIXME Luau: typecheck required to silence false positive error message
+	local error_ = if errors and #(errors :: Array<any>) > 0 then ApolloError.new({ graphQLErrors = errors }) else nil
 
 	local function callOncomplete()
 		if Boolean.toJSBoolean(onCompleted) then

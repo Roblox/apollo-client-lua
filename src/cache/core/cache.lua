@@ -50,13 +50,13 @@ type Cache_ReadFragmentOptions<TData, TVariables> = cacheModule.Cache_ReadFragme
 type Cache_WriteQueryOptions<TData, TVariables> = cacheModule.Cache_WriteQueryOptions<TData, TVariables>
 type Cache_WriteFragmentOptions<TData, TVariables> = cacheModule.Cache_WriteFragmentOptions<TData, TVariables>
 
--- ROBLOX FIXME: to workaround a Luau bug, this type argument has to be the same *name* as ApolloCache's type arg. https://jira.rbx.com/browse/CLI-47160
--- export type Transaction<T> = (c: ApolloCache<T>) -> ()
 -- ROBLOX FIXME: this is a workaround for the 'recursive type with different args' error, remove this once that's fixed
-type _Transaction = (c: _ApolloCache) -> ()
 export type Transaction<T> = (c: _ApolloCache) -> ()
--- ROBLOX FIXME: this is a workaround for the 'recursive type with different args' error, remove this once that's fixed
+type _Transaction = (c: _ApolloCache) -> ()
 type _ApolloCache = DataProxy & {
+	-- required to implement
+	-- core API
+	-- ROBLOX TODO: supply default type args
 	read: <T, TVariables>(self: _ApolloCache, query: Cache_ReadOptions<TVariables, T>) -> T | nil,
 	write: <TResult, TVariables>(self: _ApolloCache, write: Cache_WriteOptions<TResult, TVariables>) -> Reference | nil,
 	diff: <T>(self: _ApolloCache, query: Cache_DiffOptions) -> Cache_DiffResult<T>,
@@ -94,9 +94,7 @@ type _ApolloCache = DataProxy & {
 export type ApolloCache<TSerialized> = DataProxy & {
 	-- required to implement
 	-- core API
-	-- ROBLOX FIXME: missing default generic types
 	read: <T, TVariables>(self: ApolloCache<TSerialized>, query: Cache_ReadOptions<TVariables, T>) -> T | nil,
-	-- ROBLOX FIXME: missing default generic types
 	write: <TResult, TVariables>(
 		self: ApolloCache<TSerialized>,
 		write: Cache_WriteOptions<TResult, TVariables>
@@ -257,7 +255,7 @@ function ApolloCache:batch(options: Cache_BatchOptions<ApolloCache<any>>): ()
 end
 
 function ApolloCache:performTransaction(
-	transaction: Transaction<TSerialized_>,
+	transaction: _Transaction,
 	-- Although subclasses may implement recordOptimisticTransaction
 	-- however they choose, the default implementation simply calls
 	-- performTransaction with a string as the second argument, allowing
@@ -270,7 +268,7 @@ function ApolloCache:performTransaction(
 	error("not implemented abstract method")
 end
 
-function ApolloCache:recordOptimisticTransaction(transaction: Transaction<TSerialized_>, optimisticId: string): ()
+function ApolloCache:recordOptimisticTransaction(transaction: _Transaction, optimisticId: string): ()
 	self:performTransaction(transaction, optimisticId)
 end
 

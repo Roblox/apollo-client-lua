@@ -42,7 +42,13 @@ export type Slot<TValue> = {
 	id: string,
 	hasValue: (self: Slot<TValue>) -> boolean,
 	getValue: (self: Slot<TValue>) -> TValue | nil,
-	withValue: (self: Slot<TValue>, value: TValue, callback: TCallback, args: TArgs_?, thisArg: TThis_?) -> TResult_,
+	withValue: <TResult, TArgs, TThis>(
+		self: Slot<TValue>,
+		value: TValue,
+		callback: TCallback,
+		args: TArgs?,
+		thisArg: TThis?
+	) -> TResult,
 }
 
 -- Although we can't do anything about the cost of duplicated code from
@@ -52,7 +58,7 @@ local function makeSlotClass()
 	local Slot = {}
 	Slot.__index = Slot
 
-	function Slot.new(): Slot<any>
+	function Slot.new<TValue>(): Slot<TValue>
 		local self = setmetatable({}, Slot)
 
 		-- If you have a Slot object, you can find out its slot.id, but you cannot
@@ -67,7 +73,7 @@ local function makeSlotClass()
 		}, ":")
 		idCounter += 1
 
-		return (self :: any) :: Slot<any>
+		return (self :: any) :: Slot<TValue>
 	end
 
 	function Slot:hasValue(): boolean
@@ -142,23 +148,18 @@ local function makeSlotClass()
 
 	-- Capture the current context and wrap a callback function so that it
 	-- reestablishes the captured context when called.
-	function Slot.bind(callback: TCallback)
+	function Slot.bind<TArgs, TResult, TThis>(callback: (self: TThis, ...TArgs) -> TResult)
 		local context = currentContext
 		return function(self: TThis_, ...)
 			local arguments = { ... }
 			local saved = currentContext
-			local ok, result, hasReturned = pcall(function()
-				currentContext = context
-				return callback(self, table.unpack(arguments :: any)), true
-			end)
+			currentContext = context
+			local ok, result = pcall(callback, self, table.unpack(arguments :: any))
 			currentContext = saved
-			if hasReturned then
-				return result
-			end
 			if not ok then
 				error(result)
 			end
-			return nil
+			return result
 		end :: TCallback
 	end
 

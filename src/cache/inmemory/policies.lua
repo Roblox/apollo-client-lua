@@ -622,13 +622,12 @@ function Policies:getTypePolicy(
 		-- this policy, because this code runs at most once per typename.
 		local supertypes = self.supertypeMap:get(typename)
 		if Boolean.toJSBoolean(supertypes) and Boolean.toJSBoolean(supertypes.size) then
-			-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-			for _, supertype in supertypes do
+			supertypes:forEach(function(supertype)
 				local ref = self:getTypePolicy(supertype)
 				local fields, rest = ref.fields, Object.assign({}, ref, { fields = Object.None })
 				Object.assign(policy, rest)
 				Object.assign(policy.fields, fields)
-			end
+			end)
 		end
 	end
 

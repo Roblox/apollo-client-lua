@@ -274,14 +274,9 @@ end
  * @param  {Store} store The Apollo Client store object
  * @return {result: Object, complete: [boolean]}
 ]]
-function StoreReader:diffQueryAgainstStore(ref: DiffQueryAgainstStoreOptions): Cache_DiffResult<T_>
+function StoreReader:diffQueryAgainstStore<T>(ref: DiffQueryAgainstStoreOptions): Cache_DiffResult<T>
 	local store, query, rootId, variables, returnPartialData, canonizeResults =
-		ref.store,
-		ref.query,
-		(ref.rootId :: any) :: string,
-		ref.variables,
-		(ref.returnPartialData :: any) :: boolean,
-		(ref.canonizeResults :: any) :: boolean
+		ref.store, ref.query, ref.rootId, ref.variables, ref.returnPartialData, ref.canonizeResults
 	if rootId == nil then
 		rootId = "ROOT_QUERY"
 	end
@@ -406,7 +401,7 @@ function StoreReader:execSelectionSetImpl(ref: ExecSelectionSetOptions): ExecRes
 
 	local workSet = Set.new(selectionSet.selections)
 
-	-- ROBLOX deviation: can't use Array.map on a Set in Lua
+	-- ROBLOX deviation START: set is being modified inside the loop, can't use forEach
 	for _, selection in workSet do
 		-- Omit fields with directives @skip(if: <truthy value>) or
 		-- @include(if: <falsy value>).
@@ -489,6 +484,7 @@ function StoreReader:execSelectionSetImpl(ref: ExecSelectionSetOptions): ExecRes
 			end
 		end
 	end
+	-- ROBLOX deviation END
 
 	-- Perform a single merge at the end so that we can avoid making more
 	-- defensive shallow copies than necessary.
@@ -595,6 +591,7 @@ exports.StoreReader = StoreReader
 function assertSelectionSetForIdValue(store: NormalizedCache, field: FieldNode, fieldValue: any)
 	if not Boolean.toJSBoolean(field.selectionSet) then
 		local workSet = Set.new({ fieldValue })
+		-- ROBLOX deviation START: set is being modified inside the loop, can't use forEach
 		for _, value in workSet do
 			if isNonNullObject(value) then
 				invariant(
@@ -607,6 +604,7 @@ function assertSelectionSetForIdValue(store: NormalizedCache, field: FieldNode, 
 				Array.forEach(Object.values(value), workSet.add, workSet)
 			end
 		end
+		-- ROBLOX deviation END
 	end
 end
 

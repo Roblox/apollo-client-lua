@@ -130,9 +130,9 @@ local function createHttpLink(linkOptions_: HttpOptions?)
 				-- Make a shallow copy of body.variables (with keys in the same
 				-- order) and then delete unused variables from the copy.
 				body.variables = Object.assign({}, body.variables)
-				for _, name in unusedNames do
+				unusedNames:forEach(function(name)
 					body.variables[name] = nil
-				end
+				end)
 			end
 		end
 

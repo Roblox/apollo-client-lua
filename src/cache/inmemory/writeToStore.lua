@@ -19,12 +19,6 @@ type Set<T> = LuauPolyfill.Set<T>
 type Record<T, U> = { [T]: U }
 type Tuple<T, V> = Array<T | V>
 
---[[
-  ROBLOX deviation: no generic params for functions are supported.
-  T_ is placeholder for generic T param
-]]
-type T_ = any
-
 local NULL = require(srcWorkspace.utilities).NULL
 
 local HttpService = game:GetService("HttpService")
@@ -114,14 +108,14 @@ type StoreWriterPrivate = StoreWriter & {
 		context: WriteContext,
 		mergeTree: MergeTree
 	) -> StoreValue,
-	applyMerges: (
+	applyMerges: <T>(
 		self: StoreWriterPrivate,
 		mergeTree: MergeTree,
 		existing: StoreValue,
-		incoming: T_,
+		incoming: T,
 		context: WriteContext,
 		getStorageArgs: Tuple<string | StoreObject, Array<string | number>>?
-	) -> T_,
+	) -> T | Reference,
 }
 
 export type StoreWriter = {
@@ -150,9 +144,10 @@ function StoreWriter:writeToStore(store: NormalizedCache, writeOpts: Cache_Write
 	local context: WriteContext = {
 		store = store,
 		written = {},
-		merge = function(existing: T_, incoming: T_)
-			return merger:merge(existing, incoming) :: T_
-		end,
+		-- ROBLOX FIXME Luau: analyze claims merge isn't compatible, but it's the same as WriteContext: merge: <T>(existing: T, incoming: T) -> T,
+		merge = function<T>(existing: T, incoming: T): T
+			return merger:merge(existing, incoming)
+		end :: any,
 		variables = variables,
 		varString = canonicalStringify(variables),
 		fragmentMap = createFragmentMap(getFragmentDefinitions(query)),
@@ -181,8 +176,7 @@ function StoreWriter:writeToStore(store: NormalizedCache, writeOpts: Cache_Write
 	-- So far, the store has not been modified, so now it's time to process
 	-- context.incomingById and merge those incoming fields into context.store.
 	-- ROBLOX deviation: renamed dataId to dataId_ to resolve shadowing analyze error
-	for _, ref_ in context.incomingById do
-		local dataId_, incoming = ref_[1], ref_[2]
+	context.incomingById:forEach(function(incoming, dataId_)
 		local fields: StoreObject, mergeTree: MergeTree, selections: Set<SelectionNode> =
 			incoming.fields, incoming.mergeTree, incoming.selections
 
@@ -207,11 +201,11 @@ function StoreWriter:writeToStore(store: NormalizedCache, writeOpts: Cache_Write
 				return fieldsWithSelectionSets:has(fieldNameFromStoreName(storeFieldName))
 			end
 			fieldsWithSelectionSets = Set.new()
-			for _, selection in selections do
+			selections:forEach(function(selection)
 				if isField(selection) and Boolean.toJSBoolean(selection.selectionSet) then
 					fieldsWithSelectionSets:add(selection.name.value)
 				end
-			end
+			end)
 
 			local function hasMergeFunction(storeFieldName: string)
 				local childTree = mergeTree.map:get(storeFieldName)
@@ -230,7 +224,7 @@ function StoreWriter:writeToStore(store: NormalizedCache, writeOpts: Cache_Write
 		end
 
 		store:merge(dataId_, fields)
-	end
+	end)
 
 	-- Any IDs written explicitly to the cache will be retained as
 	-- reachable root IDs for garbage collection purposes. Although this
@@ -296,7 +290,7 @@ function StoreWriter:processSelectionSet(ref_: ProcessSelectionSetOptions): Stor
 	-- Write any key fields that were used during identification, even if
 	-- they were not mentioned in the original query.
 	if keyObject ~= nil then
-		incomingFields = context.merge(incomingFields, keyObject)
+		incomingFields = (context.merge(incomingFields, (keyObject :: any) :: StoreObject) :: any) :: StoreObject
 	end
 
 	-- If typename was not passed in, infer it. Note that typename is
@@ -320,8 +314,9 @@ function StoreWriter:processSelectionSet(ref_: ProcessSelectionSetOptions): Stor
 		incomingFields.__typename = typename
 	end
 
-	local selections = Set.new(selectionSet.selections)
+	local selections = Set.new(selectionSet.selections) :: Set<SelectionNode>
 
+	-- ROBLOX deviation START: set is being modified inside the loop, can't use forEach
 	for _, selection in selections do
 		if not shouldInclude(selection, context.variables) then
 			continue
@@ -403,7 +398,9 @@ function StoreWriter:processSelectionSet(ref_: ProcessSelectionSetOptions): Stor
 					maybeRecycleChildMergeTree(mergeTree, storeFieldName)
 				end
 
-				incomingFields = context.merge(incomingFields, { [storeFieldName] = incomingValue })
+				-- ROBLOX deviation: Another place where upstream is relying on TS gaps, it needs an explicit cast
+				incomingFields =
+					context.merge(incomingFields, ({ [storeFieldName] = incomingValue } :: any) :: StoreObject)
 			elseif not Boolean.toJSBoolean(context.clientOnly) and not addTypenameToDocument:added(selection) then
 				invariant.error(
 					string.sub(
@@ -447,18 +444,19 @@ function StoreWriter:processSelectionSet(ref_: ProcessSelectionSetOptions): Stor
 			end
 		end
 	end
+	-- ROBLOX deviation END
 
 	if "string" == typeof(dataId) then
-		local previous = context.incomingById:get(dataId)
-		if previous ~= nil then
+		local previous =
+			context.incomingById:get(dataId) :: { fields: StoreObject, mergeTree: MergeTree, selections: Set<SelectionNode> }?
+		if previous then
 			previous.fields = context.merge(previous.fields, incomingFields)
 			previous.mergeTree = mergeMergeTrees(previous.mergeTree, mergeTree)
 			-- Add all previous SelectionNode objects, rather than creating a new
 			-- Set, since the original unmerged selections Set is not going to be
 			-- needed again (only the merged Set).
-			for _index, value in previous.selections do
-				selections:add(value)
-			end
+			-- ROBLOX FIXME Luau: selections could not be converted into Object?
+			previous.selections:forEach(selections.add :: any, selections :: any)
 			previous.selections = selections
 		else
 			context.incomingById:set(
@@ -505,13 +503,13 @@ function StoreWriter:processFieldValue(
 	})
 end
 
-function StoreWriter:applyMerges(
+function StoreWriter:applyMerges<T>(
 	mergeTree: MergeTree,
 	existing: StoreValue,
-	incoming: T_,
+	incoming: T,
 	context: WriteContext,
-	getStorageArgs: Tuple<string | StoreObject, Array<string | number>>?
-): T_ | Reference
+	getStorageArgs: Tuple<string | StoreObject, string | number>?
+): T | Reference
 	if Boolean.toJSBoolean(mergeTree.map.size) and not isReference(incoming) then
 		local e: StoreObject | Reference | nil = (function(): StoreObject | Reference | nil
 			local ref = (function(): boolean
@@ -538,7 +536,7 @@ function StoreWriter:applyMerges(
 		-- This narrowing is implied by mergeTree.map.size > 0 and
 		-- !isReference(incoming), though TypeScript understandably cannot
 		-- hope to infer this type.
-		local i = incoming :: StoreObject | Array<StoreValue>
+		local i = (incoming :: any) :: StoreObject | Array<StoreValue>
 
 		-- The options.storage objects provided to read and merge functions
 		-- are derived from the identity of the parent object plus a
@@ -571,14 +569,12 @@ function StoreWriter:applyMerges(
 			end
 		end
 
-		for _, ref in mergeTree.map do
-			local storeFieldName, childTree = table.unpack(ref, 1, 2)
+		mergeTree.map:forEach(function(childTree, storeFieldName)
 			local eVal = getValue(e, storeFieldName)
 			local iVal = getValue(i, storeFieldName)
 			-- If we have no incoming data, leave any existing data untouched.
 			if nil == iVal then
-				-- ROBLOX deviation: using continue instead of return to finish current loop cycle, but not return from the whole function
-				continue
+				return
 			end
 			if getStorageArgs ~= nil then
 				table.insert(getStorageArgs, storeFieldName)
@@ -591,19 +587,19 @@ function StoreWriter:applyMerges(
 			if getStorageArgs ~= nil then
 				invariant(table.remove(getStorageArgs, #getStorageArgs) == storeFieldName)
 			end
-		end
+		end)
 
 		if Boolean.toJSBoolean(changedFields) and changedFields ~= nil then
 			-- Shallow clone i so we can add changed fields to it.
 			if Array.isArray(i) then
-				incoming = Array.slice(i :: Array<any>, 1) :: T_
+				-- ROBLOX deviation: upstream relies on broken TS data analysis, so we cast to any first
+				incoming = (Array.slice(i :: Array<StoreValue>, 1) :: any) :: T
 			else
-				incoming = Object.assign({}, i) :: T_
+				incoming = Object.assign({}, i :: Array<StoreValue>) :: T
 			end
-			for _, ref_ in changedFields do
-				local name, value = table.unpack(ref_, 1, 2)
-				incoming[name] = value
-			end
+			changedFields:forEach(function(value, name)
+				(incoming :: any)[name] = value
+			end)
 		end
 	end
 
@@ -661,21 +657,19 @@ function mergeMergeTrees(left: MergeTree | nil, right: MergeTree | nil): MergeTr
 	local merged = { info = info, map = map }
 
 	if Boolean.toJSBoolean(needToMergeMaps) then
-		local remainingRightKeys = Set.new((right :: MergeTree).map:keys())
+		local remainingRightKeys = Set.new((right :: MergeTree).map:keys());
 
-		-- ROBLOX FIXME: add Map.forEach (and Set.forEach) to polyfill and use it here
-		for _, ref in (left :: MergeTree).map do
-			local key, leftTree = table.unpack(ref, 1, 2);
+		(left :: MergeTree).map:forEach(function(leftTree, key)
 			(merged.map :: Map<any, any>):set(key, mergeMergeTrees(leftTree, (right :: MergeTree).map:get(key)))
 			remainingRightKeys:delete(key)
-		end
+		end)
 
-		for _, key in remainingRightKeys do
+		remainingRightKeys:forEach(function(key)
 			(merged.map :: Map<any, any>):set(
 				key,
 				mergeMergeTrees((right :: MergeTree).map:get(key), (left :: MergeTree).map:get(key))
 			)
-		end
+		end)
 	end
 
 	return merged

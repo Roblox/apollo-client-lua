@@ -26,7 +26,6 @@ type TVariables_ = any
 type TData_ = any
 type TContext_ = any
 type T_ = any
-type TCacheShape_ = any
 type TOptions_ = any
 type TResult_ = any
 type TCache_ = any
@@ -125,7 +124,7 @@ type OptionsUnion<TData, TVariables, TContext> =
 	| QueryOptions<TVariables, TData>
 	| MutationOptions<TData, TVariables, TContext, any>
 
-local function mergeOptions(defaults: Partial<TOptions_>, options: TOptions_): TOptions_
+local function mergeOptions<TOptions>(defaults: Partial<TOptions>, options: TOptions & OptionsUnion<any, any, any>): TOptions
 	return compact(
 		defaults,
 		options,
@@ -700,11 +699,10 @@ function ApolloClient:refetchQueries(options: RefetchQueriesOptions<TCache_, TRe
 	local queries: Array<ObservableQuery<any, any>> = {}
 	local results: Array<InternalRefetchQueriesResult<TResult_>> = {}
 
-	for _, ref in map do
-		local obsQuery, result = table.unpack(ref, 1, 2)
+	map:forEach(function(result, obsQuery)
 		table.insert(queries, obsQuery)
 		table.insert(results, result)
-	end
+	end)
 
 	local result = Promise.all(results :: Array<TResult_>) :: RefetchQueriesResult<TResult_>
 
@@ -741,7 +739,7 @@ end
 --[[
   * Exposes the cache's complete state, in a serializable format for later restoration.
 ]]
-function ApolloClient:extract(optimistic: boolean?): TCacheShape_
+function ApolloClient:extract(optimistic: boolean?)
 	return self.cache:extract(optimistic)
 end
 
@@ -752,7 +750,7 @@ end
   * Called when hydrating a cache (server side rendering, or offline storage),
   * and also (potentially) during hot reloads.
 ]]
-function ApolloClient:restore(serializedState: TCacheShape_)
+function ApolloClient:restore(serializedState)
 	return self.cache:restore(serializedState)
 end
 

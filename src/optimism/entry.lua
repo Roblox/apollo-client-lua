@@ -72,6 +72,7 @@ local function assert(condition: any, optionalMessage: string?)
 end
 
 local entryTypesModule = require(script.Parent.entryTypes)
+local anyEntryTypesModule = require(script.Parent.anyEntryTypes)
 
 -- ROBLOX deviation: types are moved to separate file to avoid circular dependencies
 type Value<T> = entryTypesModule.Value<T>
@@ -119,15 +120,13 @@ end
 -- ROBLOX deviation: types are moved to separate file to avoid circular dependencies
 export type Entry<TArgs, TValue> = entryTypesModule.Entry<TArgs, TValue>
 
-export type AnyEntry = entryTypesModule.AnyEntry
+export type AnyEntry = anyEntryTypesModule.AnyEntry
 
 local Entry = {}
 Entry.__index = Entry
 Entry.count = 0
 
-type EntryPrivate<TArgs, TValue> = Entry<TArgs, TValue> & { deps: Set<Dep<any>> | nil }
-
-function Entry.new<TArgs, TValue>(fn: (...any) -> TValue): Entry<TArgs, TValue>
+function Entry.new<TArgs, TValue>(fn: (...TArgs) -> TValue): Entry<TArgs, TValue>
 	local self = setmetatable({}, Entry)
 
 	self.parents = Set.new()
@@ -150,7 +149,7 @@ end
 
 function Entry:peek(): TValue_ | nil
 	if #self.value == 1 and not mightBeDirty(self) then
-		rememberParent(self :: Entry<TArgs_, TValue_>)
+		rememberParent(self)
 		return self.value[1]
 	end
 	return nil
@@ -164,9 +163,9 @@ end
 -- (3) valueGet(self.value) is usually returned without recomputation.
 function Entry:recompute(args: TArgs_): TValue_
 	assert(not self.recomputing, "already recomputing")
-	rememberParent(self :: Entry<TArgs_, TValue_>)
+	rememberParent(self)
 	if mightBeDirty(self) then
-		return reallyRecompute(self :: Entry<TArgs_, TValue_>, args)
+		return reallyRecompute(self, args)
 	else
 		return valueGet(self.value)
 	end
@@ -205,7 +204,7 @@ function Entry:dispose()
 	-- each parent, but that would leave self entry in parent.childValues
 	-- and parent.dirtyChildren, which would prevent the child from being
 	-- truly forgotten.
-	eachParent(self :: Entry<TArgs_, TValue_>, function(parent: AnyEntry, child: AnyEntry)
+	eachParent(self, function(parent: AnyEntry, child: AnyEntry)
 		parent:setDirty()
 		forgetChild(parent :: any, self :: any)
 		return nil
@@ -221,11 +220,12 @@ end
 
 function Entry:dependOn(dep: Dep<any>)
 	dep:add(self)
-	if not Boolean.toJSBoolean(self.deps) then
+	if not self.deps then
 		local ref = table.remove(emptySetPool)
-		self.deps = Boolean.toJSBoolean(ref) and ref or Set.new()
+		self.deps = (ref or Set.new()) :: Set<any>
 	end
-	self.deps:add(dep)
+	-- ROBLOX Luau FIXME: Luau doesn't infer correctly in the if not x then x = Set.new() pattern
+	(self.deps :: Set<any>):add(dep)
 end
 
 function Entry:forgetDeps()
@@ -280,17 +280,17 @@ function recomputeNewValue(_self, entry: AnyEntry, args: Array<any>)
 	entry.recomputing = true
 	-- Set entry.value as unknown.
 	-- ROBLOX check: upstream prop is readonly. Check if something relies on ref not changing
-	entry.value = {}
+	table.clear(entry.value)
 	-- entry.value.length = 0
-	local ok, e = pcall(function()
+	local ok, e = pcall(entry.fn, table.unpack(args))
+	if ok then
 		-- If entry.fn succeeds, entry.value will become a normal Value.
-		entry.value[1] = entry.fn(table.unpack(args))
+		entry.value[1] = e
 		-- ROBLOX deviation: if returned value is nil use None instead to be able to check in valueGet
 		if entry.value[1] == nil then
 			entry.value[1] = NONE
 		end
-		return nil
-	end)
+	end
 	if not ok then
 		-- If entry.fn throws, entry.value will become exceptional.
 		entry.value[2] = e

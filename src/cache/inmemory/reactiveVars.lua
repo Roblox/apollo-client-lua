@@ -7,7 +7,9 @@ local exports = {}
 local optimismModule = require(srcWorkspace.optimism)
 local dep = optimismModule.dep
 type OptimisticDependencyFunction<TKey> = optimismModule.OptimisticDependencyFunction<TKey>
-local Slot = require(srcWorkspace.wry.context).Slot
+local WryContextModule = require(srcWorkspace.wry.context)
+local Slot = WryContextModule.Slot
+type Slot<T> = WryContextModule.Slot<T>
 -- local inMemoryCacheModule = require(script.Parent.inMemoryCache)
 -- type InMemoryCache = inMemoryCacheModule.InMemoryCache
 -- ROBLOX TODO: use real implementation when available
@@ -18,18 +20,11 @@ type ApolloCache<T> = coreCacheModule.ApolloCache<T>
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Array = LuauPolyfill.Array
-local Boolean = LuauPolyfill.Boolean
 local Set = LuauPolyfill.Set
 local WeakMap = LuauPolyfill.WeakMap
 
 type Set<T> = LuauPolyfill.Set<T>
 type WeakMap<K, V> = LuauPolyfill.WeakMap<K, V>
-
---[[
-  ROBLOX deviation: no generic params for functions are supported.
-  T_, is placeholder for generic T param
-]]
-type T_ = any
 
 -- ROBLOX deviation: predefine function
 local broadcast
@@ -39,34 +34,40 @@ export type ReactiveVar<T> = typeof(setmetatable(
 	{ __call = (function() end :: any) :: ((self: any, newValue: T?) -> T) }
 )) & {
 	onNextChange: (self: ReactiveVar<T>, listener: ReactiveListener<T>) -> (() -> ()),
-	attachCache: (self: ReactiveVar<T>, cache: ApolloCache<any>) -> any,
+	attachCache: (self: ReactiveVar<T>, cache: ApolloCache<any>) -> ReactiveVar<T>,
 	forgetCache: (self: ReactiveVar<T>, cache: ApolloCache<any>) -> boolean,
 }
 
-export type ReactiveListener<T> = (value: T) -> any
+export type ReactiveListener<T> = (value: T) -> ...any
 
 -- Contextual Slot that acquires its value when custom read functions are
 -- called in Policies#readField.
-local cacheSlot = Slot.new()
+local cacheSlot = Slot.new() :: Slot<ApolloCache<any>>
 exports.cacheSlot = cacheSlot
 
 local cacheInfoMap: WeakMap<ApolloCache<any>, { vars: Set<ReactiveVar<any>>, dep: OptimisticDependencyFunction<ReactiveVar<any>> }> =
 	WeakMap.new()
 
-local function getCacheInfo(cache: ApolloCache<any>)
-	local info = cacheInfoMap:get(cache)
-	if not Boolean.toJSBoolean(info) then
-		info = { vars = Set.new(), dep = dep() }
-		cacheInfoMap:set(cache, info)
+local function getCacheInfo(cache: ApolloCache<any>): {
+	vars: Set<ReactiveVar<any>>,
+	dep: OptimisticDependencyFunction<ReactiveVar<any>>,
+}
+	local info =
+		cacheInfoMap:get(cache) :: { vars: Set<ReactiveVar<any>>, dep: OptimisticDependencyFunction<ReactiveVar<any>> }
+	if not info then
+		info = { vars = Set.new(), dep = dep() } :: {
+			vars: Set<ReactiveVar<any>>,
+			dep: OptimisticDependencyFunction<ReactiveVar<any>>,
+		}
+		cacheInfoMap:set(cache, info :: any)
 	end
 	return info
 end
 
 local function forgetCache(cache: ApolloCache<any>)
-	-- ROBLOX deviation: can't use Array.forEach on a Set in Lua
-	for _, rv in getCacheInfo(cache).vars do
-		rv:forgetCache(cache)
-	end
+	getCacheInfo(cache).vars:forEach(function(rv)
+		return rv:forgetCache(cache)
+	end)
 end
 exports.forgetCache = forgetCache
 
@@ -79,10 +80,9 @@ exports.forgetCache = forgetCache
 -- you won't be able to call recallCache(cache), and the cache will
 -- automatically disappear from the varsByCache WeakMap.
 local function recallCache(cache: ApolloCache<any>)
-	-- ROBLOX deviation: can't use Array.forEach on a Set in Lua
-	for _, rv in getCacheInfo(cache).vars do
-		rv:attachCache(cache)
-	end
+	getCacheInfo(cache).vars:forEach(function(rv)
+		return rv:attachCache(cache)
+	end)
 end
 exports.recallCache = recallCache
 
@@ -95,14 +95,13 @@ local function makeVar<T>(value: T): ReactiveVar<T>
 
 	rv = (
 		setmetatable({}, {
-			__call = function(_self: any, ...: T?): ...T?
+			__call = function(_self: any, ...: T?): ...T
 				if select("#", ...) >= 1 then
 					local arguments = { ... }
 					local newValue = arguments[1] :: T
 					if value ~= newValue then
-						value = newValue
-						-- ROBLOX deviation: can't use Array.forEach on a Set in Lua
-						for _, cache in caches do
+						value = newValue :: T
+						caches:forEach(function(cache: Broadcastable)
 							-- Invalidate any fields with custom read functions that
 							-- consumed this variable, so query results involving those
 							-- fields will be recomputed the next time we read them.
@@ -110,7 +109,7 @@ local function makeVar<T>(value: T): ReactiveVar<T>
 							-- Broadcast changes to any caches that have previously read
 							-- from this variable.
 							broadcast(cache)
-						end
+						end)
 						-- Finally, notify any listeners added via rv.onNextChange.
 						local oldListeners = Array.from(listeners)
 						listeners:clear()
@@ -123,7 +122,7 @@ local function makeVar<T>(value: T): ReactiveVar<T>
 					-- context via cacheSlot. This isn't entirely foolproof, but it's
 					-- the same system that powers varDep.
 					local cache = cacheSlot:getValue()
-					if Boolean.toJSBoolean(cache) then
+					if cache then
 						attach(cache)
 						getCacheInfo(cache).dep(rv)
 					end
@@ -141,19 +140,20 @@ local function makeVar<T>(value: T): ReactiveVar<T>
 		end
 	end
 
-	-- ROBLOX deviation: change order to simplify self handling
-	attach = function(cache: ApolloCache<any>)
+	-- ROBLOX deviation START: change order to simplify self handling
+	attach = function(cache: ApolloCache<any>): ReactiveVar<T>
 		caches:add(cache)
 		getCacheInfo(cache).vars:add(rv)
 		return rv
-	end
-	rv.attachCache = function(_self: ReactiveVar<any>, cache: ApolloCache<any>)
+	end :: any
+	rv.attachCache = function(_self: ReactiveVar<any>, cache: ApolloCache<any>): ReactiveVar<T>
 		return attach(cache)
-	end
+	end :: any
+	-- ROBLOX deviation END
 
-	rv.forgetCache = function(_self: ReactiveVar<any>, cache: ApolloCache<any>)
+	rv.forgetCache = function(_self: ReactiveVar<any>, cache: ApolloCache<any>): boolean
 		return caches:delete(cache)
-	end
+	end :: any
 
 	return rv
 end

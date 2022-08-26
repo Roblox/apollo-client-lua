@@ -20,7 +20,7 @@ return function()
 	local mergeDeep = mergeDeepModule.mergeDeep
 	local mergeDeepArray = mergeDeepModule.mergeDeepArray
 	local DeepMerger = mergeDeepModule.DeepMerger
-	type DeepMerger = mergeDeepModule.DeepMerger
+	type DeepMerger<TContextArgs> = mergeDeepModule.DeepMerger<TContextArgs>
 
 	describe("mergeDeep", function()
 		it("should return an object if first argument falsy", function()
@@ -77,7 +77,7 @@ return function()
 
 			local merged = mergeDeep(table.unpack(sources))
 
-			Array.forEach(sources, function(source, i)
+			Array.forEach(sources, function(source, i: number)
 				jestExpect(merged["unique" .. i].value).toBe(i)
 				jestExpect(source["unique" .. i]).toBe(merged["unique" .. i])
 
@@ -291,13 +291,7 @@ return function()
 			local contextObject = { contextWithSpaces = "c o n t e x t" } :: any
 
 			local shallowContextValues: Array<any> = {}
-			local shallowMerger = DeepMerger.new(function(
-				self: any --[[ ROBLOX FIXME: DeepMerger differs from DeepMergerPrivate ]],
-				target: Record<string | number, any>,
-				source: Record<string | number, any>,
-				property: string | number,
-				context: any
-			)
+			local shallowMerger = DeepMerger.new(function(self, target, source, property, context)
 				-- ROBLOX deviation: inserting { context = context } instead of just context to be able to insert nil context
 				table.insert(shallowContextValues, { context = context })
 				-- Deliberately not passing context down to nested levels.
@@ -305,13 +299,7 @@ return function()
 			end)
 
 			local typicalContextValues: Array<any> = {}
-			local typicalMerger = DeepMerger.new(function(
-				self: any --[[ ROBLOX FIXME: DeepMerger differs from DeepMergerPrivate ]],
-				target: Record<string | number, any>,
-				source: Record<string | number, any>,
-				property: string | number,
-				context: any
-			)
+			local typicalMerger = DeepMerger.new(function(self, target, source, property, context)
 				table.insert(typicalContextValues, context)
 				-- Passing context down this time.
 				return self:merge(target[property], source[property], context)

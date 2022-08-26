@@ -18,8 +18,12 @@ local useBaseQuery = require(script.Parent.utils.useBaseQuery).useBaseQuery
 local coreModule = require(srcWorkspace.core)
 type OperationVariables = coreModule.OperationVariables
 
-local function useQuery(query: DocumentNode | TypedDocumentNode<any, any>, options: QueryHookOptions<any, any>?)
-	return useBaseQuery(query, options, false) :: QueryResult<any, any>
+local function useQuery<TData, TVariables>(
+	query: DocumentNode | TypedDocumentNode<TData, TVariables>,
+	options: QueryHookOptions<TData, TVariables>?
+)
+	-- ROBLOX FIXME Luau: this typecheck doesn't work, very very long analyze error
+	return useBaseQuery(query, options, false) -- :: QueryResult<TData, TVariables>
 end
 
 exports.useQuery = useQuery

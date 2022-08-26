@@ -8,6 +8,7 @@
 local rootWorkspace = script.Parent.Parent
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Object = LuauPolyfill.Object
+type Function = (...any) -> ...any
 
 type Array<T> = LuauPolyfill.Array<T>
 -- ROBLOX FIXME: fix in LuauPolyfill
@@ -183,7 +184,6 @@ function Suite:run(...)
 	end):expect()
 end
 
-Benchmark.options = {} :: BenchmarkOptions
 Benchmark.Suite = Suite
 Benchmark.defaultOptions = {
 	async = false,
@@ -194,13 +194,19 @@ Benchmark.defaultOptions = {
 	maxTime = 5,
 	minSamples = 5,
 	minTime = 0,
-	name = nil,
-	onAbort = nil,
-	onComplete = nil,
-	onCycle = nil,
-	onError = nil,
-	onReset = nil,
-	onStart = nil,
+	name = nil :: string?,
+	onAbort = nil :: Function?,
+	onComplete = nil :: Function?,
+	onCycle = nil :: Function?,
+	onError = nil :: Function?,
+	onReset = nil :: Function?,
+	onStart = nil :: Function?,
 }
+Benchmark.options = {} :: typeof(Benchmark.defaultOptions)
+Benchmark.setOptions = function(options): ()
+	for k, v in pairs(options) do
+		Benchmark.options[k] = options[v]
+	end
+end
 
 return Benchmark

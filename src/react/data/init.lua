@@ -10,5 +10,7 @@ export type MutationData<TData, TVariables, TContext, TCache> = mutationDataModu
 	TContext,
 	TCache
 >
-exports.QueryData = require(script.QueryData).QueryData
+local queryDataModule = require(script.QueryData)
+exports.QueryData = queryDataModule.QueryData
+export type QueryData<TData, TVariables> = queryDataModule.QueryData<TData, TVariables>
 return exports

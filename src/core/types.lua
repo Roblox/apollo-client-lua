@@ -251,7 +251,7 @@ export type MutationUpdaterFunction<TData, TVariables, TContext, TCache> = (
 	TCache,
 	FetchResultWithoutContext<TData>,
 	{ context: TContext?, variables: TVariables? }
-) -> nil
+) -> ()
 
 export type Resolvers = { [string]: { [string]: Resolver } }
 

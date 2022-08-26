@@ -32,9 +32,11 @@ local function useReactiveVar<T>(rv: ReactiveVar<T>): T
 			-- next change, because we can report this change immediately.
 			setValue(probablySameValue)
 		else
-			return rv:onNextChange(setValue :: any)
+			return rv:onNextChange(setValue)
 		end
+		-- ROBLOX deviation START: value or NIL here because we need to hold the 'undefined' value
 	end :: Function, { value or NIL })
+	-- ROBLOX deviation END
 
 	return value
 end

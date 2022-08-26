@@ -124,7 +124,7 @@ return function()
 				jestExpect(counts.parent).toEqual(parentCallCount)
 			end
 			local d = dep({
-				subscribe = function(_self, _key: string)
+				subscribe = function(_key: string)
 					subscribeCallCount += 1
 					return function()
 						unsubscribeCallCount += 1

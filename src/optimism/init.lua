@@ -139,7 +139,7 @@ local function wrap<TArgs, TResult, TKeyArgs, TCacheKey>(
 				local key = makeCacheKey(
 					nil,
 					table.unpack((function()
-						if Boolean.toJSBoolean(keyArgs) then
+						if keyArgs then
 							return (keyArgs :: any)(nil, table.unpack(arguments :: any))
 						else
 							return arguments :: any
@@ -174,11 +174,10 @@ local function wrap<TArgs, TResult, TKeyArgs, TCacheKey>(
 				-- Clean up any excess entries in the cache, but only if there is no
 				-- active parent entry, meaning we're not in the middle of a larger
 				-- computation that might be flummoxed by the cleaning.
-				if not Boolean.toJSBoolean(parentEntrySlot:hasValue()) then
-					-- ROBLOX deviation: can't use Array.map on a Set in Lua
-					for _, cache in caches do
-						cache:clean()
-					end
+				if not parentEntrySlot:hasValue() then
+					caches:forEach(function(cache)
+						return cache:clean()
+					end)
 					caches:clear()
 				end
 

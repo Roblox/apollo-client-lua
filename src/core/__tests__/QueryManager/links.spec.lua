@@ -9,6 +9,7 @@ return function()
 	local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 	local Boolean = LuauPolyfill.Boolean
 	local Array = LuauPolyfill.Array
+	type Array<T> = LuauPolyfill.Array<T>
 	local console = LuauPolyfill.console
 	local Error = LuauPolyfill.Error
 	local setTimeout = LuauPolyfill.setTimeout
@@ -457,44 +458,45 @@ return function()
 				local ref = operation:getContext()
 				local getCacheKey = ref.getCacheKey
 				jestExpect(getCacheKey).toBeDefined()
-				jestExpect(ref:getCacheKey({ id = 1, __typename = "Book" })).toEqual("Book:1")
+				-- ROBLOX deviation START? policies:identify() specifies multiple return values, but cache and inmemory cache specify it as `string?` this mismatch is also upstream!
+				jestExpect(({ ref:getCacheKey({ id = 1, __typename = "Book" }) })[1]).toEqual("Book:1")
+				-- ROBLOX deviation END
 				return Observable.of({ data = bookData })
 			end)
 
-			local queryManager = (
-				QueryManager.new({
-					link = link,
-					cache = InMemoryCache.new({
-						typePolicies = {
-							Query = {
-								fields = {
-									book = function(
-										_self,
-										_,
-										ref_: FieldFunctionOptions<Record<string, any>, Record<string, any>>
-									): any
-										local args_ = ref_.args
-										if not Boolean.toJSBoolean(args_) then
-											error(Error.new("arg must never be null"))
-										end
-										local args = args_ :: Record<string, any>
-										local ref = ref_:toReference({ __typename = "Book", id = args.id })
-										if not Boolean.toJSBoolean(ref) then
-											error(Error.new("ref must never be null"))
-										end
-										jestExpect(ref).toEqual({ __ref = ("Book:%s"):format(args.id) })
-										local found = Array.find(ref_:readField("books"), function(book)
-											return book.__ref == ref.__ref
-										end)
-										jestExpect(found).toBeTruthy()
-										return found
-									end,
-								} :: any,
-							},
+			local queryManager = QueryManager.new({
+				link = link,
+				cache = InMemoryCache.new({
+					typePolicies = {
+						Query = {
+							fields = {
+								book = function(
+									_self,
+									_,
+									ref_: FieldFunctionOptions<Record<string, any>, Record<string, any>>
+								): any
+									local args_ = ref_.args
+									if not Boolean.toJSBoolean(args_) then
+										error(Error.new("arg must never be null"))
+									end
+									local args = args_ :: Record<string, any>
+									local ref = ref_:toReference({ __typename = "Book", id = args.id })
+									if not ref then
+										error(Error.new("ref must never be null"))
+									end
+									jestExpect(ref).toEqual({ __ref = ("Book:%s"):format(args.id) })
+									local found = Array.find(ref_:readField("books") :: Array<Reference>, function(book)
+										-- ROBLOX FIXME Luau: Luau doesn't see the `not ref` branch above as eliminating nil-ability
+										return book.__ref == (ref :: Reference).__ref
+									end)
+									jestExpect(found).toBeTruthy()
+									return found
+								end,
+							} :: any,
 						},
-					}),
-				}) :: any
-			) :: QueryManager<NormalizedCacheObject>
+					},
+				}),
+			})
 
 			queryManager:query({ query = query }):expect()
 

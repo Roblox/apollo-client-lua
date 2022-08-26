@@ -108,12 +108,13 @@ return function()
 				jestExpect(context.client).toEqual(client)
 				return nil
 			end
-			render(React.createElement(
-				ApolloProvider,
-				{ client = client },
-				-- ROBLOX FIXME Luau: this cast shouldn't be necessary
-				{ React.createElement(TestChild), React.createElement(TestChild) :: any }
-			))
+			render(
+				React.createElement(
+					ApolloProvider,
+					{ client = client },
+					{ React.createElement(TestChild), React.createElement(TestChild) :: any }
+				)
+			)
 		end)
 
 		it("should update props when the client changes", function()

@@ -21,12 +21,12 @@ type SelectionSetNode = graphqlModule.SelectionSetNode
 type FieldNode = graphqlModule.FieldNode
 
 -- ROBLOX deviation: avoid circular dep issue
-local utilitiesModule = require(script.Parent.Parent.Parent.utilities.graphql.storeUtils)
+local utilitiesGraphqlTypesModule = require(script.Parent.Parent.Parent.utilities.graphql.types)
 -- ROBLOX TODO: fragments not currently implemented, so stub type
 type FragmentMap = Object -- utilitiesModule.FragmentMap
-type StoreValue = utilitiesModule.StoreValue
-type StoreObject = utilitiesModule.StoreObject
-type Reference = utilitiesModule.Reference
+type StoreValue = utilitiesGraphqlTypesModule.StoreValue
+type StoreObject = utilitiesGraphqlTypesModule.StoreObject
+type Reference = utilitiesGraphqlTypesModule.Reference
 -- ROBLOX TODO: circular dependency
 -- local typesModule = require(script.Parent.types)
 type IdGetter = (any) -> string | nil -- typesModule.IdGetter
@@ -36,24 +36,13 @@ type ReadMergeModifyContext = { [string]: any } -- typesModule.ReadMergeModifyCo
 -- local inMemoryCacheModule = require(script.Parent.inMemoryCache)
 -- local InMemoryCache = inMemoryCacheModule.InMemoryCache
 type InMemoryCache = any -- inMemoryCacheModule.InMemoryCache
--- ROBLOX TODO: use real dependency when implemented
--- local commonModule = require(script.Parent.Parent.core.types.common)
--- ROBLOX TODO: use real dependency when implemented
-type SafeReadonly<T> = any -- commonModule.SafeReadonly
--- ROBLOX TODO: use real dependency when implemented
-type FieldSpecifier = any -- commonModule.FieldSpecifier
--- ROBLOX TODO: use real dependency when implemented
-type ToReferenceFunction = any -- commonModule.ToReferenceFunction
--- ROBLOX TODO: use real dependency when implemented
-type ReadFieldFunction = any -- commonModule.ReadFieldFunction
--- ROBLOX TODO: use real dependency when implemented
-type ReadFieldOptions = any -- commonModule.ReadFieldOptions
--- ROBLOX TODO: use real dependency when implemented
-type CanReadFunction = any -- commonModule.CanReadFunction
--- ROBLOX TODO: use real dependency when implemented
--- local writeToStoreModule = require(script.Parent.writeToStore)
--- ROBLOX TODO: use real dependency when implemented
-type WriteContext = any -- writeToStoreModule.WriteContext
+local commonModule = require(script.Parent.Parent.core.types.common)
+type SafeReadonly<T> = commonModule.SafeReadonly<T>
+type FieldSpecifier = commonModule.FieldSpecifier
+type ToReferenceFunction = commonModule.ToReferenceFunction
+type ReadFieldFunction = commonModule.ReadFieldFunction
+type ReadFieldOptions = commonModule.ReadFieldOptions
+type CanReadFunction = commonModule.CanReadFunction
 
 -- Upgrade to a faster version of the default stable JSON.stringify function
 -- used by getStoreKeyName. This function is used when computing storeFieldName
@@ -134,7 +123,7 @@ export type KeyArgsResult = Exclude<ReturnType<KeyArgsFunction>, KeySpecifier>
 -- ROBLOX deviation: TReadResult = TIncoming,
 -- TReadResult
 export type FieldPolicy<TExisting, TIncoming, TReadResult> = {
-	keyArgs: (KeySpecifier | KeyArgsFunction | boolean)?, -- ROBLOX deviation: KeySpecifier | KeyArgsFunction | false
+	keyArgs: (KeySpecifier | KeyArgsFunction | boolean)?, -- ROBLOX TODO: use literal KeySpecifier | KeyArgsFunction | false
 	read: FieldReadFunction<TExisting, TReadResult>?,
 	merge: (FieldMergeFunction<TExisting, TIncoming> | boolean)?,
 }
@@ -197,6 +186,7 @@ export type FieldFunctionOptions<TArgs, TVars> = {
 
 export type MergeObjectsFunction = <T>(self: any, existing: T, incoming: T) -> T
 export type FieldReadFunction<TExisting, TReadResult> = (
+	-- ROBLOX deviation: should be TypePolicy, but that trips over a recursive redefinition of this generic type
 	self: any,
 	-- When reading a field, one often needs to know about any existing
 	-- value stored for that field. If the field is read before any value

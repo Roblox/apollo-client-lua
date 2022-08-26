@@ -1,9 +1,19 @@
 -- ROBLOX no upstream
+local srcWorkspace = script.Parent.Parent
+local rootWorkspace = srcWorkspace.Parent
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
+type Set<T> = LuauPolyfill.Set<T>
+type Object = LuauPolyfill.Object
 
-export type Dep<TKey> = any
---[[ ROBLOX TODO: Unhandled node for type: TSIntersectionType ]]
---[[ Set<AnyEntry> & {
-  subscribe: OptimisticWrapOptions<[TKey]>["subscribe"];
-} & Unsubscribable ]]
+local helpersTypesModule = require(script.Parent.helpers_types)
+export type Unsubscribable = helpersTypesModule.Unsubscribable
+local anyEntryTypesModule = require(script.Parent.anyEntryTypes)
+type AnyEntry = anyEntryTypesModule.AnyEntry
+
+export type Dep<TKey> = Set<AnyEntry> & {
+	-- ROBLOX deviation: inlined here since we can't access type fields, add self param
+	-- subscribe: OptimisticWrapOptions<[TKey]>["subscribe"]
+	subscribe: ((...TKey) -> () | (() -> any))?,
+} & Unsubscribable
 
 return {}

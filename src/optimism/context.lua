@@ -2,8 +2,8 @@
 
 local srcWorkspace = script.Parent.Parent
 local exports = {}
-local entryTypesModule = require(script.Parent.entryTypes)
-type AnyEntry = entryTypesModule.AnyEntry
+local anyEntryTypesModule = require(script.Parent.anyEntryTypes)
+type AnyEntry = anyEntryTypesModule.AnyEntry
 local Slot = require(srcWorkspace.wry.context).Slot
 local parentEntrySlot = Slot.new()
 exports.parentEntrySlot = parentEntrySlot

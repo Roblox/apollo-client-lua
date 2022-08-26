@@ -27,8 +27,10 @@ local Benchmark = require(script.Parent.benchmark)
 -- be benchmarked. The `benchmark` function is similar to the `it` function within mocha;
 -- it allows you to define a particular block of code to be benchmarked.
 
-Benchmark.options.minSamples = 150
-Benchmark.options.maxTime = _G.__MAX_BENCHMARK_TIME__ and tonumber(_G.__MAX_BENCHMARK_TIME__)
+Benchmark.setOptions({
+	minSamples = 150,
+	maxTime = _G.__MAX_BENCHMARK_TIME__ and tonumber(_G.__MAX_BENCHMARK_TIME__),
+})
 local bsuite = Benchmark.Suite.new()
 exports.bsuite = bsuite
 export type DoneFunction = () -> ()

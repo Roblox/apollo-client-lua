@@ -5,8 +5,11 @@ local exports = {}
 local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
-local Boolean = LuauPolyfill.Boolean
 local Object = LuauPolyfill.Object
+
+-- ROBLOX FIXME: remove this when default type argument below is no longer necessary
+local CoreModule = require(script.Parent.Parent.Parent.core)
+type ApolloCache<T> = CoreModule.ApolloCache<T>
 
 local reactModule = require(rootWorkspace.React)
 local useContext = reactModule.useContext
@@ -34,24 +37,26 @@ local function useMutation<TData, TVariables, TContext, TCache>(
 ): MutationTuple<TData, TVariables, TContext, TCache>
 	local context = useContext(getApolloContext())
 	local result, setResult = useState({ called = false, loading = false })
-	local updatedOptions = if Boolean.toJSBoolean(options)
+	local updatedOptions = if options
 		then Object.assign({}, options, { mutation = mutation })
 		else { mutation = mutation }
 
-	local mutationDataRef = useRef(nil :: any)
+	-- ROBLOX FIXME: manually added default type arg value ApolloCache<any>
+	local mutationDataRef = useRef((nil :: any) :: MutationData<TData, TVariables, TContext, ApolloCache<any>>)
 	local function getMutationDataRef()
 		if not mutationDataRef.current then
 			mutationDataRef.current = MutationData.new({
 				options = updatedOptions,
 				context = context,
 				result = result,
-				setResult = function(_self, ...: any)
-					setResult(...)
+				setResult = function(_self, value)
+					setResult(value)
 					return nil
 				end,
 			})
 		end
-		return mutationDataRef.current
+		-- ROBLOX FIXME Luau: analyze fails to narrow based on 'not .current' and '.current =' above
+		return mutationDataRef.current :: MutationData<TData, TVariables, TContext, ApolloCache<any>>
 	end
 
 	local mutationData = getMutationDataRef() :: MutationData<any, any, any, any>

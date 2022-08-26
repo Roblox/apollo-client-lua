@@ -8,21 +8,23 @@ local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 type Set<T> = LuauPolyfill.Set<T>
 type Array<T> = LuauPolyfill.Array<T>
 
+local helpersTypesModule = require(script.Parent.helpers_types)
+
 local exports = {}
 exports.hasOwnProperty = require(srcWorkspace.luaUtils.hasOwnProperty)
 
-local function toArray(collection: Set<any>): Array<any>
-	local array: Array<any> = {}
-	-- ROBLOX deviation: can't use Array.map on a Set in Lua
-	for _, item in collection do
+-- ROBLOX TODO: upstream was doing type erasure! contribute annotation this improvement upstream
+local function toArray<T>(collection: Set<T>): Array<T>
+	local array: Array<T> = {}
+	collection:forEach(function(item)
 		table.insert(array, item)
-	end
+	end)
 	return array
 end
 
 exports.toArray = toArray
 
-export type Unsubscribable = { unsubscribe: (() -> any)? }
+export type Unsubscribable = helpersTypesModule.Unsubscribable
 
 local function maybeUnsubscribe(entryOrDep: Unsubscribable)
 	local unsubscribe = entryOrDep.unsubscribe
