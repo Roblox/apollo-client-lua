@@ -1,141 +1,141 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/cache/inmemory/__tests__/roundtrip.ts
+local srcWorkspace = script.Parent.Parent.Parent.Parent
+local rootWorkspace = srcWorkspace.Parent
 
-return function()
-	local srcWorkspace = script.Parent.Parent.Parent.Parent
-	local rootWorkspace = srcWorkspace.Parent
+local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
+local describe = JestGlobals.describe
+local expect = JestGlobals.expect
+local it = JestGlobals.it
 
-	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
-	local jestExpect = JestGlobals.expect
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
+local Array = LuauPolyfill.Array
+local Error = LuauPolyfill.Error
+local Object = LuauPolyfill.Object
+type Array<T> = LuauPolyfill.Array<T>
+type Object = LuauPolyfill.Object
 
-	local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
-	local Array = LuauPolyfill.Array
-	local Error = LuauPolyfill.Error
-	local Object = LuauPolyfill.Object
-	type Array<T> = LuauPolyfill.Array<T>
-	type Object = LuauPolyfill.Object
+local RegExp = require(rootWorkspace.LuauRegExp)
 
-	local RegExp = require(rootWorkspace.LuauRegExp)
+local NULL = require(srcWorkspace.utilities).NULL
 
-	local NULL = require(srcWorkspace.utilities).NULL
+local graphQLModule = require(rootWorkspace.GraphQL)
+type DocumentNode = graphQLModule.DocumentNode
 
-	local graphQLModule = require(rootWorkspace.GraphQL)
-	type DocumentNode = graphQLModule.DocumentNode
+local gql = require(rootWorkspace.GraphQLTag).default
 
-	local gql = require(rootWorkspace.GraphQLTag).default
+local EntityStore = require(script.Parent.Parent.entityStore).EntityStore
+local StoreReader = require(script.Parent.Parent.readFromStore).StoreReader
+local StoreWriter = require(script.Parent.Parent.writeToStore).StoreWriter
+local InMemoryCache = require(script.Parent.Parent.inMemoryCache).InMemoryCache
 
-	local EntityStore = require(script.Parent.Parent.entityStore).EntityStore
-	local StoreReader = require(script.Parent.Parent.readFromStore).StoreReader
-	local StoreWriter = require(script.Parent.Parent.writeToStore).StoreWriter
-	local InMemoryCache = require(script.Parent.Parent.inMemoryCache).InMemoryCache
+local helpersModule = require(script.Parent.helpers)
+local writeQueryToStore = helpersModule.writeQueryToStore
+local readQueryFromStore = helpersModule.readQueryFromStore
+local withError = helpersModule.withError
 
-	local helpersModule = require(script.Parent.helpers)
-	local writeQueryToStore = helpersModule.writeQueryToStore
-	local readQueryFromStore = helpersModule.readQueryFromStore
-	local withError = helpersModule.withError
+local withErrorSpy = require(srcWorkspace.testing).withErrorSpy
 
-	local withErrorSpy = require(srcWorkspace.testing).withErrorSpy
-
-	local function assertDeeplyFrozen(value: any, stack_: Array<any>?)
-		local stack = stack_ :: Array<any>
-		if stack_ == nil then
-			stack = {}
-		end
-
-		if value ~= nil and typeof(value) == "table" and Array.indexOf(stack, value) < 0 then
-			-- ROBLOX FIXME: can't check isExtensible
-			-- jestExpect(Object.isExtensible(value)).toBe(false)
-			jestExpect(Object.isFrozen(value)).toBe(true)
-			table.insert(stack, value)
-			Array.forEach(Object.keys(value), function(key)
-				assertDeeplyFrozen(value[key], stack)
-			end)
-			jestExpect(table.remove(stack)).toBe(value)
-		end
+local function assertDeeplyFrozen(value: any, stack_: Array<any>?)
+	local stack = stack_ :: Array<any>
+	if stack_ == nil then
+		stack = {}
 	end
 
-	local function storeRoundtrip(query: DocumentNode, result: any, variables: Object?)
-		if variables == nil then
-			variables = {}
+	if value ~= nil and typeof(value) == "table" and Array.indexOf(stack, value) < 0 then
+		-- ROBLOX FIXME: can't check isExtensible
+		-- expect(Object.isExtensible(value)).toBe(false)
+		expect(Object.isFrozen(value)).toBe(true)
+		table.insert(stack, value)
+		Array.forEach(Object.keys(value), function(key)
+			assertDeeplyFrozen(value[key], stack)
+		end)
+		expect(table.remove(stack)).toBe(value)
+	end
+end
+
+local function storeRoundtrip(query: DocumentNode, result: any, variables: Object?)
+	if variables == nil then
+		variables = {}
+	end
+	local cache = InMemoryCache.new({ possibleTypes = { Character = { "Jedi", "Droid" } } })
+
+	local reader = StoreReader.new({ cache = cache })
+	local writer = StoreWriter.new(cache)
+
+	local store = writeQueryToStore({
+		writer = writer,
+		result = result,
+		query = query,
+		variables = variables,
+	})
+
+	local readOptions = { store = store, query = query, variables = variables }
+
+	local reconstructedResult = readQueryFromStore(reader, readOptions)
+
+	-- Make sure the result is identical if we haven't written anything new
+	-- to the store. https://github.com/apollographql/apollo-client/pull/3394
+	expect(reconstructedResult).toEqual(result)
+	expect(store).toBeInstanceOf(EntityStore)
+	expect(readQueryFromStore(reader, readOptions)).toBe(reconstructedResult)
+
+	local immutableResult = readQueryFromStore(reader, readOptions)
+	expect(immutableResult).toEqual(reconstructedResult)
+	expect(readQueryFromStore(reader, readOptions)).toBe(immutableResult)
+
+	if _G.__DEV__ then
+		local ok, res = pcall(function()
+			(immutableResult :: any).illegal = "this should not work"
+			error(Error.new("unreached"))
+		end)
+
+		if not ok then
+			-- ROBLOX deviation: freeze error is not of type Error, we need to check before assertion
+			expect(typeof(res) == "table" and res.message or res).never.toMatch(RegExp("unreached"))
+
+			-- ROBLOX deviation: freeze error is not an instance of Error, adding a test to verify expected message
+			-- expect(res).toBeInstanceOf(Error)
+			expect(res).toMatch("attempt to modify a readonly table")
 		end
-		local cache = InMemoryCache.new({ possibleTypes = { Character = { "Jedi", "Droid" } } })
 
-		local reader = StoreReader.new({ cache = cache })
-		local writer = StoreWriter.new(cache)
+		assertDeeplyFrozen(immutableResult)
+	end
 
-		local store = writeQueryToStore({
-			writer = writer,
-			result = result,
-			query = query,
-			variables = variables,
-		})
-
-		local readOptions = { store = store, query = query, variables = variables }
-
-		local reconstructedResult = readQueryFromStore(reader, readOptions)
-
-		-- Make sure the result is identical if we haven't written anything new
-		-- to the store. https://github.com/apollographql/apollo-client/pull/3394
-		jestExpect(reconstructedResult).toEqual(result)
-		jestExpect(store).toBeInstanceOf(EntityStore)
-		jestExpect(readQueryFromStore(reader, readOptions)).toBe(reconstructedResult)
-
-		local immutableResult = readQueryFromStore(reader, readOptions)
-		jestExpect(immutableResult).toEqual(reconstructedResult)
-		jestExpect(readQueryFromStore(reader, readOptions)).toBe(immutableResult)
-
-		if _G.__DEV__ then
-			local ok, res = pcall(function()
-				(immutableResult :: any).illegal = "this should not work"
-				error(Error.new("unreached"))
-			end)
-
-			if not ok then
-				-- ROBLOX deviation: freeze error is not of type Error, we need to check before assertion
-				jestExpect(typeof(res) == "table" and res.message or res).never.toMatch(RegExp("unreached"))
-
-				-- ROBLOX deviation: freeze error is not an instance of Error, adding a test to verify expected message
-				-- jestExpect(res).toBeInstanceOf(Error)
-				jestExpect(res).toMatch("attempt to modify a readonly table")
-			end
-
-			assertDeeplyFrozen(immutableResult)
-		end
-
-		-- Now make sure subtrees of the result are identical even after we write
-		-- an additional bogus field to the store.
-		writeQueryToStore({
-			writer = writer,
-			store = store,
-			result = { oyez = 1234 },
-			query = gql([[
+	-- Now make sure subtrees of the result are identical even after we write
+	-- an additional bogus field to the store.
+	writeQueryToStore({
+		writer = writer,
+		store = store,
+		result = { oyez = 1234 },
+		query = gql([[
 
       {
         oyez
       }
     ]]),
-		})
+	})
 
-		local deletedRootResult = readQueryFromStore(reader, readOptions)
-		jestExpect(deletedRootResult).toEqual(result)
+	local deletedRootResult = readQueryFromStore(reader, readOptions)
+	expect(deletedRootResult).toEqual(result)
 
-		if deletedRootResult == reconstructedResult then
-			-- We don't expect the new result to be identical to the previous result,
-			-- but there are some rare cases where that can happen, and it's a good
-			-- thing, because it means the caching system is working slightly better
-			-- than expected... and we don't need to continue with the rest of the
-			-- comparison logic below.
-			return
-		end
-
-		Array.forEach(Object.keys(result), function(key)
-			jestExpect(deletedRootResult[key]).toBe(reconstructedResult[key])
-		end)
+	if deletedRootResult == reconstructedResult then
+		-- We don't expect the new result to be identical to the previous result,
+		-- but there are some rare cases where that can happen, and it's a good
+		-- thing, because it means the caching system is working slightly better
+		-- than expected... and we don't need to continue with the rest of the
+		-- comparison logic below.
+		return
 	end
 
-	describe("roundtrip", function()
-		it("real graphql result", function()
-			storeRoundtrip(
-				gql([[
+	Array.forEach(Object.keys(result), function(key)
+		expect(deletedRootResult[key]).toBe(reconstructedResult[key])
+	end)
+end
+
+describe("roundtrip", function()
+	it("real graphql result", function()
+		storeRoundtrip(
+			gql([[
 
         {
           people_one(id: "1") {
@@ -143,13 +143,13 @@ return function()
           }
         }
       ]]),
-				{ people_one = { name = "Luke Skywalker" } }
-			)
-		end)
+			{ people_one = { name = "Luke Skywalker" } }
+		)
+	end)
 
-		it("multidimensional array (#776)", function()
-			storeRoundtrip(
-				gql([[
+	it("multidimensional array (#776)", function()
+		storeRoundtrip(
+			gql([[
 
         {
           rows {
@@ -157,13 +157,13 @@ return function()
           }
         }
       ]]),
-				{ rows = { { { value = 1 }, { value = 2 } }, { { value = 3 }, { value = 4 } } } }
-			)
-		end)
+			{ rows = { { { value = 1 }, { value = 2 } }, { { value = 3 }, { value = 4 } } } }
+		)
+	end)
 
-		it("array with null values (#1551)", function()
-			storeRoundtrip(
-				gql([[
+	it("array with null values (#1551)", function()
+		storeRoundtrip(
+			gql([[
 
         {
           list {
@@ -171,13 +171,13 @@ return function()
           }
         }
       ]]),
-				{ list = { NULL, { value = 1 } } }
-			)
-		end)
+			{ list = { NULL, { value = 1 } } }
+		)
+	end)
 
-		it("enum arguments", function()
-			storeRoundtrip(
-				gql([[
+	it("enum arguments", function()
+		storeRoundtrip(
+			gql([[
 
         {
           hero(episode: JEDI) {
@@ -185,13 +185,13 @@ return function()
           }
         }
       ]]),
-				{ hero = { name = "Luke Skywalker" } }
-			)
-		end)
+			{ hero = { name = "Luke Skywalker" } }
+		)
+	end)
 
-		it("with an alias", function()
-			storeRoundtrip(
-				gql([[
+	it("with an alias", function()
+		storeRoundtrip(
+			gql([[
 
         {
           luke: people_one(id: "1") {
@@ -202,13 +202,13 @@ return function()
           }
         }
       ]]),
-				{ luke = { name = "Luke Skywalker" }, vader = { name = "Darth Vader" } }
-			)
-		end)
+			{ luke = { name = "Luke Skywalker" }, vader = { name = "Darth Vader" } }
+		)
+	end)
 
-		it("with variables", function()
-			storeRoundtrip(
-				gql([[
+	it("with variables", function()
+		storeRoundtrip(
+			gql([[
 
         {
           luke: people_one(id: $lukeId) {
@@ -219,27 +219,27 @@ return function()
           }
         }
       ]]),
-				{ luke = { name = "Luke Skywalker" }, vader = { name = "Darth Vader" } },
-				{ lukeId = "1", vaderId = "4" }
-			)
-		end)
+			{ luke = { name = "Luke Skywalker" }, vader = { name = "Darth Vader" } },
+			{ lukeId = "1", vaderId = "4" }
+		)
+	end)
 
-		it("with GraphQLJSON scalar type", function()
-			local updateClub = {
-				uid = "1d7f836018fc11e68d809dfee940f657",
-				name = "Eple",
-				settings = {
-					name = "eple",
-					currency = "AFN",
-					calendarStretch = 2,
-					defaultPreAllocationPeriod = 1,
-					confirmationEmailCopy = NULL,
-					emailDomains = NULL,
-				},
-			} :: any
+	it("with GraphQLJSON scalar type", function()
+		local updateClub = {
+			uid = "1d7f836018fc11e68d809dfee940f657",
+			name = "Eple",
+			settings = {
+				name = "eple",
+				currency = "AFN",
+				calendarStretch = 2,
+				defaultPreAllocationPeriod = 1,
+				confirmationEmailCopy = NULL,
+				emailDomains = NULL,
+			},
+		} :: any
 
-			storeRoundtrip(
-				gql([[
+		storeRoundtrip(
+			gql([[
 
         {
           updateClub {
@@ -249,47 +249,47 @@ return function()
           }
         }
       ]]),
-				{ updateClub = updateClub }
-			)
+			{ updateClub = updateClub }
+		)
 
-			-- Reading immutable results from the store does not mean the original
-			-- data should get frozen.
-			-- ROBLOX FIXME: can't check isExtensible
-			-- jestExpect(Object.isExtensible(updateClub)).toBe(true)
-			jestExpect(Object.isFrozen(updateClub)).toBe(false)
-		end)
+		-- Reading immutable results from the store does not mean the original
+		-- data should get frozen.
+		-- ROBLOX FIXME: can't check isExtensible
+		-- expect(Object.isExtensible(updateClub)).toBe(true)
+		expect(Object.isFrozen(updateClub)).toBe(false)
+	end)
 
-		describe("directives", function()
-			it("should be able to query with skip directive true", function()
-				storeRoundtrip(
-					gql([[
+	describe("directives", function()
+		it("should be able to query with skip directive true", function()
+			storeRoundtrip(
+				gql([[
 
           query {
             fortuneCookie @skip(if: true)
           }
         ]]),
-					{}
-				)
-			end)
+				{}
+			)
+		end)
 
-			it("should be able to query with skip directive false", function()
-				storeRoundtrip(
-					gql([[
+		it("should be able to query with skip directive false", function()
+			storeRoundtrip(
+				gql([[
 
           query {
             fortuneCookie @skip(if: false)
           }
         ]]),
-					{ fortuneCookie = "live long and prosper" }
-				)
-			end)
+				{ fortuneCookie = "live long and prosper" }
+			)
 		end)
+	end)
 
-		describe("fragments", function()
-			-- ROBLOX TODO: fragments are not supported yet
-			itSKIP("should work on null fields", function()
-				storeRoundtrip(
-					gql([[
+	describe("fragments", function()
+		-- ROBLOX TODO: fragments are not supported yet
+		it.skip("should work on null fields", function()
+			storeRoundtrip(
+				gql([[
 
           query {
             field {
@@ -299,14 +299,14 @@ return function()
             }
           }
         ]]),
-					{ field = NULL }
-				)
-			end)
+				{ field = NULL }
+			)
+		end)
 
-			-- ROBLOX TODO: fragments are not supported yet
-			itSKIP("should work on basic inline fragments", function()
-				storeRoundtrip(
-					gql([[
+		-- ROBLOX TODO: fragments are not supported yet
+		it.skip("should work on basic inline fragments", function()
+			storeRoundtrip(
+				gql([[
 
           query {
             field {
@@ -317,17 +317,17 @@ return function()
             }
           }
         ]]),
-					{ field = { __typename = "Obj", stuff = "Result" } }
-				)
-			end)
+				{ field = { __typename = "Obj", stuff = "Result" } }
+			)
+		end)
 
-			-- XXX this test is weird because it assumes the server returned an incorrect result
-			-- However, the user may have written this result with client.writeQuery.
-			-- ROBLOX TODO: fragments are not supported yet
-			withErrorSpy(itSKIP, "should throw an error on two of the same inline fragment types", function()
-				jestExpect(function()
-					storeRoundtrip(
-						gql([[
+		-- XXX this test is weird because it assumes the server returned an incorrect result
+		-- However, the user may have written this result with client.writeQuery.
+		-- ROBLOX TODO: fragments are not supported yet
+		withErrorSpy(it.skip, "should throw an error on two of the same inline fragment types", function()
+			expect(function()
+				storeRoundtrip(
+					gql([[
 
             query {
               all_people {
@@ -342,20 +342,20 @@ return function()
               }
             }
           ]]),
-						{
-							all_people = {
-								{ __typename = "Jedi", name = "Luke Skywalker", side = "bright" },
-							},
-						}
-					)
-				end).toThrowError(RegExp("Can't find field 'rank'"))
-			end)
+					{
+						all_people = {
+							{ __typename = "Jedi", name = "Luke Skywalker", side = "bright" },
+						},
+					}
+				)
+			end).toThrowError(RegExp("Can't find field 'rank'"))
+		end)
 
-			-- ROBLOX TODO: fragments are not supported yet
-			itSKIP("should resolve fields it can on interface with non matching inline fragments", function()
-				return withError(function()
-					storeRoundtrip(
-						gql([[
+		-- ROBLOX TODO: fragments are not supported yet
+		it.skip("should resolve fields it can on interface with non matching inline fragments", function()
+			return withError(function()
+				storeRoundtrip(
+					gql([[
 
             query {
               dark_forces {
@@ -367,21 +367,21 @@ return function()
               }
             }
           ]]),
-						{
-							dark_forces = {
-								{ __typename = "Droid", name = "8t88", model = "88" },
-								{ __typename = "Darth", name = "Anakin Skywalker" },
-							},
-						}
-					)
-				end)
+					{
+						dark_forces = {
+							{ __typename = "Droid", name = "8t88", model = "88" },
+							{ __typename = "Darth", name = "Anakin Skywalker" },
+						},
+					}
+				)
 			end)
+		end)
 
-			-- ROBLOX TODO: fragments are not supported yet
-			itSKIP("should resolve on union types with spread fragments", function()
-				return withError(function()
-					storeRoundtrip(
-						gql([[
+		-- ROBLOX TODO: fragments are not supported yet
+		it.skip("should resolve on union types with spread fragments", function()
+			return withError(function()
+				storeRoundtrip(
+					gql([[
 
             fragment jediFragment on Jedi {
               side
@@ -400,21 +400,21 @@ return function()
               }
             }
           ]]),
-						{
-							all_people = {
-								{ __typename = "Jedi", name = "Luke Skywalker", side = "bright" },
-								{ __typename = "Droid", name = "R2D2", model = "astromech" },
-							},
-						}
-					)
-				end)
+					{
+						all_people = {
+							{ __typename = "Jedi", name = "Luke Skywalker", side = "bright" },
+							{ __typename = "Droid", name = "R2D2", model = "astromech" },
+						},
+					}
+				)
 			end)
+		end)
 
-			-- ROBLOX TODO: fragments are not supported yet
-			itSKIP("should work with a fragment on the actual interface or union", function()
-				return withError(function()
-					storeRoundtrip(
-						gql([[
+		-- ROBLOX TODO: fragments are not supported yet
+		it.skip("should work with a fragment on the actual interface or union", function()
+			return withError(function()
+				storeRoundtrip(
+					gql([[
 
             fragment jediFragment on Character {
               side
@@ -433,26 +433,26 @@ return function()
               }
             }
           ]]),
-						{
-							all_people = {
-								{ __typename = "Jedi", name = "Luke Skywalker", side = "bright" },
-								{
-									__typename = "Droid",
-									name = "R2D2",
-									model = "astromech",
-									side = "bright",
-								},
+					{
+						all_people = {
+							{ __typename = "Jedi", name = "Luke Skywalker", side = "bright" },
+							{
+								__typename = "Droid",
+								name = "R2D2",
+								model = "astromech",
+								side = "bright",
 							},
-						}
-					)
-				end)
+						},
+					}
+				)
 			end)
+		end)
 
-			-- ROBLOX TODO: fragments are not supported yet
-			withErrorSpy(itSKIP, "should throw on error on two of the same spread fragment types", function()
-				jestExpect(function()
-					storeRoundtrip(
-						gql([[
+		-- ROBLOX TODO: fragments are not supported yet
+		withErrorSpy(it.skip, "should throw on error on two of the same spread fragment types", function()
+			expect(function()
+				storeRoundtrip(
+					gql([[
 
             fragment jediSide on Jedi {
               side
@@ -471,19 +471,19 @@ return function()
               }
             }
           ]]),
-						{
-							all_people = {
-								{ __typename = "Jedi", name = "Luke Skywalker", side = "bright" },
-							},
-						}
-					)
-				end).toThrowError(RegExp("Can't find field 'rank'"))
-			end)
+					{
+						all_people = {
+							{ __typename = "Jedi", name = "Luke Skywalker", side = "bright" },
+						},
+					}
+				)
+			end).toThrowError(RegExp("Can't find field 'rank'"))
+		end)
 
-			-- ROBLOX TODO: fragments are not supported yet
-			itSKIP("should resolve on @include and @skip with inline fragments", function()
-				storeRoundtrip(
-					gql([[
+		-- ROBLOX TODO: fragments are not supported yet
+		it.skip("should resolve on @include and @skip with inline fragments", function()
+			storeRoundtrip(
+				gql([[
 
           query {
             person {
@@ -498,14 +498,14 @@ return function()
             }
           }
         ]]),
-					{ person = { __typename = "Jedi", name = "Luke Skywalker", side = "bright" } }
-				)
-			end)
+				{ person = { __typename = "Jedi", name = "Luke Skywalker", side = "bright" } }
+			)
+		end)
 
-			-- ROBLOX TODO: fragments are not supported yet
-			itSKIP("should resolve on @include and @skip with spread fragments", function()
-				storeRoundtrip(
-					gql([[
+		-- ROBLOX TODO: fragments are not supported yet
+		it.skip("should resolve on @include and @skip with spread fragments", function()
+			storeRoundtrip(
+				gql([[
 
           fragment jediFragment on Jedi {
             side
@@ -524,9 +524,10 @@ return function()
             }
           }
         ]]),
-					{ person = { __typename = "Jedi", name = "Luke Skywalker", side = "bright" } }
-				)
-			end)
+				{ person = { __typename = "Jedi", name = "Luke Skywalker", side = "bright" } }
+			)
 		end)
 	end)
-end
+end)
+
+return {}

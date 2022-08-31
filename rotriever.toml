@@ -6,21 +6,18 @@ content_root = "src"
 
 [dependencies]
 React = "github.com/roblox/roact-alignment@17.0.1-rc.15"
-Shared = "github.com/roblox/roact-alignment@17.0.1-rc.15"
-ReactRoblox = "github.com/roblox/roact-alignment@17.0.1-rc.15"
 GraphQL = "github.com/Roblox/graphql-lua@15.5.1"
 GraphQLTag = "github.com/Roblox/graphql-tag-lua@2.12.6"
 LuauPolyfill = "github.com/roblox/luau-polyfill@1.0"
 ZenObservable = "github.com/roblox/zen-observable-lua@0.8.16-roblox.0"
-Promise = "github.com/evaera/roblox-lua-promise@3.1.0"
+Promise = "github.com/evaera/roblox-lua-promise@4.0.0"
 LuauRegExp = "github.com/Roblox/luau-regexp@0.2.0"
 RobloxRequests = "github.com/thisdot/roblox-requests@0.1.0"
 
 [dev_dependencies]
-JestGlobals = "github.com/roblox/jest-roblox@2.4.1"
-ReactReconciler = "github.com/roblox/roact-alignment@17.0.1-rc.15"
-RoactCompat = "github.com/roblox/roact-alignment@17.0.1-rc.15"
-Scheduler = "github.com/roblox/roact-alignment@17.0.1-rc.15"
+JestGlobals = "github.com/roblox/jest-roblox@3.0.0-alpha"
+Jest = "github.com/roblox/jest-roblox@3.0.0-alpha"
+ReactTestingLibrary = { git = "https://github.com/roblox/react-testing-library-lua.git", rev = "main" }
 
 [config.patch."https://github.com/roblox/luau-polyfill"]
 LuauPolyfill = { target = "github.com/roblox/luau-polyfill", version = "1.0" }

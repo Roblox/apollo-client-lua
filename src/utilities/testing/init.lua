@@ -23,7 +23,7 @@ exports.mockObservableLink = mockSubscriptionLinkModule.mockObservableLink
 -- exports.createMockClient = require(script.mocking.mockClient).createMockClient
 exports.stripSymbols = require(script.stripSymbols).stripSymbols
 exports.subscribeAndCount = require(script.subscribeAndCount).default
-exports.itAsync = require(script.itAsync)
+exports.itAsync = require(script.itAsync).itAsync
 local withConsoleSpyModule = require(script.withConsoleSpy)
 Object.assign(exports, withConsoleSpyModule)
 return exports :: typeof(exports) & typeof(withConsoleSpyModule)

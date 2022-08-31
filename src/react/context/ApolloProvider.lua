@@ -7,14 +7,13 @@ local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 type Array<T> = LuauPolyfill.Array<T>
 
 local React = require(rootWorkspace.React)
+type ReactNode = React.ReactNode
+
 local getApolloContext = require(script.Parent.ApolloContext).getApolloContext
 local invariant = require(srcWorkspace.jsutils.invariant).invariant
 
 local apolloClientModule = require(srcWorkspace.core.ApolloClient)
 type ApolloClient<TCacheShape> = apolloClientModule.ApolloClient<TCacheShape>
-
-local SharedModule = require(rootWorkspace.Shared)
-type ReactNode = SharedModule.ReactNodeList
 
 export type ApolloProviderProps<TCacheShape> = {
 	client: ApolloClient<TCacheShape>,

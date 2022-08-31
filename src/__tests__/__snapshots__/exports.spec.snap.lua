@@ -148,27 +148,27 @@ Table {
 }
 ]]
 
-snapshots["exports of public entry points @apollo/client/link/batch 1"] = [[
+-- snapshots["exports of public entry points @apollo/client/link/batch 1"] = [[
 
-Table {
-  "BatchLink",
-  "OperationBatcher",
-}
-]]
+-- Table {
+--   "BatchLink",
+--   "OperationBatcher",
+-- }
+-- ]]
 
-snapshots["exports of public entry points @apollo/client/link/batch-http 1"] = [[
+-- snapshots["exports of public entry points @apollo/client/link/batch-http 1"] = [[
 
-Table {
-  "BatchHttpLink",
-}
-]]
+-- Table {
+--   "BatchHttpLink",
+-- }
+-- ]]
 
-snapshots["exports of public entry points @apollo/client/link/context 1"] = [[
+-- snapshots["exports of public entry points @apollo/client/link/context 1"] = [[
 
-Table {
-  "setContext",
-}
-]]
+-- Table {
+--   "setContext",
+-- }
+-- ]]
 
 snapshots["exports of public entry points @apollo/client/link/core 1"] = [[
 
@@ -182,13 +182,13 @@ Table {
 }
 ]]
 
-snapshots["exports of public entry points @apollo/client/link/error 1"] = [[
+-- snapshots["exports of public entry points @apollo/client/link/error 1"] = [[
 
-Table {
-  "ErrorLink",
-  "onError",
-}
-]]
+-- Table {
+--   "ErrorLink",
+--   "onError",
+-- }
+-- ]]
 
 snapshots["exports of public entry points @apollo/client/link/http 1"] = [[
 
@@ -206,27 +206,27 @@ Table {
 }
 ]]
 
-snapshots["exports of public entry points @apollo/client/link/persisted-queries 1"] = [[
+-- snapshots["exports of public entry points @apollo/client/link/persisted-queries 1"] = [[
 
-Table {
-  "VERSION",
-  "createPersistedQueryLink",
-}
-]]
+-- Table {
+--   "VERSION",
+--   "createPersistedQueryLink",
+-- }
+-- ]]
 
-snapshots["exports of public entry points @apollo/client/link/retry 1"] = [[
+-- snapshots["exports of public entry points @apollo/client/link/retry 1"] = [[
 
-Table {
-  "RetryLink",
-}
-]]
+-- Table {
+--   "RetryLink",
+-- }
+-- ]]
 
-snapshots["exports of public entry points @apollo/client/link/schema 1"] = [[
+-- snapshots["exports of public entry points @apollo/client/link/schema 1"] = [[
 
-Table {
-  "SchemaLink",
-}
-]]
+-- Table {
+--   "SchemaLink",
+-- }
+-- ]]
 
 snapshots["exports of public entry points @apollo/client/link/utils 1"] = [[
 
@@ -241,12 +241,12 @@ Table {
 }
 ]]
 
-snapshots["exports of public entry points @apollo/client/link/ws 1"] = [[
+-- snapshots["exports of public entry points @apollo/client/link/ws 1"] = [[
 
-Table {
-  "WebSocketLink",
-}
-]]
+-- Table {
+--   "WebSocketLink",
+-- }
+-- ]]
 
 snapshots["exports of public entry points @apollo/client/react 1"] = [[
 
@@ -296,16 +296,16 @@ Table {
 }
 ]]
 
-snapshots["exports of public entry points @apollo/client/react/hoc 1"] = [[
+-- snapshots["exports of public entry points @apollo/client/react/hoc 1"] = [[
 
-Table {
-  "graphql",
-  "withApollo",
-  "withMutation",
-  "withQuery",
-  "withSubscription",
-}
-]]
+-- Table {
+--   "graphql",
+--   "withApollo",
+--   "withMutation",
+--   "withQuery",
+--   "withSubscription",
+-- }
+-- ]]
 
 snapshots["exports of public entry points @apollo/client/react/hooks 1"] = [[
 
@@ -328,15 +328,15 @@ Table {
 }
 ]]
 
-snapshots["exports of public entry points @apollo/client/react/ssr 1"] = [[
+-- snapshots["exports of public entry points @apollo/client/react/ssr 1"] = [[
 
-Table {
-  "RenderPromises",
-  "getDataFromTree",
-  "getMarkupFromTree",
-  "renderToStringWithData",
-}
-]]
+-- Table {
+--   "RenderPromises",
+--   "getDataFromTree",
+--   "getMarkupFromTree",
+--   "renderToStringWithData",
+-- }
+-- ]]
 
 snapshots["exports of public entry points @apollo/client/testing 1"] = [[
 

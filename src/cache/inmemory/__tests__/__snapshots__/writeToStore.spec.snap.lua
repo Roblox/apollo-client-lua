@@ -76,47 +76,47 @@ Table {
 }
 ]]
 
-snapshots["writing to the store should not keep reference when type of mixed inlined field changes to non-inlined field 1"] =
-	[[
+-- snapshots["writing to the store should not keep reference when type of mixed inlined field changes to non-inlined field 1"] =
+-- 	[[
 
-[MockFunction] {
-  "calls": Table {
-    Table {
-      "Missing field 'price' while writing result {
-  \"id\": \"1\",
-  \"name\": \"Todo 1\",
-  \"description\": \"Description 1\",
-  \"__typename\": \"ShoppingCartItem\"
-}",
-    },
-    Table {
-      "Missing field 'expensive' while writing result {
-  \"id\": 1
-}",
-    },
-    Table {
-      "Missing field 'id' while writing result {
-  \"__typename\": \"Cat\",
-  \"name\": \"cat\"
-}",
-    },
-  },
-  "results": Table {
-    Table {
-      "type": "return",
-      "value": undefined,
-    },
-    Table {
-      "type": "return",
-      "value": undefined,
-    },
-    Table {
-      "type": "return",
-      "value": undefined,
-    },
-  },
-}
-]]
+-- [MockFunction] {
+--   "calls": Table {
+--     Table {
+--       "Missing field 'price' while writing result {
+--   \"id\": \"1\",
+--   \"name\": \"Todo 1\",
+--   \"description\": \"Description 1\",
+--   \"__typename\": \"ShoppingCartItem\"
+-- }",
+--     },
+--     Table {
+--       "Missing field 'expensive' while writing result {
+--   \"id\": 1
+-- }",
+--     },
+--     Table {
+--       "Missing field 'id' while writing result {
+--   \"__typename\": \"Cat\",
+--   \"name\": \"cat\"
+-- }",
+--     },
+--   },
+--   "results": Table {
+--     Table {
+--       "type": "return",
+--       "value": undefined,
+--     },
+--     Table {
+--       "type": "return",
+--       "value": undefined,
+--     },
+--     Table {
+--       "type": "return",
+--       "value": undefined,
+--     },
+--   },
+-- }
+-- ]]
 
 snapshots["writing to the store should respect id fields added by fragments 1"] = [[
 

@@ -1,17 +1,19 @@
 -- ROBLOX deviation: no upstream tests
 
-return function()
-	local rootWorkspace = script.Parent.Parent.Parent.Parent
-	local PackagesWorkspace = rootWorkspace.Parent
+local rootWorkspace = script.Parent.Parent.Parent.Parent
+local PackagesWorkspace = rootWorkspace.Parent
 
-	local JestGlobals = require(PackagesWorkspace.Dev.JestGlobals)
-	local jestExpect = JestGlobals.expect
+local JestGlobals = require(PackagesWorkspace.Dev.JestGlobals)
+local describe = JestGlobals.describe
+local expect = JestGlobals.expect
+local it = JestGlobals.it
 
-	local getApolloContext = require(rootWorkspace.react.context).getApolloContext
+local getApolloContext = require(rootWorkspace.react.context).getApolloContext
 
-	describe("ApolloContext", function()
-		it("should return an empty ApolloContext", function()
-			jestExpect(getApolloContext()).never.toBe(nil)
-		end)
+describe("ApolloContext", function()
+	it("should return an empty ApolloContext", function()
+		expect(getApolloContext()).never.toBe(nil)
 	end)
-end
+end)
+
+return {}

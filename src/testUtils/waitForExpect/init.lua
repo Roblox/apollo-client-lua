@@ -12,7 +12,7 @@ local getSetTimeoutFn = helpersModule.getSetTimeoutFn
 local TICK = 50
 
 local defaults = {
-	timeout = 4500,
+	timeout = 5000,
 	interval = 50,
 }
 

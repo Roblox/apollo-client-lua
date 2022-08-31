@@ -1,5 +1,4 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/cache/inmemory/__tests__/helpers.ts
-
 local srcWorkspace = script.Parent.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 
@@ -14,7 +13,7 @@ type RegExp = RegExp.RegExp
 type Function = (...any) -> ...any
 
 local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
-local jestExpect = JestGlobals.expect
+local expect = JestGlobals.expect
 
 local exports = {}
 local typesModule = require(script.Parent.Parent.types)
@@ -84,7 +83,7 @@ local function withError(func: Function, regex: RegExp?)
 	local ok, result = pcall(function()
 		local result = func()
 		if Boolean.toJSBoolean(regex) then
-			jestExpect(message).toMatch(regex)
+			expect(message).toMatch(regex)
 		end
 		return result
 	end)

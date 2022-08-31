@@ -1,41 +1,41 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/cache/inmemory/__tests__/optimistic.ts
+local srcWorkspace = script.Parent.Parent.Parent.Parent
+local rootWorkspace = srcWorkspace.Parent
 
-return function()
-	local srcWorkspace = script.Parent.Parent.Parent.Parent
-	local rootWorkspace = srcWorkspace.Parent
+local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
+local describe = JestGlobals.describe
+local expect = JestGlobals.expect
+local it = JestGlobals.it
 
-	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
-	local jestExpect = JestGlobals.expect
+local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
+local Boolean = LuauPolyfill.Boolean
 
-	local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
-	local Boolean = LuauPolyfill.Boolean
+type Array<T> = LuauPolyfill.Array<T>
 
-	type Array<T> = LuauPolyfill.Array<T>
+type ReturnType<T> = any
 
-	type ReturnType<T> = any
+local gql = require(rootWorkspace.GraphQLTag).default
+local inMemoryCacheModule = require(script.Parent.Parent.inMemoryCache)
+local InMemoryCache = inMemoryCacheModule.InMemoryCache
+type InMemoryCache = inMemoryCacheModule.InMemoryCache
 
-	local gql = require(rootWorkspace.GraphQLTag).default
-	local inMemoryCacheModule = require(script.Parent.Parent.inMemoryCache)
-	local InMemoryCache = inMemoryCacheModule.InMemoryCache
-	type InMemoryCache = inMemoryCacheModule.InMemoryCache
+describe("optimistic cache layers", function()
+	it("return === results for repeated reads", function()
+		local cache = InMemoryCache.new({
+			resultCaching = true,
+			dataIdFromObject = function(_self, value: any)
+				local condition = if Boolean.toJSBoolean(value) then value.__typename else value
+				if condition == "Book" then
+					return "Book:" .. value.isbn
+				end
+				if condition == "Author" then
+					return "Author:" .. tostring(value.name)
+				end
+				return
+			end,
+		})
 
-	describe("optimistic cache layers", function()
-		it("return === results for repeated reads", function()
-			local cache = InMemoryCache.new({
-				resultCaching = true,
-				dataIdFromObject = function(_self, value: any)
-					local condition = if Boolean.toJSBoolean(value) then value.__typename else value
-					if condition == "Book" then
-						return "Book:" .. value.isbn
-					end
-					if condition == "Author" then
-						return "Author:" .. tostring(value.name)
-					end
-					return
-				end,
-			})
-
-			local query = gql([[
+		local query = gql([[
 
       {
         book {
@@ -47,165 +47,165 @@ return function()
       }
     ]])
 
-			local function readOptimistic(cache: InMemoryCache)
-				return cache:readQuery({ query = query }, true)
-			end
+		local function readOptimistic(cache: InMemoryCache)
+			return cache:readQuery({ query = query }, true)
+		end
 
-			local function readRealistic(cache: InMemoryCache)
-				return cache:readQuery({ query = query }, false)
-			end
+		local function readRealistic(cache: InMemoryCache)
+			return cache:readQuery({ query = query }, false)
+		end
 
-			cache:writeQuery({
-				query = query,
-				data = {
-					book = {
-						__typename = "Book",
-						isbn = "1980719802",
-						title = "1984",
-						author = { __typename = "Author", name = "George Orwell" },
-					},
-				},
-			})
-
-			local result1984 = readOptimistic(cache)
-			jestExpect(result1984).toEqual({
+		cache:writeQuery({
+			query = query,
+			data = {
 				book = {
 					__typename = "Book",
+					isbn = "1980719802",
 					title = "1984",
 					author = { __typename = "Author", name = "George Orwell" },
 				},
-			})
+			},
+		})
 
-			jestExpect(result1984).toBe(readOptimistic(cache))
-			jestExpect(result1984).toBe(readRealistic(cache))
+		local result1984 = readOptimistic(cache)
+		expect(result1984).toEqual({
+			book = {
+				__typename = "Book",
+				title = "1984",
+				author = { __typename = "Author", name = "George Orwell" },
+			},
+		})
 
-			local result2666InTransaction: ReturnType<typeof(readOptimistic)> | nil = nil
-			cache:performTransaction(function(proxy)
-				jestExpect(readOptimistic(cache)).toEqual(result1984)
+		expect(result1984).toBe(readOptimistic(cache))
+		expect(result1984).toBe(readRealistic(cache))
 
-				proxy:writeQuery({
-					query = query,
-					data = {
-						book = {
-							__typename = "Book",
-							isbn = "0312429215",
-							title = "2666",
-							author = { __typename = "Author", name = "Roberto Bola\u{F1}o" },
-						},
-					},
-				})
+		local result2666InTransaction: ReturnType<typeof(readOptimistic)> | nil = nil
+		cache:performTransaction(function(proxy)
+			expect(readOptimistic(cache)).toEqual(result1984)
 
-				result2666InTransaction = readOptimistic(proxy)
-				jestExpect(result2666InTransaction).toEqual({
-					book = {
-						__typename = "Book",
-						title = "2666",
-						author = { __typename = "Author", name = "Roberto Bola\u{F1}o" },
-					},
-				})
-			end, "first")
-
-			jestExpect(readOptimistic(cache)).toBe(result2666InTransaction)
-
-			jestExpect(result1984).toBe(readRealistic(cache))
-
-			local resultCatch22: ReturnType<typeof(readOptimistic)> | nil = nil
-			cache:performTransaction(function(proxy)
-				proxy:writeQuery({
-					query = query,
-					data = {
-						book = {
-							__typename = "Book",
-							isbn = "1451626657",
-							title = "Catch-22",
-							author = { __typename = "Author", name = "Joseph Heller" },
-						},
-					},
-				})
-
-				resultCatch22 = readOptimistic(proxy)
-				jestExpect(resultCatch22).toEqual({
-					book = {
-						__typename = "Book",
-						title = "Catch-22",
-						author = { __typename = "Author", name = "Joseph Heller" },
-					},
-				})
-			end, "second")
-
-			jestExpect(readOptimistic(cache)).toBe(resultCatch22)
-
-			jestExpect(result1984).toBe(readRealistic(cache))
-
-			cache:removeOptimistic("first")
-
-			jestExpect(readOptimistic(cache)).toBe(resultCatch22)
-
-			-- Write a new book to the root Query.book field, which should not affect
-			-- the 'second' optimistic layer that is still applied.
-			cache:writeQuery({
+			proxy:writeQuery({
 				query = query,
 				data = {
 					book = {
 						__typename = "Book",
-						isbn = "9781451673319",
-						title = "Fahrenheit 451",
-						author = { __typename = "Author", name = "Ray Bradbury" },
+						isbn = "0312429215",
+						title = "2666",
+						author = { __typename = "Author", name = "Roberto Bola\u{F1}o" },
 					},
 				},
 			})
 
-			jestExpect(readOptimistic(cache)).toBe(resultCatch22)
-
-			local resultF451 = readRealistic(cache)
-			jestExpect(resultF451).toEqual({
+			result2666InTransaction = readOptimistic(proxy)
+			expect(result2666InTransaction).toEqual({
 				book = {
 					__typename = "Book",
+					title = "2666",
+					author = { __typename = "Author", name = "Roberto Bola\u{F1}o" },
+				},
+			})
+		end, "first")
+
+		expect(readOptimistic(cache)).toBe(result2666InTransaction)
+
+		expect(result1984).toBe(readRealistic(cache))
+
+		local resultCatch22: ReturnType<typeof(readOptimistic)> | nil = nil
+		cache:performTransaction(function(proxy)
+			proxy:writeQuery({
+				query = query,
+				data = {
+					book = {
+						__typename = "Book",
+						isbn = "1451626657",
+						title = "Catch-22",
+						author = { __typename = "Author", name = "Joseph Heller" },
+					},
+				},
+			})
+
+			resultCatch22 = readOptimistic(proxy)
+			expect(resultCatch22).toEqual({
+				book = {
+					__typename = "Book",
+					title = "Catch-22",
+					author = { __typename = "Author", name = "Joseph Heller" },
+				},
+			})
+		end, "second")
+
+		expect(readOptimistic(cache)).toBe(resultCatch22)
+
+		expect(result1984).toBe(readRealistic(cache))
+
+		cache:removeOptimistic("first")
+
+		expect(readOptimistic(cache)).toBe(resultCatch22)
+
+		-- Write a new book to the root Query.book field, which should not affect
+		-- the 'second' optimistic layer that is still applied.
+		cache:writeQuery({
+			query = query,
+			data = {
+				book = {
+					__typename = "Book",
+					isbn = "9781451673319",
 					title = "Fahrenheit 451",
 					author = { __typename = "Author", name = "Ray Bradbury" },
 				},
-			})
+			},
+		})
 
-			cache:removeOptimistic("second")
+		expect(readOptimistic(cache)).toBe(resultCatch22)
 
-			jestExpect(resultF451).toBe(readRealistic(cache))
-			jestExpect(resultF451).toBe(readOptimistic(cache))
+		local resultF451 = readRealistic(cache)
+		expect(resultF451).toEqual({
+			book = {
+				__typename = "Book",
+				title = "Fahrenheit 451",
+				author = { __typename = "Author", name = "Ray Bradbury" },
+			},
+		})
 
-			jestExpect(cache:extract(true)).toEqual({
-				ROOT_QUERY = { __typename = "Query", book = { __ref = "Book:9781451673319" } },
-				["Book:1980719802"] = {
-					title = "1984",
-					author = { __ref = "Author:George Orwell" },
-					__typename = "Book",
-				},
-				["Book:9781451673319"] = {
-					title = "Fahrenheit 451",
-					author = { __ref = "Author:Ray Bradbury" },
-					__typename = "Book",
-				},
-				["Author:George Orwell"] = { __typename = "Author", name = "George Orwell" },
-				["Author:Ray Bradbury"] = { __typename = "Author", name = "Ray Bradbury" },
-			})
-		end)
+		cache:removeOptimistic("second")
 
-		it("dirties appropriate IDs when optimistic layers are removed", function()
-			local cache = InMemoryCache.new({
-				resultCaching = true,
-				dataIdFromObject = function(_self, value: any)
-					local condition = if Boolean.toJSBoolean(value) then value.__typename else value
-					if condition == "Book" then
-						return "Book:" .. value.isbn
-					end
-					if condition == "Author" then
-						return "Author:" .. value.name
-					end
-					return
-				end,
-			})
+		expect(resultF451).toBe(readRealistic(cache))
+		expect(resultF451).toBe(readOptimistic(cache))
 
-			type Q = { books: Array<any> }
+		expect(cache:extract(true)).toEqual({
+			ROOT_QUERY = { __typename = "Query", book = { __ref = "Book:9781451673319" } },
+			["Book:1980719802"] = {
+				title = "1984",
+				author = { __ref = "Author:George Orwell" },
+				__typename = "Book",
+			},
+			["Book:9781451673319"] = {
+				title = "Fahrenheit 451",
+				author = { __ref = "Author:Ray Bradbury" },
+				__typename = "Book",
+			},
+			["Author:George Orwell"] = { __typename = "Author", name = "George Orwell" },
+			["Author:Ray Bradbury"] = { __typename = "Author", name = "Ray Bradbury" },
+		})
+	end)
 
-			local query = gql([[
+	it("dirties appropriate IDs when optimistic layers are removed", function()
+		local cache = InMemoryCache.new({
+			resultCaching = true,
+			dataIdFromObject = function(_self, value: any)
+				local condition = if Boolean.toJSBoolean(value) then value.__typename else value
+				if condition == "Book" then
+					return "Book:" .. value.isbn
+				end
+				if condition == "Author" then
+					return "Author:" .. value.name
+				end
+				return
+			end,
+		})
+
+		type Q = { books: Array<any> }
+
+		local query = gql([[
 
       {
         books {
@@ -215,193 +215,194 @@ return function()
       }
     ]])
 
-			local eagerBookData = {
-				__typename = "Book",
-				isbn = "1603589082",
+		local eagerBookData = {
+			__typename = "Book",
+			isbn = "1603589082",
+			title = "Eager",
+			subtitle = "The Surprising, Secret Life of Beavers and Why They Matter",
+			author = { __typename = "Author", name = "Ben Goldfarb" },
+		}
+
+		local spinelessBookData = {
+			__typename = "Book",
+			isbn = "0735211280",
+			title = "Spineless",
+			subtitle = "The Science of Jellyfish and the Art of Growing a Backbone",
+			author = { __typename = "Author", name = "Juli Berwald" },
+		}
+
+		cache:writeQuery({ query = query, data = { books = { eagerBookData, spinelessBookData } } })
+
+		expect(cache:extract(true)).toEqual({
+			ROOT_QUERY = {
+				__typename = "Query",
+				books = { { __ref = "Book:1603589082" }, { __ref = "Book:0735211280" } },
+			},
+			["Book:1603589082"] = {
 				title = "Eager",
-				subtitle = "The Surprising, Secret Life of Beavers and Why They Matter",
-				author = { __typename = "Author", name = "Ben Goldfarb" },
-			}
-
-			local spinelessBookData = {
+				subtitle = eagerBookData.subtitle,
 				__typename = "Book",
-				isbn = "0735211280",
+			},
+			["Book:0735211280"] = {
 				title = "Spineless",
-				subtitle = "The Science of Jellyfish and the Art of Growing a Backbone",
-				author = { __typename = "Author", name = "Juli Berwald" },
-			}
+				subtitle = spinelessBookData.subtitle,
+				__typename = "Book",
+			},
+		})
 
-			cache:writeQuery({ query = query, data = { books = { eagerBookData, spinelessBookData } } })
+		local function read()
+			return cache:readQuery({ query = query }, true) :: any
+		end
 
-			jestExpect(cache:extract(true)).toEqual({
-				ROOT_QUERY = {
-					__typename = "Query",
-					books = { { __ref = "Book:1603589082" }, { __ref = "Book:0735211280" } },
-				},
-				["Book:1603589082"] = {
+		local result = read()
+		expect(result).toEqual({
+			books = {
+				{
+					__typename = "Book",
 					title = "Eager",
-					subtitle = eagerBookData.subtitle,
-					__typename = "Book",
+					subtitle = "The Surprising, Secret Life of Beavers and Why They Matter",
 				},
-				["Book:0735211280"] = {
+				{
+					__typename = "Book",
 					title = "Spineless",
-					subtitle = spinelessBookData.subtitle,
-					__typename = "Book",
+					subtitle = "The Science of Jellyfish and the Art of Growing a Backbone",
 				},
-			})
+			},
+		})
+		expect(read()).toBe(result)
 
-			local function read()
-				return cache:readQuery({ query = query }, true) :: any
-			end
+		-- ROBLOX TODO: fragments are not supported yet
+		-- 		local bookAuthorNameFragment = gql([[
 
-			local result = read()
-			jestExpect(result).toEqual({
-				books = {
-					{
-						__typename = "Book",
-						title = "Eager",
-						subtitle = "The Surprising, Secret Life of Beavers and Why They Matter",
-					},
-					{
-						__typename = "Book",
-						title = "Spineless",
-						subtitle = "The Science of Jellyfish and the Art of Growing a Backbone",
-					},
-				},
-			})
-			jestExpect(read()).toBe(result)
+		--   fragment BookAuthorName on Book {
+		--     author {
+		--       name
+		--     }
+		--   }
+		-- ]])
 
-			-- ROBLOX TODO: fragments are not supported yet
-			-- 		local bookAuthorNameFragment = gql([[
+		-- 		cache:writeFragment({
+		-- 			id = "Book:0735211280",
+		-- 			fragment = bookAuthorNameFragment,
+		-- 			data = { author = spinelessBookData.author },
+		-- 		})
 
-			--   fragment BookAuthorName on Book {
-			--     author {
-			--       name
-			--     }
-			--   }
-			-- ]])
+		-- 		-- Adding an author doesn't change the structure of the original result,
+		-- 		-- because the original query did not ask for author information.
+		-- 		local resultWithSpinlessAuthor = read()
+		-- 		expect(resultWithSpinlessAuthor).toEqual(result)
+		-- 		expect(resultWithSpinlessAuthor).toBe(result)
+		-- 		expect(resultWithSpinlessAuthor.books[1]).toBe(result.books[1])
+		-- 		expect(resultWithSpinlessAuthor.books[2]).toBe(result.books[2])
 
-			-- 		cache:writeFragment({
-			-- 			id = "Book:0735211280",
-			-- 			fragment = bookAuthorNameFragment,
-			-- 			data = { author = spinelessBookData.author },
-			-- 		})
+		-- 		cache:recordOptimisticTransaction(function(proxy)
+		-- 			proxy:writeFragment({
+		-- 				id = "Book:1603589082",
+		-- 				fragment = bookAuthorNameFragment,
+		-- 				data = { author = eagerBookData.author },
+		-- 			})
+		-- 		end, "eager author")
 
-			-- 		-- Adding an author doesn't change the structure of the original result,
-			-- 		-- because the original query did not ask for author information.
-			-- 		local resultWithSpinlessAuthor = read()
-			-- 		jestExpect(resultWithSpinlessAuthor).toEqual(result)
-			-- 		jestExpect(resultWithSpinlessAuthor).toBe(result)
-			-- 		jestExpect(resultWithSpinlessAuthor.books[1]).toBe(result.books[1])
-			-- 		jestExpect(resultWithSpinlessAuthor.books[2]).toBe(result.books[2])
+		-- 		expect(read()).toEqual(result)
 
-			-- 		cache:recordOptimisticTransaction(function(proxy)
-			-- 			proxy:writeFragment({
-			-- 				id = "Book:1603589082",
-			-- 				fragment = bookAuthorNameFragment,
-			-- 				data = { author = eagerBookData.author },
-			-- 			})
-			-- 		end, "eager author")
+		-- 		local queryWithAuthors = gql([[
 
-			-- 		jestExpect(read()).toEqual(result)
+		--   {
+		--     books {
+		--       title
+		--       subtitle
+		--       author {
+		--         name
+		--       }
+		--     }
+		--   }
+		-- ]])
 
-			-- 		local queryWithAuthors = gql([[
+		-- 		local function readWithAuthors(optimistic: boolean?)
+		-- 			if optimistic == nil then
+		-- 				optimistic = true
+		-- 			end
+		-- 			return cache:readQuery({ query = queryWithAuthors }, optimistic) :: any
+		-- 		end
 
-			--   {
-			--     books {
-			--       title
-			--       subtitle
-			--       author {
-			--         name
-			--       }
-			--     }
-			--   }
-			-- ]])
+		-- 		local function withoutISBN(data: any)
+		-- 			-- ROBLOX FIXME: need a separate solution
+		-- 			return HttpService:JSONDecode(HttpService:JSONEncode(data, function(key, value)
+		-- 				if key == "isbn" then
+		-- 					return
+		-- 				end
+		-- 				return value
+		-- 			end))
+		-- 		end
 
-			-- 		local function readWithAuthors(optimistic: boolean?)
-			-- 			if optimistic == nil then
-			-- 				optimistic = true
-			-- 			end
-			-- 			return cache:readQuery({ query = queryWithAuthors }, optimistic) :: any
-			-- 		end
+		-- 		local resultWithTwoAuthors = readWithAuthors()
+		-- 		expect(resultWithTwoAuthors).toEqual({
+		-- 			books = { withoutISBN(eagerBookData), withoutISBN(spinelessBookData) },
+		-- 		})
 
-			-- 		local function withoutISBN(data: any)
-			-- 			-- ROBLOX FIXME: need a separate solution
-			-- 			return HttpService:JSONDecode(HttpService:JSONEncode(data, function(key, value)
-			-- 				if key == "isbn" then
-			-- 					return
-			-- 				end
-			-- 				return value
-			-- 			end))
-			-- 		end
+		-- 		local buzzBookData = {
+		-- 			__typename = "Book",
+		-- 			isbn = "0465052614",
+		-- 			title = "Buzz",
+		-- 			subtitle = "The Nature and Necessity of Bees",
+		-- 			author = { __typename = "Author", name = "Thor Hanson" },
+		-- 		}
 
-			-- 		local resultWithTwoAuthors = readWithAuthors()
-			-- 		jestExpect(resultWithTwoAuthors).toEqual({
-			-- 			books = { withoutISBN(eagerBookData), withoutISBN(spinelessBookData) },
-			-- 		})
+		-- 		cache:recordOptimisticTransaction(function(proxy)
+		-- 			proxy:writeQuery({
+		-- 				query = queryWithAuthors,
+		-- 				data = { books = { eagerBookData, spinelessBookData, buzzBookData } },
+		-- 			})
+		-- 		end, "buzz book")
 
-			-- 		local buzzBookData = {
-			-- 			__typename = "Book",
-			-- 			isbn = "0465052614",
-			-- 			title = "Buzz",
-			-- 			subtitle = "The Nature and Necessity of Bees",
-			-- 			author = { __typename = "Author", name = "Thor Hanson" },
-			-- 		}
+		-- 		local resultWithBuzz = readWithAuthors()
 
-			-- 		cache:recordOptimisticTransaction(function(proxy)
-			-- 			proxy:writeQuery({
-			-- 				query = queryWithAuthors,
-			-- 				data = { books = { eagerBookData, spinelessBookData, buzzBookData } },
-			-- 			})
-			-- 		end, "buzz book")
+		-- 		expect(resultWithBuzz).toEqual({
+		-- 			books = {
+		-- 				withoutISBN(eagerBookData),
+		-- 				withoutISBN(spinelessBookData),
+		-- 				withoutISBN(buzzBookData),
+		-- 			},
+		-- 		})
+		-- 		expect(resultWithBuzz.books[1]).toEqual(resultWithTwoAuthors.books[1])
+		-- 		expect(resultWithBuzz.books[2]).toEqual(resultWithTwoAuthors.books[2])
 
-			-- 		local resultWithBuzz = readWithAuthors()
+		-- 		-- Before removing the Buzz optimistic layer from the cache, write the same
+		-- 		-- data to the root layer of the cache.
+		-- 		cache:writeQuery({
+		-- 			query = queryWithAuthors,
+		-- 			data = { books = { eagerBookData, spinelessBookData, buzzBookData } },
+		-- 		})
 
-			-- 		jestExpect(resultWithBuzz).toEqual({
-			-- 			books = {
-			-- 				withoutISBN(eagerBookData),
-			-- 				withoutISBN(spinelessBookData),
-			-- 				withoutISBN(buzzBookData),
-			-- 			},
-			-- 		})
-			-- 		jestExpect(resultWithBuzz.books[1]).toEqual(resultWithTwoAuthors.books[1])
-			-- 		jestExpect(resultWithBuzz.books[2]).toEqual(resultWithTwoAuthors.books[2])
+		-- 		expect(readWithAuthors()).toBe(resultWithBuzz)
 
-			-- 		-- Before removing the Buzz optimistic layer from the cache, write the same
-			-- 		-- data to the root layer of the cache.
-			-- 		cache:writeQuery({
-			-- 			query = queryWithAuthors,
-			-- 			data = { books = { eagerBookData, spinelessBookData, buzzBookData } },
-			-- 		})
+		-- 		local function readSpinelessFragment()
+		-- 			return cache:readFragment({
+		-- 				id = "Book:" .. tostring(spinelessBookData.isbn),
+		-- 				fragment = bookAuthorNameFragment,
+		-- 			}, true)
+		-- 		end
 
-			-- 		jestExpect(readWithAuthors()).toBe(resultWithBuzz)
+		-- 		local spinelessBeforeRemovingBuzz = readSpinelessFragment()
+		-- 		cache:removeOptimistic("buzz book")
+		-- 		local spinelessAfterRemovingBuzz = readSpinelessFragment()
+		-- 		expect(spinelessBeforeRemovingBuzz).toEqual(spinelessAfterRemovingBuzz)
+		-- 		expect(spinelessBeforeRemovingBuzz).toBe(spinelessAfterRemovingBuzz)
 
-			-- 		local function readSpinelessFragment()
-			-- 			return cache:readFragment({
-			-- 				id = "Book:" .. tostring(spinelessBookData.isbn),
-			-- 				fragment = bookAuthorNameFragment,
-			-- 			}, true)
-			-- 		end
+		-- 		local resultAfterRemovingBuzzLayer = readWithAuthors()
+		-- 		expect(resultAfterRemovingBuzzLayer).toEqual(resultWithBuzz)
+		-- 		expect(resultAfterRemovingBuzzLayer).toBe(resultWithBuzz)
+		-- 		resultWithTwoAuthors.books:forEach(function(book, i)
+		-- 			expect(book).toEqual(resultAfterRemovingBuzzLayer.books[tostring(i)])
+		-- 			expect(book).toBe(resultAfterRemovingBuzzLayer.books[tostring(i)])
+		-- 		end)
 
-			-- 		local spinelessBeforeRemovingBuzz = readSpinelessFragment()
-			-- 		cache:removeOptimistic("buzz book")
-			-- 		local spinelessAfterRemovingBuzz = readSpinelessFragment()
-			-- 		jestExpect(spinelessBeforeRemovingBuzz).toEqual(spinelessAfterRemovingBuzz)
-			-- 		jestExpect(spinelessBeforeRemovingBuzz).toBe(spinelessAfterRemovingBuzz)
-
-			-- 		local resultAfterRemovingBuzzLayer = readWithAuthors()
-			-- 		jestExpect(resultAfterRemovingBuzzLayer).toEqual(resultWithBuzz)
-			-- 		jestExpect(resultAfterRemovingBuzzLayer).toBe(resultWithBuzz)
-			-- 		resultWithTwoAuthors.books:forEach(function(book, i)
-			-- 			jestExpect(book).toEqual(resultAfterRemovingBuzzLayer.books[tostring(i)])
-			-- 			jestExpect(book).toBe(resultAfterRemovingBuzzLayer.books[tostring(i)])
-			-- 		end)
-
-			-- 		local nonOptimisticResult = readWithAuthors(false)
-			-- 		jestExpect(nonOptimisticResult).toEqual(resultWithBuzz)
-			-- 		cache:removeOptimistic("eager author")
-			-- 		local resultWithoutOptimisticLayers = readWithAuthors()
-			-- 		jestExpect(resultWithoutOptimisticLayers).toBe(nonOptimisticResult)
-		end)
+		-- 		local nonOptimisticResult = readWithAuthors(false)
+		-- 		expect(nonOptimisticResult).toEqual(resultWithBuzz)
+		-- 		cache:removeOptimistic("eager author")
+		-- 		local resultWithoutOptimisticLayers = readWithAuthors()
+		-- 		expect(resultWithoutOptimisticLayers).toBe(nonOptimisticResult)
 	end)
-end
+end)
+
+return {}

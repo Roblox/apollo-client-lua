@@ -1,11 +1,12 @@
 -- ROBLOX upstream: https://github.com/testing-library/dom-testing-library/blob/v6.11.0/src/wait.js
 
-local srcWorkspace = script.Parent.Parent.Parent
+local srcWorkspace = script.Parent.Parent
+local Packages = srcWorkspace.Parent
 
 local waitForExpect = require(srcWorkspace.testUtils.waitForExpect)
 
-local configModule = require(srcWorkspace.testUtils.dom.config)
-local getConfig = configModule.getConfig
+local reactTestingModule = require(Packages.Dev.ReactTestingLibrary)
+local getConfig = reactTestingModule.getConfig
 
 type GenericFunction = (...any) -> ...any?
 
@@ -42,9 +43,9 @@ local function wait_(callback_: GenericFunction?, ref_: WaitOptions?)
 end
 
 local function waitWrapper(...)
-	local args = ...
+	local args = table.pack(...)
 	return getConfig().asyncWrapper(function()
-		return wait_(args)
+		return wait_(table.unpack(args))
 	end)
 end
 

@@ -90,8 +90,7 @@ function MutationData.new<TData, TVariables, TContext, TCache>(
 		self:onMutationStart()
 		local mutationId = self:generateNewMutationId()
 
-		return self
-			:mutate(mutationFunctionOptions)
+		return self:mutate(mutationFunctionOptions)
 			:andThen(function(response)
 				self:onMutationCompleted(response, mutationId)
 				return response

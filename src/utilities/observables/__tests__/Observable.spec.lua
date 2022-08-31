@@ -1,8 +1,25 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/utilities/observables/__tests__/Observable.ts
-return function()
 
-	-- ROBLOX deviation: tests don't apply / module is just re-exporting files
-	--[[Original tests
+local srcWorkspace = script.Parent.Parent.Parent.Parent
+local rootWorkspace = srcWorkspace.Parent
+
+local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
+local describe = JestGlobals.describe
+local expect = JestGlobals.expect
+local it = JestGlobals.it
+
+local Observable = require(script.Parent.Parent.Observable).Observable
+
+-- ROBLOX deviation START: add at least a test
+describe("Observable", function()
+	it("exports Observable", function()
+		expect(Observable).toBeTruthy()
+	end)
+end)
+-- ROBLOX deviation END
+
+-- ROBLOX deviation: tests don't apply / module is just re-exporting files
+--[[Original tests
 	describe("Observable", function()
 		describe("subclassing by non-class constructor functions", function()
 			it('simulating super(sub) with Observable.call(this, sub)', () => {
@@ -35,4 +52,5 @@ return function()
 		end)
 	end)
 ]]
-end
+
+return {}

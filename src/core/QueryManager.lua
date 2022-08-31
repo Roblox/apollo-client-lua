@@ -919,8 +919,7 @@ function QueryManager:query(options: QueryOptions<any, any>, queryId: string?): 
 		ROBLOX deviation: finally implementation is different than in JS.
 		using separate andThen and catch to perform the same logic and not swallow the error
 	]]
-	return self
-		:fetchQuery(queryId, options)
+	return self:fetchQuery(queryId, options)
 		:andThen(function(result)
 			self:stopQuery(queryId)
 			return result

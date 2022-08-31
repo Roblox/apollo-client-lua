@@ -12,7 +12,7 @@ roblox-cli analyze analyze.project.json
 stylua -c src benchmark
 
 echo "Run tests"
-roblox-cli run --load.place tests.project.json --run bin/spec.lua --lua.globals=__DEV__=true --fastFlags.allOnLuau --fastFlags.overrides "UseDateTimeType3=true" "EnableLoadModule=true" "EnableDelayedTaskMethods=true"
+roblox-cli run --load.place tests.project.json --run bin/spec.lua --lua.globals=__DEV__=true --fastFlags.allOnLuau --fastFlags.overrides "UseDateTimeType3=true" "EnableLoadModule=true" "EnableDelayedTaskMethods=true" --load.asRobloxScript --headlessRenderer 1 --virtualInput 1 --fs.read=$PWD --lua.globals=CI=true
 
 # run the following command to update new snapshots
 # roblox-cli run --load.model tests.project.json --run bin/spec.lua --lua.globals=__DEV__=true --fastFlags.allOnLuau --fastFlags.overrides "UseDateTimeType3=true" "EnableLoadModule=true" "EnableDelayedTaskMethods=true" --load.asRobloxScript --fs.readwrite="$(pwd)" --lua.globals=UPDATESNAPSHOT="new"

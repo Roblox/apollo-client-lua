@@ -4,7 +4,7 @@ local srcWorkspace = script.Parent.Parent.Parent
 local rootWorkspace = srcWorkspace.Parent
 
 local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
-local jestExpect = JestGlobals.expect
+local expect = JestGlobals.expect
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local console = LuauPolyfill.console
@@ -48,7 +48,7 @@ local function withError(func: Function, regex: RegExp)
 
 	local ok, result = pcall(function()
 		local result = func()
-		jestExpect(message).toMatch(regex)
+		expect(message).toMatch(regex)
 		return result
 	end)
 	console.error = oldError

@@ -13,8 +13,8 @@ type Tuple<T, V> = Array<T | V>
 type JSX_Element = any
 type ZenObservable_Subscription = any
 
-local SharedModule = require(rootWorkspace.Shared)
-type ReactNode = SharedModule.ReactNodeList
+local React = require(rootWorkspace.React)
+type ReactNode = React.ReactNode
 local GraphQLModule = require(rootWorkspace.GraphQL)
 type DocumentNode = GraphQLModule.DocumentNode
 

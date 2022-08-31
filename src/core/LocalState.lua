@@ -235,18 +235,16 @@ function LocalState:runResolvers(ref: {
 	end
 
 	if Boolean.toJSBoolean(document) then
-		return self
-			:resolveDocument(
-				document,
-				remoteResult.data,
-				context,
-				variables,
-				self.fragmentMatcher,
-				onlyRunForcedResolvers
-			)
-			:andThen(function(localResult)
-				return Object.assign({}, remoteResult, { data = localResult.result })
-			end)
+		return self:resolveDocument(
+			document,
+			remoteResult.data,
+			context,
+			variables,
+			self.fragmentMatcher,
+			onlyRunForcedResolvers
+		):andThen(function(localResult)
+			return Object.assign({}, remoteResult, { data = localResult.result })
+		end)
 	end
 
 	return Promise.resolve(remoteResult)
@@ -307,11 +305,14 @@ function LocalState:addExportedVariables(
 
 	if Boolean.toJSBoolean(document) then
 		local ref = self:buildRootValueFromCache(document, variables)
-		return self
-			:resolveDocument(document, Boolean.toJSBoolean(ref) and ref or {}, self:prepareContext(context), variables)
-			:andThen(function(data)
-				return Object.assign({}, variables, data.exportedVariables)
-			end)
+		return self:resolveDocument(
+			document,
+			Boolean.toJSBoolean(ref) and ref or {},
+			self:prepareContext(context),
+			variables
+		):andThen(function(data)
+			return Object.assign({}, variables, data.exportedVariables)
+		end)
 	end
 
 	return Promise.resolve(Object.assign({}, variables))
@@ -443,8 +444,7 @@ function LocalState:resolveSelectionSet(
 		if fragment and fragment.typeCondition ~= nil then
 			local typeCondition = fragment.typeCondition.name.value
 			if Boolean.toJSBoolean(execContext:fragmentMatcher(rootValue, typeCondition, context)) then
-				return self
-					:resolveSelectionSet(fragment.selectionSet, rootValue, execContext)
+				return self:resolveSelectionSet(fragment.selectionSet, rootValue, execContext)
 					:andThen(function(fragmentResult)
 						table.insert(resultsToMerge, fragmentResult)
 					end)

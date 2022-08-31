@@ -1,21 +1,23 @@
--- ROBLOX no upstream
+-- ROBLOX upstream: no upstream
 
-return function()
-	local srcWorkspace = script.Parent.Parent.Parent.Parent
-	local rootWorkspace = srcWorkspace.Parent
+local srcWorkspace = script.Parent.Parent.Parent.Parent
+local rootWorkspace = srcWorkspace.Parent
 
-	local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
-	local jestExpect = JestGlobals.expect
+local JestGlobals = require(rootWorkspace.Dev.JestGlobals)
+local describe = JestGlobals.describe
+local expect = JestGlobals.expect
+local it = JestGlobals.it
 
-	local createSignalIfSupported = require(script.Parent.Parent.createSignalIfSupported).createSignalIfSupported
+local createSignalIfSupported = require(script.Parent.Parent.createSignalIfSupported).createSignalIfSupported
 
-	describe("createSignalIfSupported", function()
-		it("should be a function", function()
-			jestExpect(typeof(createSignalIfSupported)).toBe("function")
-		end)
-
-		it("should not throw", function()
-			jestExpect(createSignalIfSupported).never.toThrow()
-		end)
+describe("createSignalIfSupported", function()
+	it("should be a function", function()
+		expect(typeof(createSignalIfSupported)).toBe("function")
 	end)
-end
+
+	it("should not throw", function()
+		expect(createSignalIfSupported).never.toThrow()
+	end)
+end)
+
+return {}
