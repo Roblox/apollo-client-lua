@@ -1,5 +1,5 @@
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/config/entryPoints.js
-local rootWorkspace = script.Parent.Parent.Parent
+local rootWorkspace = script.Parent.Parent
 local exports = {}
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)

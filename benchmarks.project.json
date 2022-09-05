@@ -9,6 +9,9 @@
       },
       "ApolloClientBenchmarks": {
         "$path": "benchmark"
+      },
+      "Config": {
+        "$path": "config"
       }
     }
   }

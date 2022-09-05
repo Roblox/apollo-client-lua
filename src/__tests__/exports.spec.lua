@@ -41,7 +41,7 @@ local reactParser = require(srcWorkspace.react.parser)
 local reactSSR = nil -- require(srcWorkspace.react.ssr)
 local testing = require(srcWorkspace.testing)
 local utilities = require(srcWorkspace.utilities)
-local entryPoints = require(srcWorkspace.config.entryPoints)
+local entryPoints = require(rootWorkspace.Config.entryPoints)
 
 type Namespace = Object | nil
 
