@@ -438,16 +438,12 @@ describe("mutation results", function()
 		end)
 	end)
 
-	-- ROBLOX FIXME: test leaks into the next test
-	withErrorSpy(
-		itAsync.skip,
-		"should warn when the result fields don't match the query fields",
-		function(resolve, reject)
-			local handle: any
-			local subscriptionHandle: Subscription
+	withErrorSpy(itAsync, "should warn when the result fields don't match the query fields", function(resolve, reject)
+		local handle: any
+		local subscriptionHandle: Subscription
 
-			local queryTodos = gql([[
-	
+		local queryTodos = gql([[
+
 		  query todos {
 			todos {
 			  id
@@ -458,21 +454,21 @@ describe("mutation results", function()
 		  }
 		]])
 
-			local queryTodosResult = {
-				data = {
-					todos = {
-						{
-							id = "1",
-							name = "Todo 1",
-							description = "Description 1",
-							__typename = "todos",
-						},
+		local queryTodosResult = {
+			data = {
+				todos = {
+					{
+						id = "1",
+						name = "Todo 1",
+						description = "Description 1",
+						__typename = "todos",
 					},
 				},
-			}
+			},
+		}
 
-			local mutationTodo = gql([[
-	
+		local mutationTodo = gql([[
+
 		  mutation createTodo {
 			createTodo {
 			  id
@@ -483,74 +479,73 @@ describe("mutation results", function()
 		  }
 		]])
 
-			local mutationTodoResult = {
-				data = {
-					createTodo = {
-						id = "2",
-						name = "Todo 2",
-						__typename = "createTodo",
-					},
+		local mutationTodoResult = {
+			data = {
+				createTodo = {
+					id = "2",
+					name = "Todo 2",
+					__typename = "createTodo",
 				},
-			}
+			},
+		}
 
-			local ref = setupObsQuery(reject, {
-				request = { query = queryTodos },
-				result = queryTodosResult,
-			}, {
-				request = { query = mutationTodo },
-				result = mutationTodoResult,
-			})
-			local client, obsQuery = ref.client, ref.obsQuery
+		local ref = setupObsQuery(reject, {
+			request = { query = queryTodos },
+			result = queryTodosResult,
+		}, {
+			request = { query = mutationTodo },
+			result = mutationTodoResult,
+		})
+		local client, obsQuery = ref.client, ref.obsQuery
 
-			return obsQuery
-				:result()
-				:andThen(function()
-					-- we have to actually subscribe to the query to be able to update it
-					return Promise.new(function(resolve)
-						handle = client:watchQuery({ query = queryTodos })
-						subscriptionHandle = handle:subscribe({
-							next = function(_self, res: any)
-								resolve(res)
-							end,
-						})
-					end)
+		return obsQuery
+			:result()
+			:andThen(function()
+				-- we have to actually subscribe to the query to be able to update it
+				return Promise.new(function(resolve)
+					handle = client:watchQuery({ query = queryTodos })
+					subscriptionHandle = handle:subscribe({
+						next = function(_self, res: any)
+							resolve(res)
+						end,
+					})
 				end)
-				:andThen(function()
-					return client:mutate({
-						mutation = mutationTodo,
-						updateQueries = {
-							todos = function(_self, prev, ref)
-								local mutationResult = ref.mutationResult
-								local newTodo = (mutationResult :: any).data.createTodo
-								local newResults = {
-									todos = Array.concat({}, (prev :: any).todos, { newTodo }),
-								}
-								return newResults
-							end,
-						},
-					}) :: Promise<any>
-				end)
-				--[[
+			end)
+			:andThen(function()
+				return client:mutate({
+					mutation = mutationTodo,
+					updateQueries = {
+						todos = function(_self, prev, ref)
+							local mutationResult = ref.mutationResult
+							local newTodo = (mutationResult :: any).data.createTodo
+							local newResults = {
+								todos = Array.concat({}, (prev :: any).todos, { newTodo }),
+							}
+							return newResults
+						end,
+					},
+				}) :: Promise<any>
+			end)
+			--[[
 					ROBLOX deviation START: finally implementation is different than in JS.
 					using separate andThen and catch to perform the same logic and not swallow the error
 				]]
-				:andThen(
-					function(result)
-						subscriptionHandle:unsubscribe()
-						return result
-					end
-				)
-				:catch(function(err)
+			:andThen(
+				function(result)
 					subscriptionHandle:unsubscribe()
-					error(err)
-				end)
-				-- ROBLOX deviation END
-				:andThen(function(result)
-					expect(result).toEqual(mutationTodoResult)
-				end)
-				:andThen(resolve, reject)
-		end
-	)
+					return result
+				end
+			)
+			:catch(function(err)
+				subscriptionHandle:unsubscribe()
+				error(err)
+			end)
+			-- ROBLOX deviation END
+			:andThen(function(result)
+				expect(result).toEqual(mutationTodoResult)
+			end)
+			:andThen(resolve, reject)
+	end)
 
 	describe("InMemoryCache type/field policies", function()
 		local startTime = DateTime.now().UnixTimestampMillis

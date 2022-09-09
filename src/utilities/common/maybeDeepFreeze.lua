@@ -18,7 +18,7 @@ local function deepFreeze(value: any)
 	-- ROBLOX deviation START: set is being modified inside the loop, can't use forEach
 	for _, obj in workSet do
 		if isNonNullObject(obj) then
-			if not Object.isFrozen(obj) then
+			if not table.isfrozen(obj) then
 				Object.freeze(obj)
 			end
 			Array.forEach(Object.keys(obj), function(name)

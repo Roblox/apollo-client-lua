@@ -19,9 +19,21 @@ type Callback = (resolve: (result: any?) -> (), reject: (reason: any?) -> ()) ->
 local function wrap(key: string?): (message: string, callback: Callback, timeout: number?) -> ()
 	return function(message: string, callback: Callback, timeout: number?)
 		return (if key then (it :: any)[key] else it)(message, function()
-			return Promise.new(function(resolve, reject)
-				return callback(resolve, reject)
-			end)
+			return Promise
+				.new(function(resolve, reject)
+					callback(resolve, reject)
+				end)
+				--[[
+				ROBLOX deviation START:
+				Roblox Promise resolves synchronously,
+				we need to delay the execution of chains of `andThen` by at least one tick
+			]]
+				:andThen(
+					function(value)
+						return Promise.delay(1 / 60):andThenReturn(value)
+					end
+				)
+			-- ROBLOX deviation END
 		end, timeout)
 	end
 end
@@ -34,7 +46,7 @@ local itAsync = setmetatable({
 	todo = wrap("todo"),
 }, {
 	__call = function(_self: any, message: string, callback: Callback, timeout: number?)
-		wrappedIt(message, callback, timeout)
+		return wrappedIt(message, callback, timeout)
 	end,
 })
 

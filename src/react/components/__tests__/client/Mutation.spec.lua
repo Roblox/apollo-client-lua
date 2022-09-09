@@ -174,11 +174,8 @@ describe("General Mutation testing", function()
 			)
 		end
 
-		local getByText, rerender
-		do
-			local ref = render(React.createElement(Component, nil))
-			getByText, rerender = ref.getByText, ref.rerender
-		end
+		local ref = render(React.createElement(Component, nil))
+		local getByText, rerender = ref.getByText, ref.rerender
 
 		local button = getByText("Create")
 		-- context client mutation

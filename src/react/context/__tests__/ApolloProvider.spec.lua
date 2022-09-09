@@ -114,7 +114,8 @@ describe("<ApolloProvider /> Component", function()
 			React.createElement(
 				ApolloProvider,
 				{ client = client },
-				{ React.createElement(TestChild), React.createElement(TestChild) :: any }
+				React.createElement(TestChild),
+				React.createElement(TestChild)
 			)
 		)
 	end)

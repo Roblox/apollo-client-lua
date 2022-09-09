@@ -29,24 +29,37 @@ local function wrapTestFunction(fn: (...any) -> any, consoleMethodName: string)
 	end
 end
 
-local function withErrorSpy<TArgs, TResult>(it: (...any) -> ...TResult, ...: any)
+-- ROBLOX deviation START: add helper types
+type TestFn<TResult> = (...any) -> ...TResult
+type TestFnLike<TResult> =
+	typeof(setmetatable({}, { __call = function(_self: any, ...: any): ...TResult end }))
+	| TestFn<TResult>
+-- ROBLOX deviation END
+
+local function withErrorSpy<TArgs, TResult>(it: TestFnLike<TResult>, ...: any)
 	local args = { ... } -- TArgs
 	args[2] = wrapTestFunction(args[2], "error")
-	return it(table.unpack(args))
+	-- ROBLOX deviation START: analyze complains with union of fn and callable table
+	return (it :: TestFn<TResult>)(table.unpack(args))
+	-- ROBLOX deviation END
 end
 exports.withErrorSpy = withErrorSpy
 
-local function withWarningSpy<TArgs, TResult>(it: (...any) -> ...TResult, ...: any)
+local function withWarningSpy<TArgs, TResult>(it: TestFnLike<TResult>, ...: any)
 	local args = { ... } -- TArgs
 	args[2] = wrapTestFunction(args[2], "warn")
-	return it(table.unpack(args))
+	-- ROBLOX deviation START: analyze complains with union of fn and callable table
+	return (it :: TestFn<TResult>)(table.unpack(args))
+	-- ROBLOX deviation END
 end
 exports.withWarningSpy = withWarningSpy
 
-local function withLogSpy<TArgs, TResult>(it: (...any) -> ...TResult, ...: any)
+local function withLogSpy<TArgs, TResult>(it: TestFnLike<TResult>, ...: any)
 	local args = { ... } -- TArgs
 	args[2] = wrapTestFunction(args[2], "log")
-	return it(table.unpack(args))
+	-- ROBLOX deviation START: analyze complains with union of fn and callable table
+	return (it :: TestFn<TResult>)(table.unpack(args))
+	-- ROBLOX deviation END
 end
 exports.withLogSpy = withLogSpy
 
