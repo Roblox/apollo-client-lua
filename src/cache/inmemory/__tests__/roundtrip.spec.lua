@@ -44,7 +44,7 @@ local function assertDeeplyFrozen(value: any, stack_: Array<any>?)
 	if value ~= nil and typeof(value) == "table" and Array.indexOf(stack, value) < 0 then
 		-- ROBLOX FIXME: can't check isExtensible
 		-- expect(Object.isExtensible(value)).toBe(false)
-		expect(Object.isFrozen(value)).toBe(true)
+		expect(table.isfrozen(value)).toBe(true)
 		table.insert(stack, value)
 		Array.forEach(Object.keys(value), function(key)
 			assertDeeplyFrozen(value[key], stack)
@@ -256,7 +256,7 @@ describe("roundtrip", function()
 		-- data should get frozen.
 		-- ROBLOX FIXME: can't check isExtensible
 		-- expect(Object.isExtensible(updateClub)).toBe(true)
-		expect(Object.isFrozen(updateClub)).toBe(false)
+		expect(table.isfrozen(updateClub)).toBe(false)
 	end)
 
 	describe("directives", function()

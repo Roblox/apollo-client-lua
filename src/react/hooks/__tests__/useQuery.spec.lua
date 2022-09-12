@@ -501,9 +501,17 @@ describe("useQuery Hook", function()
 			wait_(function()
 					expect(renderCount).toBe(3)
 				end)
-				:finally(function()
+				-- ROBLOX deviation START: Roblox promise finally works different. We must handle successs and error
+				:andThen(
+					function()
+						console.error = consoleError
+					end
+				)
+				:catch(function(e)
 					console.error = consoleError
+					error(e)
 				end)
+				-- ROBLOX deviation END
 				:andThen(resolve, reject)
 		end)
 

@@ -19,13 +19,25 @@ local function wrapTestFunction(fn: (...any) -> any, consoleMethodName: string)
 		local spy = jest.fn(function() end)
 		console[consoleMethodName] = spy
 
-		return Promise.new(function(resolve)
-			resolve(if fn then fn(table.unpack(args_)) else nil)
-		end):finally(function()
-			expect(spy).toMatchSnapshot()
-			spy:mockClear()
-			console[consoleMethodName] = originalFn
-		end)
+		return Promise
+			.new(function(resolve)
+				resolve(if fn then fn(table.unpack(args_)) else nil)
+			end)
+			-- ROBLOX deviation START: Roblox promise finally works different. We must handle successs and error
+			:andThen(
+				function()
+					expect(spy).toMatchSnapshot()
+					spy:mockClear()
+					console[consoleMethodName] = originalFn
+				end
+			)
+			:catch(function(e)
+				expect(spy).toMatchSnapshot()
+				spy:mockClear()
+				console[consoleMethodName] = originalFn
+				error(e)
+			end)
+		-- ROBLOX deviation END
 	end
 end
 

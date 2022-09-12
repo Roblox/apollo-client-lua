@@ -2073,7 +2073,7 @@ describe("InMemoryCache#modify", function()
 		cache:modify({
 			fields = {
 				comments = function(_self, comments: Array<Reference>, ref)
-					expect(Object.isFrozen(comments)).toBe(true)
+					expect(table.isfrozen(comments)).toBe(true)
 					expect(#comments).toBe(3)
 					local filtered = Array.filter(comments, function(comment)
 						return ref:readField("id", comment) ~= "c1"

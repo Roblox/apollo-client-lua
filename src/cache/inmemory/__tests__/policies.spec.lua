@@ -2046,7 +2046,7 @@ describe("type policies", function()
 								keyArgs = {},
 								read = function(_self, existing: Array<any>, ref_)
 									local args = ref_.args
-									expect(not Boolean.toJSBoolean(existing) or Object.isFrozen(existing)).toBe(true)
+									expect(not Boolean.toJSBoolean(existing) or table.isfrozen(existing)).toBe(true)
 									expect(typeof(ref_.toReference)).toBe("function")
 									local slice = Array.slice(
 										existing,
@@ -2062,7 +2062,7 @@ describe("type policies", function()
 								end,
 								merge = function(_self, existing: Array<any>, incoming: Array<any>, ref)
 									local args = ref.args
-									expect(not Boolean.toJSBoolean(existing) or Object.isFrozen(existing)).toBe(true)
+									expect(not Boolean.toJSBoolean(existing) or table.isfrozen(existing)).toBe(true)
 									expect(typeof(ref.toReference)).toBe("function")
 									local copy = (function()
 										if Boolean.toJSBoolean(existing) then

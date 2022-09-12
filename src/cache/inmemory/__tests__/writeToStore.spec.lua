@@ -2434,15 +2434,15 @@ describe("writing to the store", function()
 			},
 		})
 
-		expect(Object.isFrozen(scalarObject)).toBe(false)
-		expect(Object.isFrozen(scalarObject.b)).toBe(false)
-		expect(Object.isFrozen(scalarObject.c)).toBe(false)
+		expect(table.isfrozen(scalarObject)).toBe(false)
+		expect(table.isfrozen(scalarObject.b)).toBe(false)
+		expect(table.isfrozen(scalarObject.c)).toBe(false)
 
 		local result = cache:readQuery({ query = query })
 		expect(result.scalarFieldWithObjectValue).never.toBe(scalarObject)
-		expect(Object.isFrozen(result.scalarFieldWithObjectValue)).toBe(true)
-		expect(Object.isFrozen(result.scalarFieldWithObjectValue.b)).toBe(true)
-		expect(Object.isFrozen(result.scalarFieldWithObjectValue.c)).toBe(true)
+		expect(table.isfrozen(result.scalarFieldWithObjectValue)).toBe(true)
+		expect(table.isfrozen(result.scalarFieldWithObjectValue.b)).toBe(true)
+		expect(table.isfrozen(result.scalarFieldWithObjectValue.c)).toBe(true)
 	end)
 
 	it("should skip writing still-fresh result objects", function()

@@ -165,7 +165,9 @@ describe("General Mutation testing", function()
 					function(createTodo: any)
 						return React.createElement("TextButton", {
 							[React.Event.Activated] = function()
-								return createTodo():andThen(spy)
+								return createTodo():andThen(function(...)
+									spy(...)
+								end)
 							end,
 							Text = "Create",
 						})
