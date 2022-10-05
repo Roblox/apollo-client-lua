@@ -1,6 +1,6 @@
 [package]
 name = "ApolloClient"
-version = "0.3.0"
+version = "0.3.1"
 author = "Roblox"
 content_root = "src"
 files = ["*", "!**/__tests__/**", "!testUtils/", "!**/testing/**"]

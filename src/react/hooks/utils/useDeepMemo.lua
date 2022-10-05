@@ -2,7 +2,7 @@
 local exports = {}
 
 local srcWorkspace = script.Parent.Parent.Parent.Parent
-local rootWorkspace = srcWorkspace.parent
+local rootWorkspace = srcWorkspace.Parent
 
 local React = require(rootWorkspace.React)
 local useRef = React.useRef
