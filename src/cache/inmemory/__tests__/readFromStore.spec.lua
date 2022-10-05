@@ -163,7 +163,7 @@ describe("reading from the store", function()
           				query {
           				  name
           				}
-					  
+
           				query {
           				  address
 					}
@@ -665,6 +665,7 @@ describe("reading from the store", function()
 		}, function(e)
 			-- ROBLOX deviation: overwrite stack properties with expect.anything() so that they don't cause failures
 			e.stack = expect.anything()
+			e.__stack = expect.anything()
 			return e
 		end))
 	end)

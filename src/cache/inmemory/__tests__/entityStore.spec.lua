@@ -1030,7 +1030,7 @@ describe("EntityStore", function()
 		local cache = InMemoryCache.new({ typePolicies = { Person = { keyFields = { "name" } } } })
 
 		local query = gql([[
-			
+
 				query {
 				  parent {
 					name
@@ -1366,7 +1366,9 @@ describe("EntityStore", function()
 		}
 		-- ROBLOX deviation: assign expect.anything() to avoid comparing stacks
 		expected.missing[1].stack = expect.anything()
+		expected.missing[1].__stack = expect.anything()
 		expected.missing[2].stack = expect.anything()
+		expected.missing[2].__stack = expect.anything()
 		expect(cache:diff({
 			query = query,
 			returnPartialData = true,
@@ -2005,6 +2007,7 @@ describe("EntityStore", function()
 		}
 		-- ROBLOX deviation: assign expect.anything() to avoid comparing stacks
 		missing[1].stack = expect.anything()
+		missing[1].__stack = expect.anything()
 
 		expect(cache:diff({
 			query = query,
@@ -2281,6 +2284,7 @@ describe("EntityStore", function()
 		}
 		-- ROBLOX deviation: assign expect.anything() to avoid comparing stacks
 		expected.missing[1].stack = expect.anything()
+		expected.missing[1].__stack = expect.anything()
 
 		expect(cuckoosCallingDiffResult).toEqual(expected)
 
@@ -2687,7 +2691,7 @@ describe("EntityStore", function()
 		local store = cache["data"]
 
 		local query = gql([[
-			
+
 				query Book($isbn: string) {
 				  book(isbn: $isbn) {
 					title

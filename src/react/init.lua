@@ -17,7 +17,8 @@ exports.getApolloContext = contextModule.getApolloContext
 exports.resetApolloContext = contextModule.resetApolloContext
 export type ApolloContextValue = contextModule.ApolloContextValue
 
-Object.assign(exports, require(script.hooks))
+local hooksModule = require(script.hooks)
+Object.assign(exports, hooksModule)
 
 local parserModule = require(script.parser)
 export type DocumentType = parserModule.DocumentType
@@ -86,4 +87,4 @@ export type SubscriptionDataOptions<TData, TVariables> = typesModule.Subscriptio
 export type SubscriptionHookOptions<TData, TVariables> = typesModule.SubscriptionHookOptions<TData, TVariables>
 export type SubscriptionResult<TData> = typesModule.SubscriptionResult<TData>
 
-return exports
+return exports :: typeof(exports) & typeof(hooksModule)

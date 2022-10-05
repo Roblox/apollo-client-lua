@@ -68,7 +68,7 @@ end
 
 describe("type policies", function()
 	local bookQuery = gql([[
-		
+
 			query {
 			  book {
 				title
@@ -90,7 +90,7 @@ describe("type policies", function()
 	local function checkAuthorName(cache: InMemoryCache)
 		expect(cache:readQuery({
 			query = gql([[
-		
+
 				query {
 				  book {
 					author {
@@ -199,7 +199,7 @@ describe("type policies", function()
 
 		cache:writeQuery({
 			query = gql([[
-		
+
 				query {
 				  book {
 					...BookFragment
@@ -236,7 +236,7 @@ describe("type policies", function()
 		local cache = InMemoryCache.new({ typePolicies = { Book = { keyFields = { "title", "year" } } } })
 
 		local query = gql([[
-		
+
 			  query {
 				book {
 				  title
@@ -332,7 +332,7 @@ describe("type policies", function()
 		})
 
 		local query: TypedDocumentNode<{ reptiles: Array<Record<string, any>> }, any> = gql([[
-		
+
 			  query {
 				reptiles {
 				  tagId
@@ -409,7 +409,7 @@ describe("type policies", function()
 
 			cache:writeQuery({
 				query = gql([[
-		
+
 				  query {
 					book(junk: "ignored", isbn: "0465030793") {
 					  title
@@ -439,7 +439,7 @@ describe("type policies", function()
 			})
 
 			local query = gql([[
-		
+
 				query {
 				  book {
 					isbn
@@ -563,7 +563,7 @@ describe("type policies", function()
 			})
 
 			local query = gql([[
-		
+
 				query {
 				  types(from: "A", to: "F") {
 					... on TypeA { a }
@@ -649,7 +649,7 @@ describe("type policies", function()
 			end
 
 			check(gql([[
-		
+
 				query {
 				  author {
 					name
@@ -666,7 +666,7 @@ describe("type policies", function()
 			expect(cache:extract()).toMatchSnapshot()
 
 			check(gql([[
-		
+
 				query {
 				  author {
 					name
@@ -683,7 +683,7 @@ describe("type policies", function()
 			expect(cache:extract()).toMatchSnapshot()
 
 			check(gql([[
-		
+
 				query {
 				  author {
 					name
@@ -700,7 +700,7 @@ describe("type policies", function()
 			expect(cache:extract()).toMatchSnapshot()
 
 			check(gql([[
-		
+
 				query {
 				  author {
 					name
@@ -717,7 +717,7 @@ describe("type policies", function()
 			expect(cache:extract()).toMatchSnapshot()
 
 			check(gql([[
-		
+
 				query {
 				  author {
 					name
@@ -734,7 +734,7 @@ describe("type policies", function()
 			expect(cache:extract()).toMatchSnapshot()
 
 			check(gql([[
-		
+
 				query {
 				  author {
 					name
@@ -752,7 +752,7 @@ describe("type policies", function()
 
 			check(
 				gql([[
-		
+
 				query AuthorWritings ($type: String) {
 				  author {
 					name
@@ -771,7 +771,7 @@ describe("type policies", function()
 			expect(cache:extract()).toMatchSnapshot()
 
 			check(gql([[
-		
+
 				query {
 				  author {
 					name
@@ -845,7 +845,7 @@ describe("type policies", function()
 			})
 
 			local query = gql([[
-		
+
 				query {
 				  thread {
 					tid
@@ -940,7 +940,7 @@ describe("type policies", function()
 
 			cache:writeQuery({
 				query = gql([[
-		
+
 				  query {
 					tasks {
 					  id
@@ -958,7 +958,7 @@ describe("type policies", function()
 
 			local result1 = cache:readQuery({
 				query = gql([[
-		
+
 				  query {
 					tasks {
 					  result
@@ -976,7 +976,7 @@ describe("type policies", function()
 
 			local result2 = cache:readQuery({
 				query = gql([[
-		
+
 				  query {
 					tasks {
 					  id
@@ -999,7 +999,7 @@ describe("type policies", function()
 
 			local result3 = cache:readQuery({
 				query = gql([[
-		
+
 				  query {
 					tasks {
 					  __typename
@@ -1035,7 +1035,7 @@ describe("type policies", function()
 
 			cache:writeQuery({
 				query = gql([[
-		
+
 				  query {
 					me {
 					  firstName
@@ -1064,7 +1064,7 @@ describe("type policies", function()
 
 			expect(cache:readQuery({
 				query = gql([[
-		
+
 				  query {
 					me {
 					  fullName
@@ -1075,7 +1075,7 @@ describe("type policies", function()
 
 			expect(cache:readQuery({
 				query = gql([[
-		
+
 				  query {
 					me {
 					  fullName @client
@@ -1128,7 +1128,7 @@ describe("type policies", function()
 			})
 
 			local query = gql([[
-		
+
 				query {
 				  jobs {
 					name
@@ -1174,6 +1174,7 @@ describe("type policies", function()
 				)
 				-- ROBLOX deviation: assign expect.anything() to avoid comparing stacks
 				err.stack = expect.anything()
+				err.__stack = expect.anything()
 				return err
 			end
 
@@ -1331,7 +1332,7 @@ describe("type policies", function()
 
 			local query: TypedDocumentNode<{ mergeRead: number, mergeModify: number, mergeReadModify: number }, any> =
 				gql([[
-		
+
 				query {
 				  mergeRead
 				  mergeModify
@@ -1464,7 +1465,7 @@ describe("type policies", function()
 			})
 
 			local query = gql([[
-		
+
 				query {
 				  books {
 					isbn
@@ -1687,7 +1688,7 @@ describe("type policies", function()
 
 			cache:writeQuery({
 				query = gql([[
-		
+
 				  query {
 					agenda {
 					  id
@@ -1764,7 +1765,7 @@ describe("type policies", function()
 			})
 
 			local query = gql([[
-		
+
 				query {
 				  agenda {
 					taskCount
@@ -1861,7 +1862,7 @@ describe("type policies", function()
 
 			cache:writeQuery({
 				query = gql([[
-		
+
 				  query {
 					agenda {
 					  id
@@ -1990,7 +1991,7 @@ describe("type policies", function()
 			})
 
 			local query = gql([[
-		
+
 				query {
 				  me {
 					name
@@ -2004,7 +2005,7 @@ describe("type policies", function()
 
 			expect(cache:readQuery({
 				query = gql([[
-		
+
 				  query {
 					me {
 					  secret
@@ -2018,7 +2019,7 @@ describe("type policies", function()
 					optimistic = true,
 					returnPartialData = false,
 					query = gql([[
-		
+
 				  query {
 					me {
 					  secret
@@ -2095,7 +2096,7 @@ describe("type policies", function()
 			})
 
 			local query = gql([[
-		
+
 				query {
 				  me {
 					todos(offset: $offset, limit: $limit) {
@@ -2229,7 +2230,7 @@ describe("type policies", function()
 			})
 
 			local firstQuery = gql([[
-		
+
 				query TodoQuery {
 				  todos {
 					totalCount
@@ -2238,7 +2239,7 @@ describe("type policies", function()
 			  ]])
 
 			local secondQuery = gql([[
-		
+
 				query TodoQuery {
 				  todos(after: $after, first: $first) {
 					pageInfo {
@@ -2261,7 +2262,7 @@ describe("type policies", function()
 			  ]])
 
 			local thirdQuery = gql([[
-		
+
 				query TodoQuery {
 				  todos {
 					totalCount
@@ -2365,7 +2366,7 @@ describe("type policies", function()
 			})
 
 			local query = gql([[
-		
+
 				query ArtsySearch(
 				  $query: String!,
 				  $after: String, $first: Int,
@@ -2863,7 +2864,7 @@ describe("type policies", function()
 
 			cache:writeQuery({
 				query = gql([[
-		
+
 				  query {
 					eventsToday {
 					  name
@@ -2918,7 +2919,7 @@ describe("type policies", function()
 
 			cache:writeQuery({
 				query = gql([[
-		
+
 				  query {
 					people {
 					  name
@@ -3006,7 +3007,7 @@ describe("type policies", function()
 			})
 
 			local query = gql([[
-		
+
 				query {
 				  book(isbn: $isbn) {
 					title
@@ -3241,7 +3242,7 @@ describe("type policies", function()
 
 		function testForceMerges(cache: InMemoryCache)
 			local queryWithAuthorName = gql([[
-		
+
 				query {
 				  currentlyReading {
 					isbn
@@ -3254,7 +3255,7 @@ describe("type policies", function()
 			  ]])
 
 			local queryWithAuthorBooks = gql([[
-		
+
 				query {
 				  currentlyReading {
 					isbn
@@ -3485,7 +3486,7 @@ describe("type policies", function()
 			local check
 
 			local nameQuery = gql([[
-		
+
 				query GetName {
 				  viewer {
 					name
@@ -3494,7 +3495,7 @@ describe("type policies", function()
 			  ]])
 
 			local emailQuery = gql([[
-		
+
 				query GetEmail {
 				  viewer {
 					id
@@ -3632,7 +3633,7 @@ describe("type policies", function()
 		})
 
 		local query = gql([[
-		
+
 			  query {
 				currentlyReading {
 				  title
@@ -3741,7 +3742,7 @@ describe("type policies", function()
 		})
 
 		local query = gql([[
-		
+
 			  query GetUser ($units: string) {
 				people {
 				  id
@@ -3817,7 +3818,7 @@ describe("type policies", function()
 		local function addBook(bookData: BookData)
 			cache:writeQuery({
 				query = gql([[
-		
+
 				  query {
 					author {
 					  name
@@ -3871,7 +3872,7 @@ describe("type policies", function()
 		})
 
 		local firstBookQuery = gql([[
-		
+
 			  query {
 				author {
 				  name
@@ -3993,7 +3994,7 @@ describe("type policies", function()
 
 		expect(cache:readQuery({
 			query = gql([[
-		
+
 				query {
 				  wordOfTheDay {
 					upperCase
@@ -4037,7 +4038,7 @@ describe("type policies", function()
 		})
 
 		local firstNameLastNameQuery = gql([[
-			
+
 				query {
 				  firstName
 				  lastName
@@ -4045,7 +4046,7 @@ describe("type policies", function()
 			  ]])
 
 		local fullNamesQuery = gql([[
-			
+
 				query {
 				  fullNameWithVoids
 				  fullNameWithDefaults
@@ -4083,7 +4084,7 @@ describe("type policies", function()
 		})
 
 		local query = gql([[
-		
+
 			  query {
 				person {
 				  currentTask {
@@ -4136,7 +4137,7 @@ describe("type policies", function()
 		expect(cache:readQuery({ query = gql("query { __typename }") })).toEqual({ __typename = "RootQuery" })
 
 		local ALL_ITEMS = gql([[
-		
+
 			  query Items {
 				__typename
 				items {
@@ -4181,7 +4182,7 @@ describe("type policies", function()
 		expect(cache:readFragment({
 			id = "ROOT_MUTATION",
 			fragment = gql([[
-		
+
 				fragment MutationTypename on RootMutation {
 				  __typename
 				}
@@ -4191,7 +4192,7 @@ describe("type policies", function()
 		expect(cache:readFragment({
 			id = "ROOT_SUBSCRIPTION",
 			fragment = gql([[
-		
+
 				fragment SubscriptionTypename on RootSubscription {
 				  __typename
 				}
