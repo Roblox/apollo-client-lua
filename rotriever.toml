@@ -1,13 +1,13 @@
 [package]
 name = "ApolloClient"
-version = "0.3.1"
+version = "0.3.2"
 author = "Roblox"
 content_root = "src"
 files = ["*", "!**/__tests__/**", "!testUtils/", "!**/testing/**"]
 
 [dependencies]
 React = "github.com/roblox/roact-alignment@17.0.1-rc.16"
-GraphQL = "github.com/Roblox/graphql-lua@15.5.1"
+GraphQL = "github.com/Roblox/graphql-lua@15.5.2"
 GraphQLTag = "github.com/Roblox/graphql-tag-lua@2.12.6"
 LuauPolyfill = "github.com/roblox/luau-polyfill@1"
 ZenObservable = "github.com/roblox/zen-observable-lua@0.8.16-roblox.0"
