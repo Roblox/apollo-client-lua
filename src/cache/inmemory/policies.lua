@@ -875,7 +875,7 @@ function Policies:readField--[[<V = StoreValue>]](options: ReadFieldOptions, con
 
 	if Boolean.toJSBoolean(read) then
 		local readOptions = makeFieldFunctionOptions(
-			self,
+			self :: Policies,
 			objectOrReference,
 			options,
 			context,
