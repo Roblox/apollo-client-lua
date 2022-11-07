@@ -193,8 +193,7 @@ describe("type policies", function()
 		checkAuthorName(cache)
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("works with fragments that contain aliased key fields", function()
+	it("works with fragments that contain aliased key fields", function()
 		local cache = InMemoryCache.new({ typePolicies = { Book = { keyFields = { "ISBN", "title" } } } })
 
 		cache:writeQuery({
@@ -299,8 +298,7 @@ describe("type policies", function()
 		expect(cache:readQuery({ query = gql(" { bar } ") })).toEqual({ bar = "bar" })
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("support inheritance", function()
+	it("support inheritance", function()
 		local cache = InMemoryCache.new({
 			possibleTypes = {
 				Reptile = { "Snake", "Turtle" },
@@ -381,8 +379,10 @@ describe("type policies", function()
 
 		Array.forEach(result2.reptiles, function(reptile, i)
 			if reptile.__typename == "Cottonmouth" then
-				expect(reptile).never.toBe(result1.reptiles[tostring(i)])
-				expect(reptile).never.toEqual(result1.reptiles[tostring(i)])
+				-- ROBLOX deviation START: issue: Roblox/js-to-lua #848
+				expect(reptile).never.toBe(result1.reptiles[i])
+				expect(reptile).never.toEqual(result1.reptiles[i])
+				-- ROBLOX deviation END
 				expect(reptile).toEqual({
 					__typename = "Cottonmouth",
 					tagId = "CM420",
@@ -390,7 +390,9 @@ describe("type policies", function()
 					venomous = "unknown",
 				})
 			else
-				expect(reptile).toBe(result1.reptiles[tostring(i)])
+				-- ROBLOX deviation START: issue: Roblox/js-to-lua #848
+				expect(reptile).toBe(result1.reptiles[i])
+				-- ROBLOX deviation END
 			end
 		end)
 
@@ -484,8 +486,7 @@ describe("type policies", function()
 			expect(result).toEqual(data)
 		end)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		withErrorSpy(it.skip, "assumes keyArgs:false when read and merge function present", function()
+		withErrorSpy(it, "assumes keyArgs:false when read and merge function present", function()
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					TypeA = { fields = {
@@ -532,7 +533,9 @@ describe("type policies", function()
 						fields = {
 							e = {
 								read = function(self, existing: string)
-									return Array.slice(existing, 2)
+									-- ROBLOX deviation START: use string.sub instead of slice
+									return string.sub(existing, 2)
+									-- ROBLOX deviation END
 								end,
 								merge = function(self, existing: string, incoming: string)
 									return "*" .. tostring(incoming)
@@ -547,7 +550,9 @@ describe("type policies", function()
 								local args = ref.args
 								local fromCode = string.byte((args :: any).from)
 								local toCode = string.byte((args :: any).to)
-								local e = 0
+								-- ROBLOX deviation START: add 1 to index
+								local e = 1
+								-- ROBLOX deviation END
 								for code = fromCode, toCode, 1 do
 									local upper = string.upper(string.char(code))
 									local obj = existing[e]
@@ -618,8 +623,7 @@ describe("type policies", function()
 			})
 		end)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		it.skip("can include optional arguments in keyArgs", function()
+		it("can include optional arguments in keyArgs", function()
 			local cache = InMemoryCache.new({
 				typePolicies = {
 					Author = {
@@ -1190,96 +1194,95 @@ describe("type policies", function()
 				missing = { makeMissingError(1), makeMissingError(2), makeMissingError(3) },
 			})
 
-			-- ROBLOX TODO: fragments are not supported yet
-			-- local function setResult(jobNum: number)
-			-- 	cache:writeFragment({
-			-- 		id = cache:identify({ __typename = "Job", name = ("Job #%s"):format(tostring(jobNum)) }) :: any,
-			-- 		fragment = gql([[
+			local function setResult(jobNum: number)
+				cache:writeFragment({
+					id = cache:identify({ __typename = "Job", name = ("Job #%s"):format(tostring(jobNum)) }) :: any,
+					fragment = gql([[
 
-			-- 	fragment JobResult on Job {
-			-- 	  result
-			-- 	}
-			--   ]]),
-			-- 		data = {
-			-- 			__typename = "Job",
-			-- 			name = ("Job #%s"):format(tostring(jobNum)),
-			-- 			result = ("result for job %s"):format(tostring(jobNum)),
-			-- 		},
-			-- 	})
-			-- end
+        fragment JobResult on Job {
+          result
+        }
+      ]]),
+					data = {
+						__typename = "Job",
+						name = ("Job #%s"):format(tostring(jobNum)),
+						result = ("result for job %s"):format(tostring(jobNum)),
+					},
+				})
+			end
 
-			-- setResult(2)
+			setResult(2)
 
-			-- expect(cache:extract()).toEqual(
-			-- 	Object.assign({}, snapshot1, { __META = { extraRootIds = { 'Job:{"name":"Job #2"}' } } })
-			-- )
+			expect(cache:extract()).toEqual(
+				Object.assign({}, snapshot1, { __META = { extraRootIds = { 'Job:{"name":"Job #2"}' } } })
+			)
 
-			-- expect(cache:diff({ query = query, optimistic = false, returnPartialData = true })).toEqual({
+			expect(cache:diff({ query = query, optimistic = false, returnPartialData = true })).toEqual({
 
-			-- 	result = {
-			-- 		jobs = {
-			-- 			{ __typename = "Job", name = "Job #1" },
-			-- 			{ __typename = "Job", name = "Job #2", result = "result for job 2" },
-			-- 			{ __typename = "Job", name = "Job #3" },
-			-- 		},
-			-- 	},
-			-- 	complete = false,
-			-- 	missing = { makeMissingError(1), makeMissingError(3) },
-			-- })
+				result = {
+					jobs = {
+						{ __typename = "Job", name = "Job #1" },
+						{ __typename = "Job", name = "Job #2", result = "result for job 2" },
+						{ __typename = "Job", name = "Job #3" },
+					},
+				},
+				complete = false,
+				missing = { makeMissingError(1), makeMissingError(3) },
+			})
 
-			-- cache:writeQuery({
-			-- 	query = query,
-			-- 	data = { jobs = { { __typename = "Job", name = "Job #4", result = "result for job 4" } } },
-			-- })
+			cache:writeQuery({
+				query = query,
+				data = { jobs = { { __typename = "Job", name = "Job #4", result = "result for job 4" } } },
+			})
 
-			-- local snapshot2 = Object.assign({}, snapshot1, {
-			-- 	ROOT_QUERY = Object.assign({}, snapshot1.ROOT_QUERY, {
-			-- 		jobs = Array.concat({}, snapshot1.ROOT_QUERY.jobs, { { __ref = 'Job:{"name":"Job #4"}' } }),
-			-- 	}),
-			-- 	['Job:{"name":"Job #4"}'] = { __typename = "Job", name = "Job #4" },
-			-- })
+			local snapshot2 = Object.assign({}, snapshot1, {
+				ROOT_QUERY = Object.assign({}, snapshot1.ROOT_QUERY, {
+					jobs = Array.concat({}, snapshot1.ROOT_QUERY.jobs, { { __ref = 'Job:{"name":"Job #4"}' } }),
+				}),
+				['Job:{"name":"Job #4"}'] = { __typename = "Job", name = "Job #4" },
+			})
 
-			-- expect(cache:extract()).toEqual(
-			-- 	Object.assign({}, snapshot2, { __META = { extraRootIds = { 'Job:{"name":"Job #2"}' } } })
-			-- )
+			expect(cache:extract()).toEqual(
+				Object.assign({}, snapshot2, { __META = { extraRootIds = { 'Job:{"name":"Job #2"}' } } })
+			)
 
-			-- expect(cache:diff({ query = query, optimistic = false, returnPartialData = true })).toEqual({
-			-- 	result = {
-			-- 		jobs = {
-			-- 			{ __typename = "Job", name = "Job #1" },
-			-- 			{ __typename = "Job", name = "Job #2", result = "result for job 2" },
-			-- 			{ __typename = "Job", name = "Job #3" },
-			-- 			{ __typename = "Job", name = "Job #4", result = "result for job 4" },
-			-- 		},
-			-- 	},
-			-- 	complete = false,
-			-- 	missing = { makeMissingError(1), makeMissingError(3) },
-			-- })
+			expect(cache:diff({ query = query, optimistic = false, returnPartialData = true })).toEqual({
+				result = {
+					jobs = {
+						{ __typename = "Job", name = "Job #1" },
+						{ __typename = "Job", name = "Job #2", result = "result for job 2" },
+						{ __typename = "Job", name = "Job #3" },
+						{ __typename = "Job", name = "Job #4", result = "result for job 4" },
+					},
+				},
+				complete = false,
+				missing = { makeMissingError(1), makeMissingError(3) },
+			})
 
-			-- setResult(1)
+			setResult(1)
 
-			-- setResult(3)
+			setResult(3)
 
-			-- expect(cache:diff({ query = query, optimistic = false, returnPartialData = true })).toEqual({
-			-- 	result = {
-			-- 		jobs = {
-			-- 			{ __typename = "Job", name = "Job #1", result = "result for job 1" },
-			-- 			{ __typename = "Job", name = "Job #2", result = "result for job 2" },
-			-- 			{ __typename = "Job", name = "Job #3", result = "result for job 3" },
-			-- 			{ __typename = "Job", name = "Job #4", result = "result for job 4" },
-			-- 		},
-			-- 	},
-			-- 	complete = true,
-			-- })
+			expect(cache:diff({ query = query, optimistic = false, returnPartialData = true })).toEqual({
+				result = {
+					jobs = {
+						{ __typename = "Job", name = "Job #1", result = "result for job 1" },
+						{ __typename = "Job", name = "Job #2", result = "result for job 2" },
+						{ __typename = "Job", name = "Job #3", result = "result for job 3" },
+						{ __typename = "Job", name = "Job #4", result = "result for job 4" },
+					},
+				},
+				complete = true,
+			})
 
-			-- expect(cache:readQuery({ query = query })).toEqual({
-			-- 	jobs = {
-			-- 		{ __typename = "Job", name = "Job #1", result = "result for job 1" },
-			-- 		{ __typename = "Job", name = "Job #2", result = "result for job 2" },
-			-- 		{ __typename = "Job", name = "Job #3", result = "result for job 3" },
-			-- 		{ __typename = "Job", name = "Job #4", result = "result for job 4" },
-			-- 	},
-			-- })
+			expect(cache:readQuery({ query = query })).toEqual({
+				jobs = {
+					{ __typename = "Job", name = "Job #1", result = "result for job 1" },
+					{ __typename = "Job", name = "Job #2", result = "result for job 2" },
+					{ __typename = "Job", name = "Job #3", result = "result for job 3" },
+					{ __typename = "Job", name = "Job #4", result = "result for job 4" },
+				},
+			})
 		end)
 
 		it("read, merge, and modify functions can access options.storage", function()
@@ -2346,8 +2349,7 @@ describe("type policies", function()
 			end)
 		end)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		itAsync.skip("can handle Relay-style pagination", function(resolve, reject)
+		itAsync("can handle Relay-style pagination", function(resolve, reject)
 			local cache = InMemoryCache.new({
 				addTypename = false,
 				typePolicies = {
@@ -2488,7 +2490,9 @@ describe("type policies", function()
 				before = secondPageInfo.startCursor,
 				last = 2,
 				after = nil,
-				first = nil,
+				-- ROBLOX deviation START: first needs to be present in the table, use NULL instead of nil
+				first = NULL,
+				-- ROBLOX deviation END
 			}
 
 			local thirdEdges = Array.slice(firstEdges, 2)
@@ -2506,7 +2510,9 @@ describe("type policies", function()
 				before = thirdPageInfo.startCursor,
 				last = 1,
 				after = nil,
-				first = nil,
+				-- ROBLOX deviation START: first needs to be present in the table, use NULL instead of nil
+				first = NULL,
+				-- ROBLOX deviation END
 			}
 
 			local fourthEdges = Array.slice(firstEdges, 1, 2)
@@ -2662,7 +2668,9 @@ describe("type policies", function()
 					expect(cache:extract()).toMatchSnapshot()
 					observable:fetchMore({ variables = thirdVariables })
 				elseif count == 3 then
-					expect(result.data.search.edges.length).toBe(5)
+					-- ROBLOX deviation START: use # instead of .length. Roblox/js-to-lua #329
+					expect(#result.data.search.edges).toBe(5)
+					-- ROBLOX deviation END
 					expect(result).toEqual({
 						loading = false,
 						networkStatus = NetworkStatus.ready,
@@ -2704,7 +2712,9 @@ describe("type policies", function()
 					expect(cache:extract()).toMatchSnapshot()
 					observable:fetchMore({ variables = fifthVariables })
 				elseif count == 5 then
-					expect(result.data.search.edges.length).toBe(7)
+					-- ROBLOX deviation START: use # instead of .length. Roblox/js-to-lua #329
+					expect(#result.data.search.edges).toBe(7)
+					-- ROBLOX deviation END
 					expect(result).toEqual({
 						loading = false,
 						networkStatus = NetworkStatus.ready,
@@ -2758,7 +2768,7 @@ describe("type policies", function()
 						end, reject)
 				elseif count == 6 then
 					local edges = Array.concat({}, firstEdges, secondEdges, fifthEdges)
-					expect(edges:shift()).toEqual({
+					expect(table.remove(edges, 1)).toEqual({
 						__typename = "SearchableEdge",
 						node = {
 							__typename = "Artist",
@@ -3054,123 +3064,128 @@ describe("type policies", function()
 
 			expect(diff).toThrow(RegExp('Dangling reference to missing Book:{"isbn":"156858217X"} object'))
 
-			-- ROBLOX TODO: fragments are not supported yet
-			-- local stealThisData = {
-			-- 	__typename = "Book",
-			-- 	isbn = "156858217X",
-			-- 	title = "Steal This Book",
-			-- 	author = "Abbie Hoffman",
-			-- }
+			local stealThisData = {
+				__typename = "Book",
+				isbn = "156858217X",
+				title = "Steal This Book",
+				author = "Abbie Hoffman",
+			}
 
-			-- local stealThisID = cache:identify(stealThisData) :: any
+			local stealThisID = cache:identify(stealThisData) :: any
 
-			-- cache:writeFragment({
-			-- 	id = stealThisID,
-			-- 	fragment = gql([[
+			cache:writeFragment({
+				id = stealThisID,
+				fragment = gql([[
 
-			--   fragment BookTitleAuthor on Book {
-			-- 	title
-			-- 	author
-			--   }
-			-- ]]),
-			-- 	data = stealThisData,
-			-- })
+      fragment BookTitleAuthor on Book {
+        title
+        author
+      }
+      ]]),
+				data = stealThisData,
+			})
 
-			-- expect(read()).toEqual({
-			-- 	book = { __typename = "Book", title = "Steal This Book", author = "Abbie Hoffman" },
-			-- })
+			expect(read()).toEqual({
+				book = { __typename = "Book", title = "Steal This Book", author = "Abbie Hoffman" },
+			})
 
-			-- expect(read("0393354326")).toEqual({
-			-- 	book = { __typename = "Book", title = "Guns, Germs, and Steel", author = "Jared Diamond" },
-			-- })
+			expect(read("0393354326")).toEqual({
+				book = { __typename = "Book", title = "Guns, Germs, and Steel", author = "Jared Diamond" },
+			})
 
-			-- expect(cache:extract()).toEqual({
-			-- 	__META = { extraRootIds = { 'Book:{"isbn":"156858217X"}' } },
-			-- 	ROOT_QUERY = {
-			-- 		__typename = "Query",
-			-- 		['book:{"isbn":"0393354326"}'] = { __ref = 'Book:{"isbn":"0393354326"}' },
-			-- 	},
-			-- 	['Book:{"isbn":"0393354326"}'] = {
-			-- 		__typename = "Book",
-			-- 		isbn = "0393354326",
-			-- 		author = "Jared Diamond",
-			-- 		title = "Guns, Germs, and Steel",
-			-- 	},
-			-- 	['Book:{"isbn":"156858217X"}'] = {
-			-- 		__typename = "Book",
-			-- 		isbn = "156858217X",
-			-- 		author = "Abbie Hoffman",
-			-- 		title = "Steal This Book",
-			-- 	},
-			-- })
+			expect(cache:extract()).toEqual({
+				__META = { extraRootIds = { 'Book:{"isbn":"156858217X"}' } },
+				ROOT_QUERY = {
+					__typename = "Query",
+					['book:{"isbn":"0393354326"}'] = { __ref = 'Book:{"isbn":"0393354326"}' },
+				},
+				['Book:{"isbn":"0393354326"}'] = {
+					__typename = "Book",
+					isbn = "0393354326",
+					author = "Jared Diamond",
+					title = "Guns, Germs, and Steel",
+				},
+				['Book:{"isbn":"156858217X"}'] = {
+					__typename = "Book",
+					isbn = "156858217X",
+					author = "Abbie Hoffman",
+					title = "Steal This Book",
+				},
+			})
 
-			-- expect(cache:gc()).toEqual({})
+			expect(cache:gc()).toEqual({})
 
-			-- expect(cache:release(stealThisID)).toBe(0)
+			expect(cache:release(stealThisID)).toBe(0)
 
-			-- expect(cache:gc()).toEqual({ stealThisID })
+			expect(cache:gc()).toEqual({ stealThisID })
 
-			-- expect(cache:extract()).toEqual({
-			-- 	ROOT_QUERY = {
-			-- 		__typename = "Query",
-			-- 		['book:{"isbn":"0393354326"}'] = { __ref = 'Book:{"isbn":"0393354326"}' },
-			-- 	},
-			-- 	['Book:{"isbn":"0393354326"}'] = {
-			-- 		__typename = "Book",
-			-- 		isbn = "0393354326",
-			-- 		author = "Jared Diamond",
-			-- 		title = "Guns, Germs, and Steel",
-			-- 	},
-			-- })
+			expect(cache:extract()).toEqual({
+				ROOT_QUERY = {
+					__typename = "Query",
+					['book:{"isbn":"0393354326"}'] = { __ref = 'Book:{"isbn":"0393354326"}' },
+				},
+				['Book:{"isbn":"0393354326"}'] = {
+					__typename = "Book",
+					isbn = "0393354326",
+					author = "Jared Diamond",
+					title = "Guns, Germs, and Steel",
+				},
+			})
 
-			-- cache:writeQuery({
-			-- 	query = query,
-			-- 	variables = { isbn = "156858217X" },
-			-- 	data = { book = stealThisData },
-			-- })
+			cache:writeQuery({
+				query = query,
+				variables = { isbn = "156858217X" },
+				data = { book = stealThisData },
+			})
 
-			-- expect(cache:extract()).toEqual({
-			-- 	ROOT_QUERY = {
-			-- 		__typename = "Query",
-			-- 		['book:{"isbn":"0393354326"}'] = { __ref = 'Book:{"isbn":"0393354326"}' },
-			-- 		['book:{"isbn":"156858217X"}'] = { __ref = 'Book:{"isbn":"156858217X"}' },
-			-- 	},
-			-- 	['Book:{"isbn":"0393354326"}'] = {
-			-- 		__typename = "Book",
-			-- 		isbn = "0393354326",
-			-- 		author = "Jared Diamond",
-			-- 		title = "Guns, Germs, and Steel",
-			-- 	},
-			-- 	['Book:{"isbn":"156858217X"}'] = {
-			-- 		__typename = "Book",
-			-- 		isbn = "156858217X",
-			-- 		author = "Abbie Hoffman",
-			-- 		title = "Steal This Book",
-			-- 	},
-			-- })
+			expect(cache:extract()).toEqual({
+				ROOT_QUERY = {
+					__typename = "Query",
+					['book:{"isbn":"0393354326"}'] = { __ref = 'Book:{"isbn":"0393354326"}' },
+					['book:{"isbn":"156858217X"}'] = { __ref = 'Book:{"isbn":"156858217X"}' },
+				},
+				['Book:{"isbn":"0393354326"}'] = {
+					__typename = "Book",
+					isbn = "0393354326",
+					author = "Jared Diamond",
+					title = "Guns, Germs, and Steel",
+				},
+				['Book:{"isbn":"156858217X"}'] = {
+					__typename = "Book",
+					isbn = "156858217X",
+					author = "Abbie Hoffman",
+					title = "Steal This Book",
+				},
+			})
 
-			-- expect(cache:gc()).toEqual({})
+			expect(cache:gc()).toEqual({})
 
-			-- expect(cache:evict({ fieldName = "book" })).toBe(true)
+			expect(cache:evict({ fieldName = "book" })).toBe(true)
 
-			-- expect(cache:gc():sort()).toEqual({
-			-- 	'Book:{"isbn":"0393354326"}',
-			-- 	'Book:{"isbn":"156858217X"}',
-			-- })
+			-- ROBLOX DEVIATION start: use in-place table.sort
+			local cacheGC = cache:gc()
+			table.sort(cacheGC, function(a, b)
+				return a < b
+			end)
+			expect(cacheGC).toEqual({
+				'Book:{"isbn":"0393354326"}',
+				'Book:{"isbn":"156858217X"}',
+			})
+			-- ROBLOX DEVIATION end
 
-			-- expect(cache:extract()).toEqual({ ROOT_QUERY = { __typename = "Query" } })
+			expect(cache:extract()).toEqual({ ROOT_QUERY = { __typename = "Query" } })
 
-			-- expect(read("0393354326")).toBe(nil)
+			expect(read("0393354326")).toBe(NULL)
 
-			-- expect(function()
-			-- 	return diff("0393354326")
-			-- end).toThrow(RegExp('Dangling reference to missing Book:{"isbn":"0393354326"} object'))
+			expect(function()
+				return diff("0393354326")
+			end).toThrow(RegExp('Dangling reference to missing Book:{"isbn":"0393354326"} object'))
 
-			-- expect(read("156858217X")).toBe(nil)
+			expect(read("156858217X")).toBe(NULL)
 
-			-- expect(function()
-			-- 	return diff("156858217X")
-			-- end).toThrow(RegExp('Dangling reference to missing Book:{"isbn":"156858217X"} object'))
+			expect(function()
+				return diff("156858217X")
+			end).toThrow(RegExp('Dangling reference to missing Book:{"isbn":"156858217X"} object'))
 		end)
 
 		--ROBLOX deviation: predefine functions
@@ -3919,17 +3934,16 @@ describe("type policies", function()
 			data = { author = { __typename = "Author", name = "Virginia Woolf", afraidCount = 2 } },
 		})
 
-		-- ROBLOX TODO: fragments are not supported yet
-		-- expect(cache:readFragment({
-		-- 	id = cache:identify({ __typename = "Author", name = "Virginia Woolf" }) :: any,
-		-- 	fragment = gql([[
+		expect(cache:readFragment({
+			id = cache:identify({ __typename = "Author", name = "Virginia Woolf" }) :: any,
+			fragment = gql([[
 
-		-- 	fragment AfraidFragment on Author {
-		-- 	  name
-		-- 	  afraidCount
-		-- 	}
-		--   ]]),
-		-- })).toEqual({ __typename = "Author", name = "Virginia Woolf", afraidCount = 2 })
+      fragment AfraidFragment on Author {
+        name
+        afraidCount
+      }
+    ]]),
+		})).toEqual({ __typename = "Author", name = "Virginia Woolf", afraidCount = 2 })
 
 		expect(readFirstBookResult()).toBe(secondFirstBookResult)
 
@@ -4167,8 +4181,7 @@ describe("type policies", function()
 		})
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("can configure {query,mutation,subscription}Type:true", function()
+	it("can configure {query,mutation,subscription}Type:true", function()
 		local cache = InMemoryCache.new({
 			typePolicies = {
 				RootQuery = { queryType = true },

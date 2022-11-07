@@ -477,8 +477,7 @@ describe("optimistic mutation results", function()
 				})
 			end
 
-			-- ROBLOX TODO: fragments are not supported yet
-			itAsync.skip("handles a single error for a single mutation", function(resolve, reject)
+			itAsync("handles a single error for a single mutation", function(resolve, reject)
 				Promise.resolve():andThen(function()
 					--[[
 							ROBLOX deviation: using custom assertions function to verify nr of assertions called
@@ -518,8 +517,7 @@ describe("optimistic mutation results", function()
 				end)
 			end)
 
-			-- ROBLOX TODO: fragments are not supported yet
-			itAsync.skip("handles errors produced by one mutation in a series", function(resolve, reject)
+			itAsync("handles errors produced by one mutation in a series", function(resolve, reject)
 				Promise.resolve():andThen(function()
 					--[[
 							ROBLOX deviation: using custom assertions function to verify nr of assertions called
@@ -587,8 +585,7 @@ describe("optimistic mutation results", function()
 				end)
 			end)
 
-			-- ROBLOX TODO: fragments are not supported yet
-			itAsync.skip(
+			itAsync(
 				"can run 2 mutations concurrently and handles all intermediate states well",
 				function(resolve, reject)
 					Promise.resolve():andThen(function()
@@ -646,8 +643,10 @@ describe("optimistic mutation results", function()
 
 									-- @ts-ignore
 									local latestState = client.queryManager.mutationStore :: any
-									expect(latestState[2].loading).toBe(false)
-									expect(latestState[3].loading).toBe(true)
+									-- ROBLOX deviation START: mutationId is a string that is initialized to 1 instead of a number.
+									expect(latestState["1"].loading).toBe(false)
+									expect(latestState["2"].loading).toBe(true)
+									-- ROBLOX deviation END
 
 									return res
 								end)
@@ -666,16 +665,20 @@ describe("optimistic mutation results", function()
 
 									-- @ts-ignore
 									local latestState = client.queryManager.mutationStore :: any
-									expect(latestState[2].loading).toBe(false)
-									expect(latestState[3].loading).toBe(false)
+									-- ROBLOX deviation START: mutationId is a string that is initialized to 1 instead of a number.
+									expect(latestState["1"].loading).toBe(false)
+									expect(latestState["2"].loading).toBe(false)
+									-- ROBLOX deviation END
 
 									return res
 								end)
 
 							-- @ts-ignore
 							local mutationsState = client.queryManager.mutationStore :: any
-							expect(mutationsState[2].loading).toBe(true)
-							expect(mutationsState[3].loading).toBe(true)
+							-- ROBLOX deviation START: mutationId is a string that is initialized to 1 instead of a number.
+							expect(mutationsState["1"].loading).toBe(true)
+							expect(mutationsState["2"].loading).toBe(true)
+							-- ROBLOX deviation END
 
 							checkBothMutationsAreApplied("Optimistically generated", "Optimistically generated 2")
 
@@ -803,8 +806,7 @@ describe("optimistic mutation results", function()
       }
     ]])
 
-		-- ROBLOX TODO: fragments are not supported yet
-		itAsync.skip(
+		itAsync(
 			"should read the optimistic response of a mutation when making an "
 				.. "ApolloClient.readFragment() call, if the `optimistic` param is set "
 				.. "to true",
@@ -839,8 +841,7 @@ describe("optimistic mutation results", function()
 			end
 		)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		itAsync.skip(
+		itAsync(
 			"should not read the optimistic response of a mutation when making "
 				.. "an ApolloClient.readFragment() call, if the `optimistic` param is "
 				.. "set to false",
@@ -899,8 +900,7 @@ describe("optimistic mutation results", function()
 			}
 		end
 
-		-- ROBLOX TODO: fragments are not supported yet
-		itAsync.skip("will use a passed variable in optimisticResponse", function(resolve, reject)
+		itAsync("will use a passed variable in optimisticResponse", function(resolve, reject)
 			Promise.resolve():andThen(function()
 				--[[
 						ROBLOX deviation: using custom assertions function to verify nr of assertions called
@@ -1038,7 +1038,7 @@ describe("optimistic mutation results", function()
 		--[[
 				ROBLOX FIXME:
 				the test is passing intermittently
-				it seems to fail due to the setTimeout and Promise resolution order not being deterministic 
+				it seems to fail due to the setTimeout and Promise resolution order not being deterministic
 			]]
 		itAsync.skip("will insert a single itemAsync to the beginning", function(resolve, reject)
 			Promise.resolve():andThen(function()
@@ -1488,8 +1488,7 @@ describe("optimistic mutation results", function()
 			end)
 		end)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		itAsync.skip("two array insert like mutations", function(resolve, reject)
+		itAsync("two array insert like mutations", function(resolve, reject)
 			Promise.resolve():andThen(function()
 				--[[
 						ROBLOX deviation: using custom assertions function to verify nr of assertions called
@@ -1592,8 +1591,7 @@ describe("optimistic mutation results", function()
 			end)
 		end)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		itAsync.skip("two mutations, one fails", function(resolve, reject)
+		itAsync("two mutations, one fails", function(resolve, reject)
 			Promise.resolve():andThen(function()
 				--[[
 						ROBLOX deviation: using custom assertions function to verify nr of assertions called

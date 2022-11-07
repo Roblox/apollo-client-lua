@@ -2474,7 +2474,10 @@ describe("useQuery Hook", function()
 	end)
 
 	describe("Optimistic data", function()
-		-- ROBLOX TODO: fragments are not supported yet
+		--[[
+			ROBLOX FIXME: The component loads the optimistic response, but the update gets batched with
+			the error response and never causes a re-render, leading to only 5 renders
+		]]
 		itAsync.skip("should display rolled back optimistic data when an error occurs", function(resolve, reject)
 			local query = gql([[
 
@@ -2606,11 +2609,8 @@ describe("useQuery Hook", function()
 	end)
 
 	describe("Client Resolvers", function()
-		-- ROBLOX TODO: fragments are not supported yet
-		itAsync.skip(
-			"should receive up to date @client(always: true) fields on entity update",
-			function(resolve, reject)
-				local query = gql([[
+		itAsync("should receive up to date @client(always: true) fields on entity update", function(resolve, reject)
+			local query = gql([[
 
 					query GetClientData($id: ID) {
 					  clientEntity(id: $id) @client(always: true) {
@@ -2621,98 +2621,97 @@ describe("useQuery Hook", function()
 					}
 				]])
 
-				local mutation = gql([[
+			local mutation = gql([[
 
 					mutation AddOrUpdate {
 					  addOrUpdate(id: $id, title: $title) @client
 					}
 				]])
-				local fragment = gql([[
+			local fragment = gql([[
 
 					fragment ClientDataFragment on ClientData {
 					  id
 					  title
 					}
 				]])
-				local client = ApolloClient.new({
-					cache = InMemoryCache.new(),
-					link = ApolloLink.new(function()
-						return Observable.of({ data = {} })
-					end),
-					resolvers = {
-						ClientData = {
-							titleLength = function(self, data)
-								return string.len(data.title)
-							end,
-						},
-						Query = {
-							clientEntity = function(self, _root, ref, ref_)
-								local id = ref.id
-								local cache = ref_.cache
-								return cache:readFragment({
-									id = cache:identify({ id = id, __typename = "ClientData" }),
-									fragment = fragment,
-								})
-							end,
-						},
-						Mutation = {
-							addOrUpdate = function(self, _root, ref, ref_)
-								local id, title = ref.id, ref.title
-								local cache = ref_.cache
-								return cache:writeFragment({
-									id = cache:identify({ id = id, __typename = "ClientData" }),
-									fragment = fragment,
-									data = { id = id, title = title, __typename = "ClientData" },
-								})
-							end,
-						},
+			local client = ApolloClient.new({
+				cache = InMemoryCache.new(),
+				link = ApolloLink.new(function()
+					return Observable.of({ data = {} })
+				end),
+				resolvers = {
+					ClientData = {
+						titleLength = function(self, data)
+							return string.len(data.title)
+						end,
 					},
-				})
-				local entityId = 1
-				local shortTitle = "Short"
-				local longerTitle = "A little longer"
-				client:mutate({ mutation = mutation, variables = { id = entityId, title = shortTitle } } :: any)
-				local renderCount = 0
-				local function App()
-					local data
-					do
-						local ref = useQuery(query, { variables = { id = entityId } })
-						data = ref.data
-					end
-					--[[ ROBLOX comment: switch statement conversion ]]
-					renderCount += 1
-					local condition_ = renderCount
-					if condition_ == 2 then
-						expect(data.clientEntity).toEqual({
-							id = entityId,
-							title = shortTitle,
-							titleLength = string.len(shortTitle),
-							__typename = "ClientData",
-						})
-						setTimeout(function()
-							client:mutate({
-								mutation = mutation,
-								variables = { id = entityId, title = longerTitle },
-							} :: any)
-						end)
-					elseif condition_ == 3 then
-						expect(data.clientEntity).toEqual({
-							id = entityId,
-							title = longerTitle,
-							titleLength = string.len(longerTitle),
-							__typename = "ClientData",
-						})
-					else
-						-- Do nothing
-					end
-					return nil
+					Query = {
+						clientEntity = function(self, _root, ref, ref_)
+							local id = ref.id
+							local cache = ref_.cache
+							return cache:readFragment({
+								id = cache:identify({ id = id, __typename = "ClientData" }),
+								fragment = fragment,
+							})
+						end,
+					},
+					Mutation = {
+						addOrUpdate = function(self, _root, ref, ref_)
+							local id, title = ref.id, ref.title
+							local cache = ref_.cache
+							return cache:writeFragment({
+								id = cache:identify({ id = id, __typename = "ClientData" }),
+								fragment = fragment,
+								data = { id = id, title = title, __typename = "ClientData" },
+							})
+						end,
+					},
+				},
+			})
+			local entityId = 1
+			local shortTitle = "Short"
+			local longerTitle = "A little longer"
+			client:mutate({ mutation = mutation, variables = { id = entityId, title = shortTitle } } :: any)
+			local renderCount = 0
+			local function App()
+				local data
+				do
+					local ref = useQuery(query, { variables = { id = entityId } })
+					data = ref.data
 				end
-				render(React.createElement(ApolloProvider, { client = client }, React.createElement(App, nil)))
-				return wait_(function()
-					expect(renderCount).toBe(3)
-				end):andThen(resolve, reject)
+				--[[ ROBLOX comment: switch statement conversion ]]
+				renderCount += 1
+				local condition_ = renderCount
+				if condition_ == 2 then
+					expect(data.clientEntity).toEqual({
+						id = entityId,
+						title = shortTitle,
+						titleLength = string.len(shortTitle),
+						__typename = "ClientData",
+					})
+					setTimeout(function()
+						client:mutate({
+							mutation = mutation,
+							variables = { id = entityId, title = longerTitle },
+						} :: any)
+					end)
+				elseif condition_ == 3 then
+					expect(data.clientEntity).toEqual({
+						id = entityId,
+						title = longerTitle,
+						titleLength = string.len(longerTitle),
+						__typename = "ClientData",
+					})
+				else
+					-- Do nothing
+				end
+				return nil
 			end
-		)
+			render(React.createElement(ApolloProvider, { client = client }, React.createElement(App, nil)))
+			return wait_(function()
+				expect(renderCount).toBe(3)
+			end):andThen(resolve, reject)
+		end)
 	end)
 
 	describe("Skipping", function()

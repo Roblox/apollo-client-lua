@@ -1274,8 +1274,7 @@ describe("ObservableQuery", function()
 	end)
 
 	describe("currentResult", function()
-		-- ROBLOX TODO: fragments are not supported yet
-		itAsync.skip("returns the same value as observableQuery.next got", function(resolve, reject)
+		itAsync("returns the same value as observableQuery.next got", function(resolve, reject)
 			local queryWithFragment = gql([[
 
         fragment CatInfo on Cat {
@@ -1626,7 +1625,7 @@ describe("ObservableQuery", function()
 		--[[
 				ROBLOX FIXME:
 				the test is passing intermittently
-				it seems to fail due to the setTimeout and Promise resolution order not being deterministic 
+				it seems to fail due to the setTimeout and Promise resolution order not being deterministic
 			]]
 		itAsync.skip("returns partial data from the store immediately", function(resolve, reject)
 			local superQuery = gql([[
@@ -1825,7 +1824,7 @@ describe("ObservableQuery", function()
 			--[[
 					ROBLOX FIXME:
 					the test is passing intermittently
-					it seems to fail due to the setTimeout and Promise resolution order not being deterministic 
+					it seems to fail due to the setTimeout and Promise resolution order not being deterministic
 				]]
 			itAsync.skip("returns optimistic mutation results from the store", function(resolve, reject)
 				local queryManager = mockQueryManager(reject, {

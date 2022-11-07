@@ -45,7 +45,7 @@ local makeVar = reactiveVarsModule.makeVar
 type ReactiveVar<T> = reactiveVarsModule.ReactiveVar<T>
 type TypedDocumentNode<Result, Variables> = coreModule.TypedDocumentNode<Result, Variables>
 -- ROBLOX TODO: remove underscore when used
-local _isReference = coreModule.isReference
+local isReference = coreModule.isReference
 local graphQLModule = require(rootWorkspace.GraphQL)
 type DocumentNode = graphQLModule.DocumentNode
 local cacheModule = require(script.Parent.Parent.Parent.Parent.cache)
@@ -1856,13 +1856,12 @@ describe("InMemoryCache#modify", function()
 			},
 		})
 
-		-- ROBLOX TODO: fragments are not supported yet
-		-- local yobResult = cache:readFragment({
-		-- 	id = authorId,
-		-- 	fragment = gql("fragment YOB on Author { yearOfBirth }"),
-		-- })
+		local yobResult = cache:readFragment({
+			id = authorId,
+			fragment = gql("fragment YOB on Author { yearOfBirth }"),
+		})
 
-		-- expect(yobResult).toEqual({ __typename = "Author", yearOfBirth = 1984 })
+		expect(yobResult).toEqual({ __typename = "Author", yearOfBirth = 1984 })
 
 		local bookId = cache:identify(currentlyReading) :: any
 
@@ -2783,32 +2782,34 @@ describe("TypedDocumentNode<Data, Variables>", function()
       }
     }
   }]])
-	-- ROBLOX TODO: fragments are not supported yet
-	-- 		local fragment: TypedDocumentNode<Book, { [string]: any }> = gql([[
-
-	--     fragment TitleAndAuthor on Book {
-	--       title
-	--       isbn
-	--       author {
-	--         name
-	--       }
-	--     }
-	--   ]])
+	local fragment: TypedDocumentNode<Book, { [string]: any }> = gql([[
+    fragment TitleAndAuthor on Book {
+      title
+      isbn
+      author {
+        name
+      }
+    }
+  ]])
 	it("should determine Data and Variables types of {write,read}{Query,Fragment}", function()
 		local cache = InMemoryCache.new({
 			typePolicies = {
 				Query = {
 					fields = {
 						book = function(self, existing, ref)
-							local args, toReference = ref.args, ref.toReference
+							-- ROBLOX deviation START: don't dereference toReference here
+							local args = ref.args
+							-- ROBLOX deviation END
 							if existing ~= nil then
 								return existing
 							else
 								if Boolean.toJSBoolean(args) then
-									return toReference({
+									-- ROBLOX deviation START: call toReference directly from ref object
+									return ref:toReference({
 										__typename = "Book",
 										isbn = args.isbn,
 									})
+									-- ROBLOX deviation END
 								else
 									return args
 								end
@@ -2843,44 +2844,44 @@ describe("TypedDocumentNode<Data, Variables>", function()
 				author = { __typename = "Author", name = "John C. Mitchell" },
 			},
 		})
-		-- ROBLOX TODO: fragments are not supported yet
-		-- local sicpBook = {
-		-- 	__typename = "Book",
-		-- 	isbn = "0262510871",
-		-- 	title = "Structure and Interpretation of Computer Programs",
-		-- 	author = { __typename = "Author", name = "Harold Abelson" },
-		-- }
-		-- local sicpRef = cache:writeFragment({ fragment = fragment, data = sicpBook })
-		-- expect(isReference(sicpRef)).toBe(true)
-		-- expect(cache:extract()).toMatchSnapshot()
 
-		-- local ffplFragmentResult = cache:readFragment({
-		-- 	fragment = fragment,
-		-- 	id = cache:identify(ffplBook),
-		-- })
-		-- if ffplFragmentResult == nil then
-		-- 	error(Error.new("null result"))
-		-- end
-		-- expect(ffplFragmentResult.title).toBe(ffplBook.title)
-		-- expect(ffplFragmentResult.author.name).toBe(ffplBook.author.name)
-		-- expect(ffplFragmentResult).toEqual(ffplBook)
-		-- local sicpReadResult = cache:readQuery({
-		-- 	query = query,
-		-- 	variables = { isbn = sicpBook.isbn },
-		-- })
-		-- if sicpReadResult == nil then
-		-- 	error(Error.new("null result"))
-		-- end
-		-- expect(sicpReadResult.book.isbn).toBeUndefined()
-		-- expect(sicpReadResult.book.title).toBe(sicpBook.title)
-		-- expect(sicpReadResult.book.author.name).toBe(sicpBook.author.name)
-		-- expect(sicpReadResult).toEqual({
-		-- 	book = {
-		-- 		__typename = "Book",
-		-- 		title = "Structure and Interpretation of Computer Programs",
-		-- 		author = { __typename = "Author", name = "Harold Abelson" },
-		-- 	},
-		-- })
+		local sicpBook = {
+			__typename = "Book",
+			isbn = "0262510871",
+			title = "Structure and Interpretation of Computer Programs",
+			author = { __typename = "Author", name = "Harold Abelson" },
+		}
+		local sicpRef = cache:writeFragment({ fragment = fragment, data = sicpBook })
+		expect(isReference(sicpRef)).toBe(true)
+		expect(cache:extract()).toMatchSnapshot()
+
+		local ffplFragmentResult = cache:readFragment({
+			fragment = fragment,
+			id = cache:identify(ffplBook),
+		})
+		if ffplFragmentResult == nil then
+			error(Error.new("null result"))
+		end
+		expect(ffplFragmentResult.title).toBe(ffplBook.title)
+		expect(ffplFragmentResult.author.name).toBe(ffplBook.author.name)
+		expect(ffplFragmentResult).toEqual(ffplBook)
+		local sicpReadResult = cache:readQuery({
+			query = query,
+			variables = { isbn = sicpBook.isbn },
+		})
+		if sicpReadResult == nil then
+			error(Error.new("null result"))
+		end
+		expect(sicpReadResult.book.isbn).toBeUndefined()
+		expect(sicpReadResult.book.title).toBe(sicpBook.title)
+		expect(sicpReadResult.book.author.name).toBe(sicpBook.author.name)
+		expect(sicpReadResult).toEqual({
+			book = {
+				__typename = "Book",
+				title = "Structure and Interpretation of Computer Programs",
+				author = { __typename = "Author", name = "Harold Abelson" },
+			},
+		})
 	end)
 end)
 

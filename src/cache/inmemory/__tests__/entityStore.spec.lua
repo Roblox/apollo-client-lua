@@ -21,6 +21,8 @@ type Record<T, U> = { [T]: U }
 
 local RegExp = require(rootWorkspace.LuauRegExp)
 
+local NULL = require(srcWorkspace.utilities).NULL
+
 local gql = require(rootWorkspace.GraphQLTag).default
 local entityStoreModule = require(script.Parent.Parent.entityStore)
 local EntityStore_Root = entityStoreModule.EntityStore_Root
@@ -99,7 +101,7 @@ describe("EntityStore", function()
 					condition = value
 				end
 				if condition == "Book" then
-					return "Book:" .. value.isbn
+					return "Book:" .. tostring(value.isbn)
 				elseif condition == "Author" then
 					return "Author:" .. value.name
 				end
@@ -299,75 +301,73 @@ describe("EntityStore", function()
 		cache:restore(snapshot)
 		expect(cache:extract()).toEqual(snapshot)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		-- 		-- Reading a specific fragment causes it to be retained during garbage collection.
-		-- 		local authorNameFragment = gql([[
+		-- Reading a specific fragment causes it to be retained during garbage collection.
+		local authorNameFragment = gql([[
 
-		--   fragment AuthorName on Author {
-		--     name
-		--   }
-		-- ]])
-		-- 		local ray = cache:readFragment({
-		-- 			id = "Author:Ray Bradbury",
-		-- 			fragment = authorNameFragment,
-		-- 		})
+      fragment AuthorName on Author {
+        name
+      }
+    ]])
+		local ray = cache:readFragment({
+			id = "Author:Ray Bradbury",
+			fragment = authorNameFragment,
+		})
 
-		-- 		expect(cache:retain("Author:Ray Bradbury")).toBe(1)
+		expect(cache:retain("Author:Ray Bradbury")).toBe(1)
 
-		-- 		expect(ray).toEqual({
-		-- 			__typename = "Author",
-		-- 			name = "Ray Bradbury",
-		-- 		})
+		expect(ray).toEqual({
+			__typename = "Author",
+			name = "Ray Bradbury",
+		})
 
-		-- 		expect(cache:gc()).toEqual({
-		-- 			-- Only Fahrenheit 451 (the book) is reclaimed this time.
-		-- 			"Book:9781451673319",
-		-- 		})
+		expect(cache:gc()).toEqual({
+			-- Only Fahrenheit 451 (the book) is reclaimed this time.
+			"Book:9781451673319",
+		})
 
-		-- 		local rayMeta = {
-		-- 			extraRootIds = {
-		-- 				"Author:Ray Bradbury",
-		-- 			},
-		-- 		}
+		local rayMeta = {
+			extraRootIds = {
+				"Author:Ray Bradbury",
+			},
+		}
 
-		-- 		expect(cache:extract()).toEqual({
-		-- 			__META = rayMeta,
-		-- 			ROOT_QUERY = {
-		-- 				__typename = "Query",
-		-- 				book = {
-		-- 					__ref = "Book:0312429215",
-		-- 				},
-		-- 			},
-		-- 			["Author:Ray Bradbury"] = {
-		-- 				__typename = "Author",
-		-- 				name = "Ray Bradbury",
-		-- 			},
-		-- 			["Book:0312429215"] = {
-		-- 				__typename = "Book",
-		-- 				author = {
-		-- 					__ref = "Author:Roberto Bola\u{F1}o",
-		-- 				},
-		-- 				title = "2666",
-		-- 			},
-		-- 			["Author:Roberto Bola\u{F1}o"] = {
-		-- 				__typename = "Author",
-		-- 				name = "Roberto Bola\u{F1}o",
-		-- 			},
-		-- 		})
+		expect(cache:extract()).toEqual({
+			__META = rayMeta,
+			ROOT_QUERY = {
+				__typename = "Query",
+				book = {
+					__ref = "Book:0312429215",
+				},
+			},
+			["Author:Ray Bradbury"] = {
+				__typename = "Author",
+				name = "Ray Bradbury",
+			},
+			["Book:0312429215"] = {
+				__typename = "Book",
+				author = {
+					__ref = "Author:Roberto Bola\u{F1}o",
+				},
+				title = "2666",
+			},
+			["Author:Roberto Bola\u{F1}o"] = {
+				__typename = "Author",
+				name = "Roberto Bola\u{F1}o",
+			},
+		})
 
-		-- 		expect(cache:gc()).toEqual({})
+		expect(cache:gc()).toEqual({})
 
-		-- 		expect(cache:release("Author:Ray Bradbury")).toBe(0)
+		expect(cache:release("Author:Ray Bradbury")).toBe(0)
 
-		-- 		expect(cache:gc()).toEqual({
-		-- 			"Author:Ray Bradbury",
-		-- 		})
+		expect(cache:gc()).toEqual({
+			"Author:Ray Bradbury",
+		})
 
-		-- 		expect(cache:gc()).toEqual({})
+		expect(cache:gc()).toEqual({})
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("should respect optimistic updates, when active", function()
+	it("should respect optimistic updates, when active", function()
 		local ref = newBookAuthorCache()
 		local cache, query = ref.cache, ref.query
 
@@ -632,116 +632,111 @@ describe("EntityStore", function()
 
 		expect(cache:retain("Author:Juli Berwald")).toBe(1)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		-- 	cache:recordOptimisticTransaction(function(proxy)
-		-- 		proxy:writeFragment({
-		-- 			id = "Author:Juli Berwald",
-		-- 			fragment = gql([[
+		cache:recordOptimisticTransaction(function(proxy)
+			proxy:writeFragment({
+				id = "Author:Juli Berwald",
+				fragment = gql([[
 
-		--   fragment AuthorBooks on Author {
-		--     books {
-		--       title
-		--     }
-		--   }
-		-- ]]),
-		-- 			data = {
-		-- 				books = {
-		-- 					{
-		-- 						__typename = "Book",
-		-- 						isbn = "0735211280",
-		-- 						title = "Spineless",
-		-- 					},
-		-- 				},
-		-- 			},
-		-- 		})
-		-- 	end, "juli books")
+      fragment AuthorBooks on Author {
+        books {
+          title
+        }
+      }
+    ]]),
+				data = {
+					books = {
+						{
+							__typename = "Book",
+							isbn = "0735211280",
+							title = "Spineless",
+						},
+					},
+				},
+			})
+		end, "juli books")
 
-		-- 	-- Retain the Spineless book on the optimistic layer (for the first time)
-		-- 	-- but release it on the root layer.
-		-- 	expect(cache:retain("Book:0735211280", true)).toBe(1)
-		-- 	expect(cache:release("Book:0735211280")).toBe(0)
+		-- Retain the Spineless book on the optimistic layer (for the first time)
+		-- but release it on the root layer.
+		expect(cache:retain("Book:0735211280", true)).toBe(1)
+		expect(cache:release("Book:0735211280")).toBe(0)
 
-		-- 	-- The Spineless book is still protected by the reference from author Juli
-		-- 	-- Berwald's optimistically-added author.books field.
-		-- 	expect(cache:gc()).toEqual({})
+		-- The Spineless book is still protected by the reference from author Juli
+		-- Berwald's optimistically-added author.books field.
+		expect(cache:gc()).toEqual({})
 
-		-- 	local juliBookMeta = {
-		-- 		extraRootIds = {
-		-- 			"Author:Juli Berwald",
-		-- 			"Book:0735211280",
-		-- 		},
-		-- 	}
+		local juliBookMeta = {
+			extraRootIds = {
+				"Author:Juli Berwald",
+				"Book:0735211280",
+			},
+		}
 
-		-- 	expect(cache:extract(true)).toEqual({
-		-- 		__META = juliBookMeta,
-		-- 		ROOT_QUERY = {
-		-- 			__typename = "Query",
-		-- 			book = {
-		-- 				__ref = "Book:1603589082",
-		-- 			},
-		-- 		},
-		-- 		["Book:0735211280"] = {
-		-- 			__typename = "Book",
-		-- 			author = {
-		-- 				__ref = "Author:Juli Berwald",
-		-- 			},
-		-- 			title = "Spineless",
-		-- 		},
-		-- 		["Author:Juli Berwald"] = {
-		-- 			__typename = "Author",
-		-- 			name = "Juli Berwald",
-		-- 			-- Note this extra optimistic field.
-		-- 			books = { {
-		-- 				__ref = "Book:0735211280",
-		-- 			} },
-		-- 		},
-		-- 		["Book:1603589082"] = {
-		-- 			__typename = "Book",
-		-- 			author = {
-		-- 				__ref = "Author:Ben Goldfarb",
-		-- 			},
-		-- 			title = "Eager",
-		-- 		},
-		-- 		["Author:Ben Goldfarb"] = {
-		-- 			__typename = "Author",
-		-- 			name = "Ben Goldfarb",
-		-- 		},
-		-- 	})
+		expect(cache:extract(true)).toEqual({
+			__META = juliBookMeta,
+			ROOT_QUERY = {
+				__typename = "Query",
+				book = {
+					__ref = "Book:1603589082",
+				},
+			},
+			["Book:0735211280"] = {
+				__typename = "Book",
+				author = {
+					__ref = "Author:Juli Berwald",
+				},
+				title = "Spineless",
+			},
+			["Author:Juli Berwald"] = {
+				__typename = "Author",
+				name = "Juli Berwald",
+				-- Note this extra optimistic field.
+				books = { {
+					__ref = "Book:0735211280",
+				} },
+			},
+			["Book:1603589082"] = {
+				__typename = "Book",
+				author = {
+					__ref = "Author:Ben Goldfarb",
+				},
+				title = "Eager",
+			},
+			["Author:Ben Goldfarb"] = {
+				__typename = "Author",
+				name = "Ben Goldfarb",
+			},
+		})
 
-		-- 	local juliMeta = {
-		-- 		extraRootIds = {
-		-- 			"Author:Juli Berwald",
-		-- 		},
-		-- 	}
+		local juliMeta = {
+			extraRootIds = {
+				"Author:Juli Berwald",
+			},
+		}
 
-		-- 	-- A non-optimistic snapshot will not have the extra books field.
-		-- 	expect(cache:extract(false)).toEqual(
-		-- 		Object.assign({}, snapshotWithBothBooksAndAuthors, { __META = juliMeta })
-		-- 	)
+		-- A non-optimistic snapshot will not have the extra books field.
+		expect(cache:extract(false)).toEqual(Object.assign({}, snapshotWithBothBooksAndAuthors, { __META = juliMeta }))
 
-		-- 	cache:removeOptimistic("juli books")
+		cache:removeOptimistic("juli books")
 
-		-- 	-- The optimistic books field is gone now that we've removed the optimistic
-		-- 	-- layer that added it.
-		-- 	expect(cache:extract(true)).toEqual(
-		-- 		Object.assign({}, snapshotWithBothBooksAndAuthors, { __META = juliMeta })
-		-- 	)
+		-- The optimistic books field is gone now that we've removed the optimistic
+		-- layer that added it.
+		expect(cache:extract(true)).toEqual(Object.assign({}, snapshotWithBothBooksAndAuthors, { __META = juliMeta }))
 
-		-- 	-- The Spineless book is no longer retained or kept alive by any other root
-		-- 	-- IDs, so it can finally be collected.
-		-- 	expect(cache:gc()).toEqual({
-		-- 		"Book:0735211280",
-		-- 	})
+		-- The Spineless book is no longer retained or kept alive by any other root
+		-- IDs, so it can finally be collected.
+		expect(cache:gc()).toEqual({
+			"Book:0735211280",
+		})
 
-		-- 	expect(cache:release("Author:Juli Berwald")).toBe(0)
+		expect(cache:release("Author:Juli Berwald")).toBe(0)
 
-		-- 	-- Now that Juli Berwald's author entity is no longer retained, garbage
-		-- 	-- collection cometh for her. Look out, Juli!
-		-- 	expect(cache:gc()).toEqual({
-		-- 		"Author:Juli Berwald",
-		-- 	})
+		-- Now that Juli Berwald's author entity is no longer retained, garbage
+		-- collection cometh for her. Look out, Juli!
+		expect(cache:gc()).toEqual({
+			"Author:Juli Berwald",
+		})
 
-		-- 	expect(cache:gc()).toEqual({})
+		expect(cache:gc()).toEqual({})
 	end)
 
 	it("allows cache eviction", function()
@@ -769,201 +764,204 @@ describe("EntityStore", function()
 
 		expect(cache:evict({ id = "Author:J.K. Rowling" })).toBe(false)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		-- 		local bookAuthorFragment = gql([[
+		local bookAuthorFragment = gql([[
 
-		--   fragment BookAuthor on Book {
-		--     author {
-		--       name
-		--     }
-		--   }
-		-- ]])
+      fragment BookAuthor on Book {
+        author {
+          name
+        }
+      }
+    ]])
 
-		-- 		local fragmentResult = cache:readFragment({
-		-- 			id = cache:identify(cuckoosCallingBook) :: any,
-		-- 			fragment = bookAuthorFragment,
-		-- 		})
+		local fragmentResult = cache:readFragment({
+			id = cache:identify(cuckoosCallingBook) :: any,
+			fragment = bookAuthorFragment,
+		})
 
-		-- 		expect(fragmentResult).toEqual({
-		-- 			__typename = "Book",
-		-- 			author = {
-		-- 				__typename = "Author",
-		-- 				name = "Robert Galbraith",
-		-- 			},
-		-- 		})
+		expect(fragmentResult).toEqual({
+			__typename = "Book",
+			author = {
+				__typename = "Author",
+				name = "Robert Galbraith",
+			},
+		})
 
-		-- 		cache:recordOptimisticTransaction(function(proxy)
-		-- 			proxy:writeFragment({
-		-- 				id = cache:identify(cuckoosCallingBook) :: any,
-		-- 				fragment = bookAuthorFragment,
-		-- 				data = Object.assign({}, fragmentResult, {
-		-- 					author = {
-		-- 						__typename = "Author",
-		-- 						name = "J.K. Rowling",
-		-- 					},
-		-- 				}),
-		-- 			})
-		-- 		end, "real name")
+		cache:recordOptimisticTransaction(function(proxy)
+			proxy:writeFragment({
+				id = cache:identify(cuckoosCallingBook) :: any,
+				fragment = bookAuthorFragment,
+				data = Object.assign({}, fragmentResult, {
+					author = {
+						__typename = "Author",
+						name = "J.K. Rowling",
+					},
+				}),
+			})
+		end, "real name")
 
-		-- 		local snapshotWithBothNames = {
-		-- 			ROOT_QUERY = {
-		-- 				__typename = "Query",
-		-- 				book = {
-		-- 					__ref = "Book:031648637X",
-		-- 				},
-		-- 			},
-		-- 			["Book:031648637X"] = {
-		-- 				__typename = "Book",
-		-- 				author = {
-		-- 					__ref = "Author:J.K. Rowling",
-		-- 				},
-		-- 				title = "The Cuckoo's Calling",
-		-- 			},
-		-- 			["Author:Robert Galbraith"] = {
-		-- 				__typename = "Author",
-		-- 				name = "Robert Galbraith",
-		-- 			},
-		-- 			["Author:J.K. Rowling"] = {
-		-- 				__typename = "Author",
-		-- 				name = "J.K. Rowling",
-		-- 			},
-		-- 		}
+		local snapshotWithBothNames = {
+			ROOT_QUERY = {
+				__typename = "Query",
+				book = {
+					__ref = "Book:031648637X",
+				},
+			},
+			["Book:031648637X"] = {
+				__typename = "Book",
+				author = {
+					__ref = "Author:J.K. Rowling",
+				},
+				title = "The Cuckoo's Calling",
+			},
+			["Author:Robert Galbraith"] = {
+				__typename = "Author",
+				name = "Robert Galbraith",
+			},
+			["Author:J.K. Rowling"] = {
+				__typename = "Author",
+				name = "J.K. Rowling",
+			},
+		}
 
-		-- 		local cuckooMeta = {
-		-- 			extraRootIds = {
-		-- 				"Book:031648637X",
-		-- 			},
-		-- 		}
+		local cuckooMeta = {
+			extraRootIds = {
+				"Book:031648637X",
+			},
+		}
 
-		-- 		expect(cache:extract(true)).toEqual(Object.assign({}, snapshotWithBothNames, { __META = cuckooMeta }))
+		expect(cache:extract(true)).toEqual(Object.assign({}, snapshotWithBothNames, { __META = cuckooMeta }))
 
-		-- 		expect(cache:gc()).toEqual({})
+		expect(cache:gc()).toEqual({})
 
-		-- 		expect(cache:retain("Author:Robert Galbraith")).toBe(1)
+		expect(cache:retain("Author:Robert Galbraith")).toBe(1)
 
-		-- 		expect(cache:gc()).toEqual({})
+		expect(cache:gc()).toEqual({})
 
-		-- 		expect(cache:evict({ id = "Author:Robert Galbraith" })).toBe(true)
+		expect(cache:evict({ id = "Author:Robert Galbraith" })).toBe(true)
 
-		-- 		expect(cache:gc()).toEqual({})
+		expect(cache:gc()).toEqual({})
 
-		-- 		cache:removeOptimistic("real name")
+		cache:removeOptimistic("real name")
 
-		-- 		local robertMeta = {
-		-- 			extraRootIds = {
-		-- 				"Author:Robert Galbraith",
-		-- 			},
-		-- 		}
+		local robertMeta = {
+			extraRootIds = {
+				"Author:Robert Galbraith",
+			},
+		}
 
-		-- 		expect(cache:extract(true)).toEqual({
-		-- 			__META = robertMeta,
-		-- 			ROOT_QUERY = {
-		-- 				__typename = "Query",
-		-- 				book = {
-		-- 					__ref = "Book:031648637X",
-		-- 				},
-		-- 			},
-		-- 			["Book:031648637X"] = {
-		-- 				__typename = "Book",
-		-- 				author = {
-		-- 					__ref = "Author:Robert Galbraith",
-		-- 				},
-		-- 				title = "The Cuckoo's Calling",
-		-- 			},
-		-- 			-- The Robert Galbraith Author record is no longer here because
-		-- 			-- cache.evict evicts data from all EntityStore layers.
-		-- 		})
+		expect(cache:extract(true)).toEqual({
+			__META = robertMeta,
+			ROOT_QUERY = {
+				__typename = "Query",
+				book = {
+					__ref = "Book:031648637X",
+				},
+			},
+			["Book:031648637X"] = {
+				__typename = "Book",
+				author = {
+					__ref = "Author:Robert Galbraith",
+				},
+				title = "The Cuckoo's Calling",
+			},
+			-- The Robert Galbraith Author record is no longer here because
+			-- cache.evict evicts data from all EntityStore layers.
+		})
 
-		-- 		cache:writeFragment({
-		-- 			id = cache:identify(cuckoosCallingBook) :: any,
-		-- 			fragment = bookAuthorFragment,
-		-- 			data = Object.assign({}, fragmentResult, {
-		-- 				author = {
-		-- 					__typename = "Author",
-		-- 					name = "J.K. Rowling",
-		-- 				},
-		-- 			}),
-		-- 		})
+		cache:writeFragment({
+			id = cache:identify(cuckoosCallingBook) :: any,
+			fragment = bookAuthorFragment,
+			data = Object.assign({}, fragmentResult, {
+				author = {
+					__typename = "Author",
+					name = "J.K. Rowling",
+				},
+			}),
+		})
 
-		-- 		local cuckooRobertMeta = Object.assign({}, cuckooMeta, robertMeta, {
-		-- 			extraRootIds = Array.sort(Array.concat({}, cuckooMeta.extraRootIds, robertMeta.extraRootIds)),
-		-- 		})
+		local cuckooRobertMeta = Object.assign({}, cuckooMeta, robertMeta, {
+			extraRootIds = Array.sort(Array.concat({}, cuckooMeta.extraRootIds, robertMeta.extraRootIds)),
+		})
 
-		-- 		expect(cache:extract(true)).toEqual({
-		-- 			__META = cuckooRobertMeta,
-		-- 			ROOT_QUERY = {
-		-- 				__typename = "Query",
-		-- 				book = {
-		-- 					__ref = "Book:031648637X",
-		-- 				},
-		-- 			},
-		-- 			["Book:031648637X"] = {
-		-- 				__typename = "Book",
-		-- 				author = {
-		-- 					__ref = "Author:J.K. Rowling",
-		-- 				},
-		-- 				title = "The Cuckoo's Calling",
-		-- 			},
-		-- 			["Author:J.K. Rowling"] = {
-		-- 				__typename = "Author",
-		-- 				name = "J.K. Rowling",
-		-- 			},
-		-- 		})
+		expect(cache:extract(true)).toEqual({
+			__META = cuckooRobertMeta,
+			ROOT_QUERY = {
+				__typename = "Query",
+				book = {
+					__ref = "Book:031648637X",
+				},
+			},
+			["Book:031648637X"] = {
+				__typename = "Book",
+				author = {
+					__ref = "Author:J.K. Rowling",
+				},
+				title = "The Cuckoo's Calling",
+			},
+			["Author:J.K. Rowling"] = {
+				__typename = "Author",
+				name = "J.K. Rowling",
+			},
+		})
 
-		-- 		expect(cache:retain("Author:Robert Galbraith")).toBe(2)
+		expect(cache:retain("Author:Robert Galbraith")).toBe(2)
 
-		-- 		expect(cache:gc()).toEqual({})
+		expect(cache:gc()).toEqual({})
 
-		-- 		expect(cache:release("Author:Robert Galbraith")).toBe(1)
-		-- 		expect(cache:release("Author:Robert Galbraith")).toBe(0)
+		expect(cache:release("Author:Robert Galbraith")).toBe(1)
+		expect(cache:release("Author:Robert Galbraith")).toBe(0)
 
-		-- 		expect(cache:gc()).toEqual({})
-		-- 		local function checkFalsyEvictId(id: any)
-		-- 			expect(id).toBeFalsy()
-		-- 			expect(cache:evict({
-		-- 				-- Accidentally passing a falsy/undefined options.id to
-		-- 				-- cache.evict (perhaps because cache.identify failed) should
-		-- 				-- *not* cause the ROOT_QUERY object to be evicted! In order for
-		-- 				-- cache.evict to default to ROOT_QUERY, the options.id property
-		-- 				-- must be *absent* (not just undefined).
-		-- 				id = id,
-		-- 			})).toBe(false)
-		-- 		end
-		-- 		checkFalsyEvictId(nil)
-		-- 		checkFalsyEvictId(nil) -- ROBLOX NOTE: null
-		-- 		checkFalsyEvictId(false)
-		-- 		checkFalsyEvictId(0)
-		-- 		checkFalsyEvictId("")
+		expect(cache:gc()).toEqual({})
+		local function checkFalsyEvictId(id: any)
+			-- ROBLOX deviation START: use Javascript falsy definition
+			expect(Boolean.toJSBoolean(id)).toBeFalsy()
+			-- ROBLOX deviation END
+			expect(cache:evict({
+				-- Accidentally passing a falsy/undefined options.id to
+				-- cache.evict (perhaps because cache.identify failed) should
+				-- *not* cause the ROOT_QUERY object to be evicted! In order for
+				-- cache.evict to default to ROOT_QUERY, the options.id property
+				-- must be *absent* (not just undefined).
+				id = id,
+			})).toBe(false)
+		end
+		-- ROBLOX deviation START: nil value is ignored in table creation
+		-- checkFalsyEvictId(nil)
+		-- checkFalsyEvictId(nil) -- ROBLOX NOTE: null
+		-- ROBLOX deivation END
+		checkFalsyEvictId(false)
+		checkFalsyEvictId(0)
+		checkFalsyEvictId("")
 
-		-- 		-- In other words, this is how you evict the entire ROOT_QUERY
-		-- 		-- object. If you're ever tempted to do this, you probably want to use
-		-- 		-- cache.clear() instead, but evicting the ROOT_QUERY should work.
-		-- 		expect(cache:evict({})).toBe(true)
+		-- In other words, this is how you evict the entire ROOT_QUERY
+		-- object. If you're ever tempted to do this, you probably want to use
+		-- cache.clear() instead, but evicting the ROOT_QUERY should work.
+		expect(cache:evict({})).toBe(true)
 
-		-- 		expect(cache:extract(true)).toEqual({
-		-- 			__META = cuckooMeta,
-		-- 			["Book:031648637X"] = {
-		-- 				__typename = "Book",
-		-- 				author = {
-		-- 					__ref = "Author:J.K. Rowling",
-		-- 				},
-		-- 				title = "The Cuckoo's Calling",
-		-- 			},
-		-- 			["Author:J.K. Rowling"] = {
-		-- 				__typename = "Author",
-		-- 				name = "J.K. Rowling",
-		-- 			},
-		-- 		})
+		expect(cache:extract(true)).toEqual({
+			__META = cuckooMeta,
+			["Book:031648637X"] = {
+				__typename = "Book",
+				author = {
+					__ref = "Author:J.K. Rowling",
+				},
+				title = "The Cuckoo's Calling",
+			},
+			["Author:J.K. Rowling"] = {
+				__typename = "Author",
+				name = "J.K. Rowling",
+			},
+		})
 
-		-- 		local ccId = cache:identify(cuckoosCallingBook) :: any
-		-- 		expect(cache:retain(ccId)).toBe(2)
-		-- 		expect(cache:release(ccId)).toBe(1)
-		-- 		expect(cache:release(ccId)).toBe(0)
+		local ccId = cache:identify(cuckoosCallingBook) :: any
+		expect(cache:retain(ccId)).toBe(2)
+		expect(cache:release(ccId)).toBe(1)
+		expect(cache:release(ccId)).toBe(0)
 
-		-- 		expect(Array.sort(cache:gc())).toEqual({
-		-- 			"Author:J.K. Rowling",
-		-- 			ccId,
-		-- 		})
+		expect(Array.sort(cache:gc())).toEqual({
+			"Author:J.K. Rowling",
+			ccId,
+		})
 	end)
 
 	it("ignores retainment count for ROOT_QUERY", function()
@@ -1717,8 +1715,7 @@ describe("EntityStore", function()
 		})
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("supports cache.identify(reference)", function()
+	it("supports cache.identify(reference)", function()
 		local cache = InMemoryCache.new({
 			typePolicies = {
 				Task = {
@@ -1751,8 +1748,7 @@ describe("EntityStore", function()
 		expect(cache:identify(taskRef :: any)).toBe('Task:{"uuid":"eb8cffcc-7a9e-4d8b-a517-7d987bf42138"}')
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("supports cache.identify(object)", function()
+	it("supports cache.identify(object)", function()
 		local queryWithAliases: DocumentNode = gql([[
 
       query {
@@ -1900,17 +1896,21 @@ describe("EntityStore", function()
 			})
 		end
 
+		-- ROBLOX deviation START: nil values are not respected in lua tables, use NULL instead
 		expect(cache:readQuery({
 			query = queryWithAliases,
-		})).toBe(nil)
+		})).toBe(NULL)
+		-- ROBLOX deviation END
 
 		expect(function()
 			return diff(queryWithAliases)
 		end).toThrow(RegExp("Dangling reference to missing ABCs:.* object"))
 
+		-- ROBLOX deviation START: nil values are not respected in lua tables, use NULL instead
 		expect(cache:readQuery({
 			query = queryWithoutAliases,
-		})).toBe(nil)
+		})).toBe(NULL)
+		-- ROBLOX deviation END
 
 		expect(function()
 			return diff(queryWithoutAliases)

@@ -176,8 +176,7 @@ describe("Basic resolver capabilities", function()
 		})
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	itAsync.skip("should handle a mix of @client fields with fragments and server fields", function(resolve, reject)
+	itAsync("should handle a mix of @client fields with fragments and server fields", function(resolve, reject)
 		local query = gql([[
 
       fragment client on ClientData {
@@ -878,8 +877,7 @@ describe("Resolving field aliases", function()
 			:expect()
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip(
+	it(
 		"should resolve @client fields using local resolvers and not have "
 			.. "their value overridden when a fragment is loaded",
 		function()

@@ -62,6 +62,7 @@ type JestMock = any
 local itAsync = testingModule.itAsync
 local invariantModule = require(srcWorkspace.jsutils.invariant)
 local invariant = invariantModule.invariant
+local NULL = require(srcWorkspace.utilities).NULL
 -- ROBLOX deviation END
 
 describe("ApolloClient", function()
@@ -277,8 +278,7 @@ describe("ApolloClient", function()
 		}))).toEqual({ a = 1 })
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	describe.skip("readFragment", function()
+	describe("readFragment", function()
 		it("will throw an error when there is no fragment", function()
 			local client = ApolloClient.new({
 				link = ApolloLink.empty(),
@@ -547,7 +547,7 @@ describe("ApolloClient", function()
               c
             }
           ]]),
-			})).toBe(nil)
+			})).toBe(NULL)
 
 			expect(client2:readFragment({
 				id = "foo",
@@ -559,7 +559,7 @@ describe("ApolloClient", function()
               c
             }
           ]]),
-			})).toBe(nil)
+			})).toBe(NULL)
 
 			expect(stripSymbols(client3:readFragment({
 				id = "foo",
@@ -790,8 +790,7 @@ describe("ApolloClient", function()
 		end)
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	describe.skip("writeFragment", function()
+	describe("writeFragment", function()
 		it("will throw an error when there is no fragment", function()
 			local client = ApolloClient.new({
 				link = ApolloLink.empty(),
@@ -1140,7 +1139,7 @@ describe("ApolloClient", function()
 						:expect()
 					-- Just try to access it, if something will break, TS will throw an error
 					-- during the test
-					local _check = result.data.people.friends[0].id
+					local _check = result.data.people.friends[1].id
 				end)
 
 				it("with a replacement of nested array (wq)", function(_, done)
@@ -1211,14 +1210,14 @@ describe("ApolloClient", function()
 								local readData = stripSymbols(client:readQuery({ query = query }))
 								expect(stripSymbols(readData)).toEqual(data)
 								local friends = (readData :: any).people.friends
-								friends[
-									1 --[[ ROBLOX adaptation: added 1 to array index ]]
-								].type =
-									"okayest"
-								friends[
-									2 --[[ ROBLOX adaptation: added 1 to array index ]]
-								].type =
-									"okayest"
+								-- ROBLOX DEVIATION start: members of friends are readonly
+								friends[1] = Object.assign(table.clone(friends[1]), {
+									["type"] = "okayest",
+								})
+								friends[2] = Object.assign(table.clone(friends[2]), {
+									["type"] = "okayest",
+								})
+								-- ROBLOX DEVIATION end
 								client:writeQuery({
 									query = query,
 									data = {
@@ -1255,8 +1254,7 @@ describe("ApolloClient", function()
 				end)
 			end)
 
-			-- ROBLOX TODO: fragments are not supported yet
-			describe.skip("using writeFragment", function()
+			describe("using writeFragment", function()
 				it("with a replacement of nested array (wf)", function(_, done: DoneFn)
 					local count = 0
 
@@ -1366,8 +1364,7 @@ describe("ApolloClient", function()
 	end)
 
 	describe("write then read", function()
-		-- ROBLOX TODO: fragments are not supported yet
-		it.skip("will write data locally which will then be read back", function()
+		it("will write data locally which will then be read back", function()
 			local client = ApolloClient.new({
 				link = ApolloLink.empty(),
 				cache = InMemoryCache.new({

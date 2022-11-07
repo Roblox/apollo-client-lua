@@ -118,6 +118,7 @@ Table {
 -- }
 -- ]]
 
+-- ROBLOX deviation START: expect NULL utility helper instead of js "null" for titleSize
 snapshots["writing to the store should respect id fields added by fragments 1"] = [[
 
 Table {
@@ -135,7 +136,9 @@ Table {
     "c": Table {
       "__typename": "CType",
       "title": "Your experience",
-      "titleSize": null,
+      "titleSize": Table {
+        "__value": "null",
+      },
     },
     "id": "b-id",
   },
@@ -147,6 +150,7 @@ Table {
   },
 }
 ]]
+-- ROBLOX deviation END
 
 snapshots['writing to the store user objects should be able to have { __typename: "Mutation" } 1'] = [[
 

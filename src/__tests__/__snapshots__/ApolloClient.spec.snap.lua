@@ -246,6 +246,208 @@ Table {
 }
 ]]
 
+-- ROBLOX deviation START: convert Object and Array to Table
+snapshots[ [=[ApolloClient writeFragment should warn when the data provided does not match the fragment shape 1]=] ] =
+	[=[
+
+[MockFunction] {
+  "calls": Table {
+    Table {
+      "Missing field 'e' while writing result {\"__typename\":\"Bar\",\"i\":10}",
+    },
+  },
+  "results": Table {
+    Table {
+      "type": "return",
+    },
+  },
+}
+]=]
+
+snapshots[ [=[ApolloClient writeFragment will write some deeply nested data into the store at any id 1]=] ] = [=[
+
+Table {
+  "__META": Table {
+    "extraRootIds": Table {
+      "foo",
+    },
+  },
+  "bar": Table {
+    "__typename": "Bar",
+    "i": 7,
+  },
+  "foo": Table {
+    "__typename": "Foo",
+    "e": 4,
+    "h": Table {
+      "__ref": "bar",
+    },
+  },
+}
+]=]
+
+snapshots[ [=[ApolloClient writeFragment will write some deeply nested data into the store at any id 2]=] ] = [=[
+
+Table {
+  "__META": Table {
+    "extraRootIds": Table {
+      "foo",
+    },
+  },
+  "bar": Table {
+    "__typename": "Bar",
+    "i": 7,
+    "j": 8,
+    "k": 9,
+  },
+  "foo": Table {
+    "__typename": "Foo",
+    "e": 4,
+    "f": 5,
+    "g": 6,
+    "h": Table {
+      "__ref": "bar",
+    },
+  },
+}
+]=]
+
+snapshots[ [=[ApolloClient writeFragment will write some deeply nested data into the store at any id 3]=] ] = [=[
+
+Table {
+  "__META": Table {
+    "extraRootIds": Table {
+      "bar",
+      "foo",
+    },
+  },
+  "bar": Table {
+    "__typename": "Bar",
+    "i": 10,
+    "j": 8,
+    "k": 9,
+  },
+  "foo": Table {
+    "__typename": "Foo",
+    "e": 4,
+    "f": 5,
+    "g": 6,
+    "h": Table {
+      "__ref": "bar",
+    },
+  },
+}
+]=]
+
+snapshots[ [=[ApolloClient writeFragment will write some deeply nested data into the store at any id 4]=] ] = [=[
+
+Table {
+  "__META": Table {
+    "extraRootIds": Table {
+      "bar",
+      "foo",
+    },
+  },
+  "bar": Table {
+    "__typename": "Bar",
+    "i": 10,
+    "j": 11,
+    "k": 12,
+  },
+  "foo": Table {
+    "__typename": "Foo",
+    "e": 4,
+    "f": 5,
+    "g": 6,
+    "h": Table {
+      "__ref": "bar",
+    },
+  },
+}
+]=]
+
+snapshots[ [=[ApolloClient writeFragment will write some deeply nested data into the store at any id 5]=] ] = [=[
+
+Table {
+  "__META": Table {
+    "extraRootIds": Table {
+      "bar",
+      "foo",
+    },
+  },
+  "bar": Table {
+    "__typename": "Bar",
+    "i": 7,
+    "j": 8,
+    "k": 9,
+  },
+  "foo": Table {
+    "__typename": "Foo",
+    "e": 4,
+    "f": 5,
+    "g": 6,
+    "h": Table {
+      "__ref": "bar",
+    },
+  },
+}
+]=]
+
+snapshots[ [=[ApolloClient writeFragment will write some deeply nested data into the store at any id 6]=] ] = [=[
+
+Table {
+  "__META": Table {
+    "extraRootIds": Table {
+      "bar",
+      "foo",
+    },
+  },
+  "bar": Table {
+    "__typename": "Bar",
+    "i": 10,
+    "j": 11,
+    "k": 12,
+  },
+  "foo": Table {
+    "__typename": "Foo",
+    "e": 4,
+    "f": 5,
+    "g": 6,
+    "h": Table {
+      "__ref": "bar",
+    },
+  },
+}
+]=]
+
+snapshots[ [=[ApolloClient write then read will write data locally which will then be read back 1]=] ] = [=[
+
+Table {
+  "__META": Table {
+    "extraRootIds": Table {
+      "bar",
+      "foo",
+    },
+  },
+  "bar": Table {
+    "__typename": "Bar",
+    "d": 8,
+    "e": 9,
+    "f": 6,
+  },
+  "foo": Table {
+    "__typename": "Foo",
+    "a": 7,
+    "b": 2,
+    "bar": Table {
+      "__ref": "bar",
+    },
+    "c": 3,
+  },
+}
+]=]
+-- ROBLOX deviation END
+
 snapshots["ApolloClient writeQuery will write some deeply nested data to the store 1"] = [[
 
 Table {

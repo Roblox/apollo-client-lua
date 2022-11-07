@@ -155,8 +155,7 @@ describe("abstract cache", function()
 		end)
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	describe.skip("readFragment", function()
+	describe("readFragment", function()
 		it("runs the read method", function()
 			local test = TestCache.new()
 			test.read = jest.fn()
@@ -206,8 +205,7 @@ describe("abstract cache", function()
 		end)
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	describe.skip("writeFragment", function()
+	describe("writeFragment", function()
 		it("runs the write method", function()
 			local test = TestCache.new()
 			test.write = jest.fn()

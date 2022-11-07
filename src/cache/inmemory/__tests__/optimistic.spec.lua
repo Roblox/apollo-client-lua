@@ -9,6 +9,7 @@ local it = JestGlobals.it
 
 local LuauPolyfill = require(rootWorkspace.LuauPolyfill)
 local Boolean = LuauPolyfill.Boolean
+local Array = LuauPolyfill.Array
 
 type Array<T> = LuauPolyfill.Array<T>
 
@@ -271,137 +272,133 @@ describe("optimistic cache layers", function()
 		})
 		expect(read()).toBe(result)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		-- 		local bookAuthorNameFragment = gql([[
+		local bookAuthorNameFragment = gql([[
 
-		--   fragment BookAuthorName on Book {
-		--     author {
-		--       name
-		--     }
-		--   }
-		-- ]])
+      fragment BookAuthorName on Book {
+        author {
+          name
+        }
+      }
+    ]])
 
-		-- 		cache:writeFragment({
-		-- 			id = "Book:0735211280",
-		-- 			fragment = bookAuthorNameFragment,
-		-- 			data = { author = spinelessBookData.author },
-		-- 		})
+		cache:writeFragment({
+			id = "Book:0735211280",
+			fragment = bookAuthorNameFragment,
+			data = { author = spinelessBookData.author },
+		})
 
-		-- 		-- Adding an author doesn't change the structure of the original result,
-		-- 		-- because the original query did not ask for author information.
-		-- 		local resultWithSpinlessAuthor = read()
-		-- 		expect(resultWithSpinlessAuthor).toEqual(result)
-		-- 		expect(resultWithSpinlessAuthor).toBe(result)
-		-- 		expect(resultWithSpinlessAuthor.books[1]).toBe(result.books[1])
-		-- 		expect(resultWithSpinlessAuthor.books[2]).toBe(result.books[2])
+		-- Adding an author doesn't change the structure of the original result,
+		-- because the original query did not ask for author information.
+		local resultWithSpinlessAuthor = read()
+		expect(resultWithSpinlessAuthor).toEqual(result)
+		expect(resultWithSpinlessAuthor).toBe(result)
+		expect(resultWithSpinlessAuthor.books[1]).toBe(result.books[1])
+		expect(resultWithSpinlessAuthor.books[2]).toBe(result.books[2])
 
-		-- 		cache:recordOptimisticTransaction(function(proxy)
-		-- 			proxy:writeFragment({
-		-- 				id = "Book:1603589082",
-		-- 				fragment = bookAuthorNameFragment,
-		-- 				data = { author = eagerBookData.author },
-		-- 			})
-		-- 		end, "eager author")
+		cache:recordOptimisticTransaction(function(proxy)
+			proxy:writeFragment({
+				id = "Book:1603589082",
+				fragment = bookAuthorNameFragment,
+				data = { author = eagerBookData.author },
+			})
+		end, "eager author")
 
-		-- 		expect(read()).toEqual(result)
+		expect(read()).toEqual(result)
 
-		-- 		local queryWithAuthors = gql([[
+		local queryWithAuthors = gql([[
 
-		--   {
-		--     books {
-		--       title
-		--       subtitle
-		--       author {
-		--         name
-		--       }
-		--     }
-		--   }
-		-- ]])
+      {
+        books {
+          title
+          subtitle
+          author {
+            name
+          }
+        }
+      }
+    ]])
 
-		-- 		local function readWithAuthors(optimistic: boolean?)
-		-- 			if optimistic == nil then
-		-- 				optimistic = true
-		-- 			end
-		-- 			return cache:readQuery({ query = queryWithAuthors }, optimistic) :: any
-		-- 		end
+		local function readWithAuthors(optimistic: boolean?)
+			if optimistic == nil then
+				optimistic = true
+			end
+			return cache:readQuery({ query = queryWithAuthors }, optimistic) :: any
+		end
 
-		-- 		local function withoutISBN(data: any)
-		-- 			-- ROBLOX FIXME: need a separate solution
-		-- 			return HttpService:JSONDecode(HttpService:JSONEncode(data, function(key, value)
-		-- 				if key == "isbn" then
-		-- 					return
-		-- 				end
-		-- 				return value
-		-- 			end))
-		-- 		end
+		local function withoutISBN(data: any)
+			-- ROBLOX DEVIATION: clone data and nil isbn
+			local newData = table.clone(data)
+			newData["isbn"] = nil
+			return newData
+		end
 
-		-- 		local resultWithTwoAuthors = readWithAuthors()
-		-- 		expect(resultWithTwoAuthors).toEqual({
-		-- 			books = { withoutISBN(eagerBookData), withoutISBN(spinelessBookData) },
-		-- 		})
+		local resultWithTwoAuthors = readWithAuthors()
+		expect(resultWithTwoAuthors).toEqual({
+			books = { withoutISBN(eagerBookData), withoutISBN(spinelessBookData) },
+		})
 
-		-- 		local buzzBookData = {
-		-- 			__typename = "Book",
-		-- 			isbn = "0465052614",
-		-- 			title = "Buzz",
-		-- 			subtitle = "The Nature and Necessity of Bees",
-		-- 			author = { __typename = "Author", name = "Thor Hanson" },
-		-- 		}
+		local buzzBookData = {
+			__typename = "Book",
+			isbn = "0465052614",
+			title = "Buzz",
+			subtitle = "The Nature and Necessity of Bees",
+			author = { __typename = "Author", name = "Thor Hanson" },
+		}
 
-		-- 		cache:recordOptimisticTransaction(function(proxy)
-		-- 			proxy:writeQuery({
-		-- 				query = queryWithAuthors,
-		-- 				data = { books = { eagerBookData, spinelessBookData, buzzBookData } },
-		-- 			})
-		-- 		end, "buzz book")
+		cache:recordOptimisticTransaction(function(proxy)
+			proxy:writeQuery({
+				query = queryWithAuthors,
+				data = { books = { eagerBookData, spinelessBookData, buzzBookData } },
+			})
+		end, "buzz book")
 
-		-- 		local resultWithBuzz = readWithAuthors()
+		local resultWithBuzz = readWithAuthors()
 
-		-- 		expect(resultWithBuzz).toEqual({
-		-- 			books = {
-		-- 				withoutISBN(eagerBookData),
-		-- 				withoutISBN(spinelessBookData),
-		-- 				withoutISBN(buzzBookData),
-		-- 			},
-		-- 		})
-		-- 		expect(resultWithBuzz.books[1]).toEqual(resultWithTwoAuthors.books[1])
-		-- 		expect(resultWithBuzz.books[2]).toEqual(resultWithTwoAuthors.books[2])
+		expect(resultWithBuzz).toEqual({
+			books = {
+				withoutISBN(eagerBookData),
+				withoutISBN(spinelessBookData),
+				withoutISBN(buzzBookData),
+			},
+		})
+		expect(resultWithBuzz.books[1]).toEqual(resultWithTwoAuthors.books[1])
+		expect(resultWithBuzz.books[2]).toEqual(resultWithTwoAuthors.books[2])
 
-		-- 		-- Before removing the Buzz optimistic layer from the cache, write the same
-		-- 		-- data to the root layer of the cache.
-		-- 		cache:writeQuery({
-		-- 			query = queryWithAuthors,
-		-- 			data = { books = { eagerBookData, spinelessBookData, buzzBookData } },
-		-- 		})
+		-- Before removing the Buzz optimistic layer from the cache, write the same
+		-- data to the root layer of the cache.
+		cache:writeQuery({
+			query = queryWithAuthors,
+			data = { books = { eagerBookData, spinelessBookData, buzzBookData } },
+		})
 
-		-- 		expect(readWithAuthors()).toBe(resultWithBuzz)
+		expect(readWithAuthors()).toBe(resultWithBuzz)
 
-		-- 		local function readSpinelessFragment()
-		-- 			return cache:readFragment({
-		-- 				id = "Book:" .. tostring(spinelessBookData.isbn),
-		-- 				fragment = bookAuthorNameFragment,
-		-- 			}, true)
-		-- 		end
+		local function readSpinelessFragment()
+			return cache:readFragment({
+				id = "Book:" .. tostring(spinelessBookData.isbn),
+				fragment = bookAuthorNameFragment,
+			}, true)
+		end
 
-		-- 		local spinelessBeforeRemovingBuzz = readSpinelessFragment()
-		-- 		cache:removeOptimistic("buzz book")
-		-- 		local spinelessAfterRemovingBuzz = readSpinelessFragment()
-		-- 		expect(spinelessBeforeRemovingBuzz).toEqual(spinelessAfterRemovingBuzz)
-		-- 		expect(spinelessBeforeRemovingBuzz).toBe(spinelessAfterRemovingBuzz)
+		local spinelessBeforeRemovingBuzz = readSpinelessFragment()
+		cache:removeOptimistic("buzz book")
+		local spinelessAfterRemovingBuzz = readSpinelessFragment()
+		expect(spinelessBeforeRemovingBuzz).toEqual(spinelessAfterRemovingBuzz)
+		expect(spinelessBeforeRemovingBuzz).toBe(spinelessAfterRemovingBuzz)
 
-		-- 		local resultAfterRemovingBuzzLayer = readWithAuthors()
-		-- 		expect(resultAfterRemovingBuzzLayer).toEqual(resultWithBuzz)
-		-- 		expect(resultAfterRemovingBuzzLayer).toBe(resultWithBuzz)
-		-- 		resultWithTwoAuthors.books:forEach(function(book, i)
-		-- 			expect(book).toEqual(resultAfterRemovingBuzzLayer.books[tostring(i)])
-		-- 			expect(book).toBe(resultAfterRemovingBuzzLayer.books[tostring(i)])
-		-- 		end)
+		local resultAfterRemovingBuzzLayer = readWithAuthors()
+		expect(resultAfterRemovingBuzzLayer).toEqual(resultWithBuzz)
+		expect(resultAfterRemovingBuzzLayer).toBe(resultWithBuzz)
+		Array.forEach(resultWithTwoAuthors.books, function(book, i)
+			expect(book).toEqual(resultAfterRemovingBuzzLayer.books[i])
+			expect(book).toBe(resultAfterRemovingBuzzLayer.books[i])
+		end)
 
-		-- 		local nonOptimisticResult = readWithAuthors(false)
-		-- 		expect(nonOptimisticResult).toEqual(resultWithBuzz)
-		-- 		cache:removeOptimistic("eager author")
-		-- 		local resultWithoutOptimisticLayers = readWithAuthors()
-		-- 		expect(resultWithoutOptimisticLayers).toBe(nonOptimisticResult)
+		local nonOptimisticResult = readWithAuthors(false)
+		expect(nonOptimisticResult).toEqual(resultWithBuzz)
+		cache:removeOptimistic("eager author")
+		local resultWithoutOptimisticLayers = readWithAuthors()
+		expect(resultWithoutOptimisticLayers).toBe(nonOptimisticResult)
 	end)
 end)
 

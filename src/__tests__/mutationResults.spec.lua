@@ -1429,8 +1429,7 @@ describe("mutation results", function()
 			},
 		}
 
-		-- ROBLOX TODO: fragments are not supported yet
-		itAsync.skip("analogous of ARRAY_INSERT", function(resolve, reject)
+		itAsync("analogous of ARRAY_INSERT", function(resolve, reject)
 			local subscriptionHandle: Subscription
 			local ref = setupObsQuery(reject, {
 				request = { query = mutation },
@@ -1498,8 +1497,7 @@ describe("mutation results", function()
 				:andThen(resolve, reject)
 		end)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		itAsync.skip("does not fail if optional query variables are not supplied", function(resolve, reject)
+		itAsync("does not fail if optional query variables are not supplied", function(resolve, reject)
 			local subscriptionHandle: Subscription
 			local mutationWithVars = gql([[
 
@@ -1595,8 +1593,7 @@ describe("mutation results", function()
 				:andThen(resolve, reject)
 		end)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		itAsync.skip("does not make next queries fail if a mutation fails", function(resolve, reject)
+		itAsync("does not make next queries fail if a mutation fails", function(resolve, reject)
 			local ref = setupObsQuery(function(error_)
 				error(error_)
 			end, {

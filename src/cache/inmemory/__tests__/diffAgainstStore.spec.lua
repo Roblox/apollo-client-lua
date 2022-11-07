@@ -44,8 +44,7 @@ describe("diffing queries against the store", function()
 	local reader = StoreReader.new({ cache = cache })
 	local writer = StoreWriter.new(cache)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("expects named fragments to return complete as true when diffd against " .. "the store", function()
+	it("expects named fragments to return complete as true when diffd against " .. "the store", function()
 		local store = defaultNormalizedCacheFactory({})
 
 		local queryResult = reader:diffQueryAgainstStore({
@@ -69,8 +68,7 @@ describe("diffing queries against the store", function()
 		expect(queryResult.complete).toEqual(false)
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("expects inline fragments to return complete as true when diffd against " .. "the store", function()
+	it("expects inline fragments to return complete as true when diffd against " .. "the store", function()
 		local store = defaultNormalizedCacheFactory()
 
 		local queryResult = reader:diffQueryAgainstStore({
@@ -165,8 +163,7 @@ describe("diffing queries against the store", function()
 		})
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("does not swallow errors other than field errors", function()
+	it("does not swallow errors other than field errors", function()
 		local firstQuery = gql([[
 
       query {
@@ -195,8 +192,7 @@ describe("diffing queries against the store", function()
 		end).toThrowError(RegExp("No fragment"))
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("does not error on a correct query with union typed fragments", function()
+	it("does not error on a correct query with union typed fragments", function()
 		return withError(function()
 			local firstQuery = gql([[
 
@@ -245,8 +241,7 @@ describe("diffing queries against the store", function()
 		end)
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("does not error on a query with fields missing from all but one named fragment", function()
+	it("does not error on a query with fields missing from all but one named fragment", function()
 		local firstQuery = gql([[
 
       query {
@@ -292,8 +287,7 @@ describe("diffing queries against the store", function()
 		expect(complete).toBe(true)
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet. Tests pass but for the wrong reasons
-	it.skip("throws an error on a query with fields missing from matching named fragments", function()
+	it("throws an error on a query with fields missing from matching named fragments", function()
 		local firstQuery = gql([[
 
       query {
@@ -344,8 +338,7 @@ describe("diffing queries against the store", function()
 		end).toThrow()
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("returns available fields if returnPartialData is true", function()
+	it("returns available fields if returnPartialData is true", function()
 		local firstQuery = gql([[
 
       {
@@ -1043,8 +1036,7 @@ describe("diffing queries against the store", function()
 	end)
 
 	describe("issue #4081", function()
-		--ROBLOX TODO: fragments are not supported yet
-		it.skip("should not return results containing cycles", function()
+		it("should not return results containing cycles", function()
 			local company = { __typename = "Company", id = 1, name = "Apollo", users = {} } :: any
 
 			table.insert(company.users, { __typename = "User", id = 1, name = "Ben", company = company })

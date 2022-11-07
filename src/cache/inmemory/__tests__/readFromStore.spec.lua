@@ -110,8 +110,7 @@ end)
 
 describe("reading from the store", function()
 	local reader = StoreReader.new({ cache = InMemoryCache.new() })
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("runs a nested query with proper fragment fields in arrays", function()
+	it("runs a nested query with proper fragment fields in arrays", function()
 		withError(function()
 			local store = defaultNormalizedCacheFactory({
 				ROOT_QUERY = ({ __typename = "Query", nestedObj = makeReference("abcde") } :: any) :: StoreObject,
@@ -345,8 +344,7 @@ describe("reading from the store", function()
 		})
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("runs a nested query with multiple fragments", function()
+	it("runs a nested query with multiple fragments", function()
 		local result: any = {
 			id = "abcd",
 			stringField = "This is a string!",
@@ -575,8 +573,7 @@ describe("reading from the store", function()
 		expect(cache:readQuery({ query = abQuery, returnPartialData = true })).toEqual({ a = 123 })
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("readFragment supports returnPartialData", function()
+	it("readFragment supports returnPartialData", function()
 		local cache = InMemoryCache.new()
 		local id = cache:identify({ __typename = "ABObject", id = 321 })
 
@@ -952,8 +949,7 @@ describe("reading from the store", function()
 		})
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("read functions for root query fields work with empty cache", function()
+	it("read functions for root query fields work with empty cache", function()
 		local cache = InMemoryCache.new({
 			typePolicies = {
 				Query = {
@@ -1716,8 +1712,7 @@ describe("reading from the store", function()
 		expect(nonCanonicalQueryResult1).toBe(canonicalQueryResult1)
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("readFragment can opt out of canonization", function()
+	it("readFragment can opt out of canonization", function()
 		local count = 0
 
 		local cache = InMemoryCache.new({

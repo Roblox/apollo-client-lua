@@ -286,8 +286,7 @@ describe("roundtrip", function()
 	end)
 
 	describe("fragments", function()
-		-- ROBLOX TODO: fragments are not supported yet
-		it.skip("should work on null fields", function()
+		it("should work on null fields", function()
 			storeRoundtrip(
 				gql([[
 
@@ -303,8 +302,7 @@ describe("roundtrip", function()
 			)
 		end)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		it.skip("should work on basic inline fragments", function()
+		it("should work on basic inline fragments", function()
 			storeRoundtrip(
 				gql([[
 
@@ -323,8 +321,7 @@ describe("roundtrip", function()
 
 		-- XXX this test is weird because it assumes the server returned an incorrect result
 		-- However, the user may have written this result with client.writeQuery.
-		-- ROBLOX TODO: fragments are not supported yet
-		withErrorSpy(it.skip, "should throw an error on two of the same inline fragment types", function()
+		withErrorSpy(it, "should throw an error on two of the same inline fragment types", function()
 			expect(function()
 				storeRoundtrip(
 					gql([[
@@ -351,8 +348,7 @@ describe("roundtrip", function()
 			end).toThrowError(RegExp("Can't find field 'rank'"))
 		end)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		it.skip("should resolve fields it can on interface with non matching inline fragments", function()
+		it("should resolve fields it can on interface with non matching inline fragments", function()
 			return withError(function()
 				storeRoundtrip(
 					gql([[
@@ -377,8 +373,7 @@ describe("roundtrip", function()
 			end)
 		end)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		it.skip("should resolve on union types with spread fragments", function()
+		it("should resolve on union types with spread fragments", function()
 			return withError(function()
 				storeRoundtrip(
 					gql([[
@@ -410,8 +405,7 @@ describe("roundtrip", function()
 			end)
 		end)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		it.skip("should work with a fragment on the actual interface or union", function()
+		it("should work with a fragment on the actual interface or union", function()
 			return withError(function()
 				storeRoundtrip(
 					gql([[
@@ -448,8 +442,7 @@ describe("roundtrip", function()
 			end)
 		end)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		withErrorSpy(it.skip, "should throw on error on two of the same spread fragment types", function()
+		withErrorSpy(it, "should throw on error on two of the same spread fragment types", function()
 			expect(function()
 				storeRoundtrip(
 					gql([[
@@ -480,8 +473,7 @@ describe("roundtrip", function()
 			end).toThrowError(RegExp("Can't find field 'rank'"))
 		end)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		it.skip("should resolve on @include and @skip with inline fragments", function()
+		it("should resolve on @include and @skip with inline fragments", function()
 			storeRoundtrip(
 				gql([[
 
@@ -502,8 +494,7 @@ describe("roundtrip", function()
 			)
 		end)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		it.skip("should resolve on @include and @skip with spread fragments", function()
+		it("should resolve on @include and @skip with spread fragments", function()
 			storeRoundtrip(
 				gql([[
 

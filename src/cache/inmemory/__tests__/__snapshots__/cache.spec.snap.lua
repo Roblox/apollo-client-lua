@@ -62,4 +62,48 @@ Table {
 }
 ]]
 
+-- ROBLOX deviation START: convert Object and Array to Table
+snapshots[ [=[TypedDocumentNode<Data, Variables> should determine Data and Variables types of {write,read}{Query,Fragment} 2]=] ] =
+	[=[
+
+Table {
+  "Author:{\"name\":\"Harold Abelson\"}": Table {
+    "__typename": "Author",
+    "name": "Harold Abelson",
+  },
+  "Author:{\"name\":\"John C. Mitchell\"}": Table {
+    "__typename": "Author",
+    "name": "John C. Mitchell",
+  },
+  "Book:{\"isbn\":\"0262133210\"}": Table {
+    "__typename": "Book",
+    "author": Table {
+      "__ref": "Author:{\"name\":\"John C. Mitchell\"}",
+    },
+    "isbn": "0262133210",
+    "title": "Foundations for Programming Languages",
+  },
+  "Book:{\"isbn\":\"0262510871\"}": Table {
+    "__typename": "Book",
+    "author": Table {
+      "__ref": "Author:{\"name\":\"Harold Abelson\"}",
+    },
+    "isbn": "0262510871",
+    "title": "Structure and Interpretation of Computer Programs",
+  },
+  "ROOT_QUERY": Table {
+    "__typename": "Query",
+    "book({\"isbn\":\"0262133210\"})": Table {
+      "__ref": "Book:{\"isbn\":\"0262133210\"}",
+    },
+  },
+  "__META": Table {
+    "extraRootIds": Table {
+      "Book:{\"isbn\":\"0262510871\"}",
+    },
+  },
+}
+]=]
+-- ROBLOX deviation END
+
 return snapshots

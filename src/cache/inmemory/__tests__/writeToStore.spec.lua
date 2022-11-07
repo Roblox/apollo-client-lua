@@ -1390,8 +1390,7 @@ describe("writing to the store", function()
 		})
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("correctly merges fragment fields along multiple paths", function()
+	it("correctly merges fragment fields along multiple paths", function()
 		local cache = InMemoryCache.new({
 			typePolicies = {
 				Container = {
@@ -1472,8 +1471,7 @@ describe("writing to the store", function()
 		expect(cache:extract()).toMatchSnapshot()
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("should respect id fields added by fragments", function()
+	it("should respect id fields added by fragments", function()
 		local query = gql([[
 
       query ABCQuery {
@@ -1533,22 +1531,19 @@ describe("writing to the store", function()
 		expect(cache:extract()).toMatchSnapshot()
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip(
-		"should allow a union of objects of a different type, when overwriting a generated id with a real id",
-		function()
-			local dataWithPlaceholder = {
-				author = { hello = "Foo", __typename = "Placeholder" },
-			}
-			local dataWithAuthor = {
-				author = {
-					firstName = "John",
-					lastName = "Smith",
-					id = "129",
-					__typename = "Author",
-				},
-			}
-			local query = gql([[
+	it("should allow a union of objects of a different type, when overwriting a generated id with a real id", function()
+		local dataWithPlaceholder = {
+			author = { hello = "Foo", __typename = "Placeholder" },
+		}
+		local dataWithAuthor = {
+			author = {
+				firstName = "John",
+				lastName = "Smith",
+				id = "129",
+				__typename = "Author",
+			},
+		}
+		local query = gql([[
 
       query {
         author {
@@ -1566,102 +1561,100 @@ describe("writing to the store", function()
       }
     ]])
 
-			local mergeCount = 0
-			local cache = InMemoryCache.new({
-				typePolicies = {
-					Query = {
-						fields = {
-							author = {
-								merge = function(_self, existing, incoming, ref)
-									mergeCount += 1
-									local condition = mergeCount
-									if condition == 1 then
-										expect(existing).toBeUndefined()
-										expect(ref:isReference(incoming)).toBe(false)
-										expect(incoming).toEqual(dataWithPlaceholder.author)
-									elseif condition == 2 then
-										expect(existing).toEqual(dataWithPlaceholder.author)
-										expect(ref:isReference(incoming)).toBe(true)
-										expect(ref:readField("__typename", incoming)).toBe("Author")
-									elseif condition == 3 then
-										expect(ref:isReference(existing)).toBe(true)
-										expect(ref:readField("__typename", existing)).toBe("Author")
-										expect(incoming).toEqual(dataWithPlaceholder.author)
-									else
-										fail("unreached")
-									end
-									return incoming
-								end,
-							},
+		local mergeCount = 0
+		local cache = InMemoryCache.new({
+			typePolicies = {
+				Query = {
+					fields = {
+						author = {
+							merge = function(_self, existing, incoming, ref)
+								mergeCount += 1
+								local condition = mergeCount
+								if condition == 1 then
+									expect(existing).toBeUndefined()
+									expect(ref:isReference(incoming)).toBe(false)
+									expect(incoming).toEqual(dataWithPlaceholder.author)
+								elseif condition == 2 then
+									expect(existing).toEqual(dataWithPlaceholder.author)
+									expect(ref:isReference(incoming)).toBe(true)
+									expect(ref:readField("__typename", incoming)).toBe("Author")
+								elseif condition == 3 then
+									expect(ref:isReference(existing)).toBe(true)
+									expect(ref:readField("__typename", existing)).toBe("Author")
+									expect(incoming).toEqual(dataWithPlaceholder.author)
+								else
+									fail("unreached")
+								end
+								return incoming
+							end,
 						},
 					},
 				},
-			})
+			},
+		})
 
-			-- write the first object, without an ID, placeholder
-			cache:writeQuery({
-				query = query,
-				data = dataWithPlaceholder,
-			})
+		-- write the first object, without an ID, placeholder
+		cache:writeQuery({
+			query = query,
+			data = dataWithPlaceholder,
+		})
 
-			expect(cache:extract()).toEqual({
-				ROOT_QUERY = {
-					__typename = "Query",
-					author = {
-						hello = "Foo",
-						__typename = "Placeholder",
-					},
+		expect(cache:extract()).toEqual({
+			ROOT_QUERY = {
+				__typename = "Query",
+				author = {
+					hello = "Foo",
+					__typename = "Placeholder",
 				},
-			})
+			},
+		})
 
-			-- replace with another one of different type with ID
-			cache:writeQuery({
-				query = query,
-				data = dataWithAuthor,
-			})
+		-- replace with another one of different type with ID
+		cache:writeQuery({
+			query = query,
+			data = dataWithAuthor,
+		})
 
-			expect(cache:extract()).toEqual({
-				["Author:129"] = {
-					firstName = "John",
-					lastName = "Smith",
-					id = "129",
-					__typename = "Author",
+		expect(cache:extract()).toEqual({
+			["Author:129"] = {
+				firstName = "John",
+				lastName = "Smith",
+				id = "129",
+				__typename = "Author",
+			},
+			ROOT_QUERY = {
+				__typename = "Query",
+				author = makeReference("Author:129"),
+			},
+		})
+
+		-- and go back to the original:
+		cache:writeQuery({
+			query = query,
+			data = dataWithPlaceholder,
+		})
+
+		-- Author__129 will remain in the store,
+		-- but will not be referenced by any of the fields,
+		-- hence we combine, and in that very order
+		expect(cache:extract()).toEqual({
+			["Author:129"] = {
+				firstName = "John",
+				lastName = "Smith",
+				id = "129",
+				__typename = "Author",
+			},
+			ROOT_QUERY = {
+				__typename = "Query",
+				author = {
+					hello = "Foo",
+					__typename = "Placeholder",
 				},
-				ROOT_QUERY = {
-					__typename = "Query",
-					author = makeReference("Author:129"),
-				},
-			})
+			},
+		})
+	end)
 
-			-- and go back to the original:
-			cache:writeQuery({
-				query = query,
-				data = dataWithPlaceholder,
-			})
-
-			-- Author__129 will remain in the store,
-			-- but will not be referenced by any of the fields,
-			-- hence we combine, and in that very order
-			expect(cache:extract()).toEqual({
-				["Author:129"] = {
-					firstName = "John",
-					lastName = "Smith",
-					id = "129",
-					__typename = "Author",
-				},
-				ROOT_QUERY = {
-					__typename = "Query",
-					author = {
-						hello = "Foo",
-						__typename = "Placeholder",
-					},
-				},
-			})
-		end
-	)
-
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("does not swallow errors other than field errors", function()
+	it("does not swallow errors other than field errors", function()
 		local query = gql([[
 
       query {
@@ -1857,8 +1850,7 @@ describe("writing to the store", function()
 			})
 		end)
 
-		-- ROBLOX TODO: fragments are not supported yet
-		it.skip("should warn when it receives the wrong data inside a fragment", function()
+		it("should warn when it receives the wrong data inside a fragment", function()
 			local queryWithInterface = gql([[
 
         query {
@@ -2298,7 +2290,7 @@ describe("writing to the store", function()
 		})
 
 		local contactLocationQuery = gql([[
-			
+
 				query {
 				  account {
 					contact
@@ -2308,7 +2300,7 @@ describe("writing to the store", function()
 			  ]])
 
 		local contactOnlyQuery = gql([[
-			
+
 				query {
 				  account {
 					contact
@@ -2317,7 +2309,7 @@ describe("writing to the store", function()
 			  ]])
 
 		local locationOnlyQuery = gql([[
-			
+
 				query {
 				  account {
 					location
@@ -2606,63 +2598,87 @@ describe("writing to the store", function()
 
 		expect(results).toEqual({})
 
-		-- ROBLOX TODO: fragments are not supported yet
-		-- local counterId = cache:identify({
-		-- 	__typename = "Counter",
-		-- }) :: string
+		local counterId = cache:identify({
+			__typename = "Counter",
+		}) :: string
 
-		-- cache:writeFragment({
-		-- 	id = counterId,
-		-- 	fragment = gql("fragment Count on Counter { count }"),
-		-- 	data = { count = (function()
-		-- 		count += 1
-		-- 		return count
-		-- 	end)() },
-		-- 	broadcast = false,
-		-- })
+		cache:writeFragment({
+			id = counterId,
+			fragment = gql("fragment Count on Counter { count }"),
+			data = { count = (function()
+				count += 1
+				return count
+			end)() },
+			broadcast = false,
+		})
 
-		-- local counterMeta = {
-		-- 	extraRootIds = {
-		-- 		"Counter:{}",
-		-- 	},
-		-- }
+		local counterMeta = {
+			extraRootIds = {
+				--[[
+					ROBLOX deviation START: in Lua we can't distinguish between empty arrays, and objects.
+					empty variables will be serialized to "[]"
+				]]
+				"Counter:[]",
+				-- ROBLOX deviation END
+			},
+		}
 
-		-- expect(cache:extract()).toEqual({
-		-- 	__META = counterMeta,
-		-- 	ROOT_QUERY = {
-		-- 		__typename = "Query",
-		-- 		counter = {
-		-- 			__ref = "Counter:{}",
-		-- 		},
-		-- 	},
-		-- 	["Counter:{}"] = {
-		-- 		__typename = "Counter",
-		-- 		count = 2,
-		-- 	},
-		-- })
+		expect(cache:extract()).toEqual({
+			__META = counterMeta,
+			ROOT_QUERY = {
+				__typename = "Query",
+				counter = {
+					--[[
+						ROBLOX deviation START: in Lua we can't distinguish between empty arrays, and objects.
+						empty variables will be serialized to "[]"
+					]]
+					__ref = "Counter:[]",
+					-- ROBLOX deviation END
+				},
+			},
+			--[[
+					ROBLOX deviation START: in Lua we can't distinguish between empty arrays, and objects.
+					empty variables will be serialized to "[]"
+				]]
+			["Counter:[]"] = {
+				-- ROBLOX deviation END
+				__typename = "Counter",
+				count = 2,
+			},
+		})
 
-		-- expect(results).toEqual({})
+		expect(results).toEqual({})
 
-		-- expect(cache:evict({
-		-- 	id = counterId,
-		-- 	fieldName = "count",
-		-- 	broadcast = false,
-		-- })).toBe(true)
+		expect(cache:evict({
+			id = counterId,
+			fieldName = "count",
+			broadcast = false,
+		})).toBe(true)
 
-		-- expect(cache:extract()).toEqual({
-		-- 	__META = counterMeta,
-		-- 	ROOT_QUERY = {
-		-- 		__typename = "Query",
-		-- 		counter = {
-		-- 			__ref = "Counter:{}",
-		-- 		},
-		-- 	},
-		-- 	["Counter:{}"] = {
-		-- 		__typename = "Counter",
-		-- 	},
-		-- })
+		expect(cache:extract()).toEqual({
+			__META = counterMeta,
+			ROOT_QUERY = {
+				__typename = "Query",
+				counter = {
+					--[[
+					ROBLOX deviation START: in Lua we can't distinguish between empty arrays, and objects.
+					empty variables will be serialized to "[]"
+				]]
+					__ref = "Counter:[]",
+					-- ROBLOX deviation END
+				},
+			},
+			--[[
+					ROBLOX deviation START: in Lua we can't distinguish between empty arrays, and objects.
+					empty variables will be serialized to "[]"
+				]]
+			["Counter:[]"] = {
+				-- ROBLOX deviation END
+				__typename = "Counter",
+			},
+		})
 
-		-- expect(results).toEqual({})
+		expect(results).toEqual({})
 
 		-- Only this write should trigger a broadcast.
 		cache:writeQuery({
@@ -2676,8 +2692,7 @@ describe("writing to the store", function()
 		})
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("writeFragment should be able to infer ROOT_QUERY", function()
+	it("writeFragment should be able to infer ROOT_QUERY", function()
 		local cache = InMemoryCache.new()
 
 		local ref = cache:writeFragment({
@@ -2699,8 +2714,7 @@ describe("writing to the store", function()
 		})
 	end)
 
-	-- ROBLOX TODO: fragments are not supported yet
-	it.skip("should warn if it cannot identify the result object", function()
+	it("should warn if it cannot identify the result object", function()
 		local cache = InMemoryCache.new()
 
 		expect(function()
