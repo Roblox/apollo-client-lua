@@ -24,6 +24,38 @@ describe("inmemory helpers", function()
 		expect(typeof(storeValueIsStoreObject)).toBe("function")
 		expect(typeof(makeProcessedFieldsMerger)).toBe("function")
 	end)
+
+	describe("fieldNameFromStoreName", function()
+		it("should not match for field names starting with a number", function()
+			expect(fieldNameFromStoreName("3abc")).toEqual("3abc")
+		end)
+
+		it("should match for fields starting with _", function()
+			expect(fieldNameFromStoreName("_h3llo")).toEqual("_h3llo")
+			expect(fieldNameFromStoreName("_H3Llo")).toEqual("_H3Llo")
+			expect(fieldNameFromStoreName("_HELLO")).toEqual("_HELLO")
+		end)
+
+		it("should not match non-alphanumeric starting characters", function()
+			expect(fieldNameFromStoreName("$_hello")).toEqual("$_hello")
+		end)
+
+		it("should not match unicode starting characters", function()
+			expect(fieldNameFromStoreName("â_hello")).toEqual("â_hello")
+		end)
+
+		it("should match for alphabetic starting characters", function()
+			expect(fieldNameFromStoreName("hel2lo_")).toEqual("hel2lo_")
+			expect(fieldNameFromStoreName("H_eLlo")).toEqual("H_eLlo")
+			expect(fieldNameFromStoreName("HELLO")).toEqual("HELLO")
+		end)
+
+		it("should stop matching at non-alphanumberic character", function()
+			expect(fieldNameFromStoreName("hello$goodbye")).toEqual("hello")
+			expect(fieldNameFromStoreName("_hello$goodbye")).toEqual("_hello")
+			expect(fieldNameFromStoreName("h_e_3_l_o$goodbye")).toEqual("h_e_3_l_o")
+		end)
+	end)
 end)
 
 return {}

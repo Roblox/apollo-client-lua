@@ -1,6 +1,6 @@
 [package]
 name = "ApolloClient"
-version = "0.3.4"
+version = "0.3.5"
 author = "Roblox"
 content_root = "src"
 files = ["*", "!**/__tests__/**", "!testUtils/", "!**/testing/**"]
@@ -16,6 +16,6 @@ LuauRegExp = "github.com/Roblox/luau-regexp@0.2.0"
 RobloxRequests = "github.com/thisdot/roblox-requests@0.1.0"
 
 [dev_dependencies]
-JestGlobals = "github.com/roblox/jest-roblox@3.0.0-rc.0"
-Jest = "github.com/roblox/jest-roblox@3.0.0-rc.0"
+JestGlobals = { git = "https://github.com/roblox/jest-roblox", rev = "v3.2.2", package = "JestGlobals" }
+Jest = { git = "https://github.com/roblox/jest-roblox", rev = "v3.2.2", package = "Jest" }
 ReactTestingLibrary = { git = "https://github.com/roblox/react-testing-library-lua.git", rev = "main" }
