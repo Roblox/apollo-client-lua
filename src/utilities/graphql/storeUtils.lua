@@ -189,7 +189,12 @@ local KNOWN_DIRECTIVES: Array<string> = {
 -- ROBLOX deviation: function in Lua can't have additional properties. Using callable table instead
 getStoreKeyName = Object.assign(
 	setmetatable({}, {
-		__call = function(_self, fieldName: string, args: (Record<string, any> | nil)?, directives: Directives?): string
+		__call = function(
+			_self,
+			fieldName: string,
+			args: (Record<string, any> | nil)?,
+			directives: Directives?
+		): string
 			if
 				Boolean.toJSBoolean(args)
 				and Boolean.toJSBoolean(directives)

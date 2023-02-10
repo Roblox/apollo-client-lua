@@ -388,14 +388,13 @@ function removeArgumentsFromDocument(config: Array<RemoveArgumentsConfig>, doc: 
 			enter = function(_self, node: OperationDefinitionNode)
 				return Object.assign({}, node, {
 					-- Remove matching top level variables definitions.
-					variableDefinitions = node.variableDefinitions and Array.filter(
-						node.variableDefinitions,
-						function(varDef)
-							return not Array.some(config, function(arg)
-								return arg.name == varDef.variable.name.value
+					variableDefinitions = node.variableDefinitions
+							and Array.filter(node.variableDefinitions, function(varDef)
+								return not Array.some(config, function(arg)
+									return arg.name == varDef.variable.name.value
+								end)
 							end)
-						end
-					) or {},
+						or {},
 				})
 			end,
 		},

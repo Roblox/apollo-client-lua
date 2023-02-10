@@ -96,9 +96,7 @@ local function collectAndReportBenchmarks(uploadToGithub: boolean)
 					else
 						local normalizedMean = res[element].mean / res["baseline"].mean
 						if normalizedMean > thresholds[element] then
-							local perfDropMessage = (
-								'Performance drop detected for benchmark: "%s", %4.4f / %4.4f = %4.4f > %4.4f'
-							):format(
+							local perfDropMessage = ('Performance drop detected for benchmark: "%s", %4.4f / %4.4f = %4.4f > %4.4f'):format(
 								element,
 								res[element].mean,
 								res["baseline"].mean,

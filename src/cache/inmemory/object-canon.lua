@@ -46,10 +46,7 @@ local function shallowCopy<T>(value: T): T
 			return (Array.slice((value :: any) :: Array<any>, 1) :: any) :: T
 		else
 			-- ROBLOX TODO: handle proto?
-			return Object.assign(
-				{}, --[[{ __proto__ = Object.getPrototypeOf(value) },]]
-				value
-			)
+			return Object.assign({}, --[[{ __proto__ = Object.getPrototypeOf(value) },]] value)
 		end
 	end
 	return value

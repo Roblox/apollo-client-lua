@@ -2102,7 +2102,12 @@ describe("EntityStore", function()
 						end,
 
 						books = {
-							merge = function(_self, existing: Array<Reference>?, incoming: Array<any>, ref_: ModifierDetails)
+							merge = function(
+								_self,
+								existing: Array<Reference>?,
+								incoming: Array<any>,
+								ref_: ModifierDetails
+							)
 								if existing == nil then
 									existing = {}
 								end

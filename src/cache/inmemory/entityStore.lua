@@ -143,16 +143,19 @@ function EntityStore.new(policies: Policies, group: CacheGroup): EntityStore
 
 	-- Bound function that can be passed around to provide easy access to fields
 	-- of Reference objects as well as ordinary objects.
-	self.getFieldValue =
-		function(_self: EntityStore, objectOrReference: StoreObject | Reference | nil, storeFieldName: string)
-			-- ROBLOX deviation START: translate if then else by hand
-			return maybeDeepFreeze(
-				if isReference(objectOrReference)
-					then self:get((objectOrReference :: Reference).__ref, storeFieldName)
-					else objectOrReference and (objectOrReference :: StoreObject)[storeFieldName]
-			) :: SafeReadonly<any>
-			-- ROBLOX deviation END
-		end
+	self.getFieldValue = function(
+		_self: EntityStore,
+		objectOrReference: StoreObject | Reference | nil,
+		storeFieldName: string
+	)
+		-- ROBLOX deviation START: translate if then else by hand
+		return maybeDeepFreeze(
+			if isReference(objectOrReference)
+				then self:get((objectOrReference :: Reference).__ref, storeFieldName)
+				else objectOrReference and (objectOrReference :: StoreObject)[storeFieldName]
+		) :: SafeReadonly<any>
+		-- ROBLOX deviation END
+	end
 
 	-- Returns true for non-normalized StoreObjects and non-dangling
 	-- References, indicating that readField(name, objOrRef) has a chance of
@@ -384,7 +387,11 @@ function EntityStore:modify(dataId: string, fields: Modifier<any> | Modifiers): 
 			end,
 			toReference = self.toReference,
 			canRead = self.canRead,
-			readField = function(_self, fieldNameOrOptions: string | ReadFieldOptions, from: (StoreObject | Reference)?)
+			readField = function(
+				_self,
+				fieldNameOrOptions: string | ReadFieldOptions,
+				from: (StoreObject | Reference)?
+			)
 				return self.policies:readField(typeof(fieldNameOrOptions) == "string" and {
 					fieldName = fieldNameOrOptions,
 					from = Boolean.toJSBoolean(from) and from or makeReference(dataId),

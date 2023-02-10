@@ -1987,7 +1987,10 @@ describe("InMemoryCache#modify", function()
 								_self,
 								existing: Array<Reference>,
 								incoming: Array<Reference>,
-								ref: FieldFunctionOptions<{ offset: number, limit: number }, Record<string, any>>
+								ref: FieldFunctionOptions<
+									{ offset: number, limit: number },
+									Record<string, any>
+								>
 							)
 								local args = ref.args :: { offset: number, limit: number }
 								local merged

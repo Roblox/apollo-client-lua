@@ -1167,12 +1167,12 @@ describe("writing to the store", function()
 				}):toObject()).toEqual({
 					["5"] = {
 						id = "id",
-						[(
-							'some_mutation({"input":{"arr":[1,{"a":"b"}],"bo":true,"id":"5","nil":%s,"num":5.5,"obj":{"a":"b"}}})'
-						):format(HttpService:JSONEncode(NULL))] = makeReference("5"),
-						[(
-							'some_mutation_with_variables({"input":{"arr":[1,{"a":"b"}],"bo":true,"id":"5","nil":%s,"num":5.5,"obj":{"a":"b"}}})'
-						):format(HttpService:JSONEncode(NULL))] = makeReference("5"),
+						[('some_mutation({"input":{"arr":[1,{"a":"b"}],"bo":true,"id":"5","nil":%s,"num":5.5,"obj":{"a":"b"}}})'):format(
+							HttpService:JSONEncode(NULL)
+						)] = makeReference("5"),
+						[('some_mutation_with_variables({"input":{"arr":[1,{"a":"b"}],"bo":true,"id":"5","nil":%s,"num":5.5,"obj":{"a":"b"}}})'):format(
+							HttpService:JSONEncode(NULL)
+						)] = makeReference("5"),
 					},
 				})
 			else
