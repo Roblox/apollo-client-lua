@@ -357,25 +357,34 @@ function hasDirectivesInSelection(
 
 	-- ROBLOX TODO: Luau type narrowing workaround
 	return Array.some(selection.directives :: Array<DirectiveNode>, getDirectiveMatcher(directives))
-		or (nestedCheck and hasDirectivesInSelectionSet(directives, (selection :: FieldNode).selectionSet, nestedCheck))
+		or (
+			nestedCheck
+				and hasDirectivesInSelectionSet(directives, (selection :: FieldNode).selectionSet, nestedCheck)
+			-- ROBLOX deviation START: add fallback to satisfy return type of boolean
+			or false -- ROBLOX deviation END
+
+		)
 end
 
 local function getArgumentMatcher(config: Array<RemoveArgumentsConfig>)
 	return function(argument: ArgumentNode)
 		return Array.some(config, function(aConfig: RemoveArgumentsConfig)
 			return argument.value
-				-- ROBLOX TODO: If Luau supported type literals, it would know the next line narrows argument.value to VariableNode
-				and argument.value.kind == "Variable"
-				and (argument.value :: VariableNode).name
-				and (
-					aConfig.name == (argument.value :: VariableNode).name.value
-					-- ROBLOX FIXME: Luau narrowing workaround
-					or aConfig.test
-						and (aConfig.test :: (RemoveNodeConfig<ArgumentNode>, ArgumentNode) -> boolean)(
-							aConfig,
-							argument
-						)
-				)
+					-- ROBLOX TODO: If Luau supported type literals, it would know the next line narrows argument.value to VariableNode
+					and argument.value.kind == "Variable"
+					and (argument.value :: VariableNode).name
+					and (
+						aConfig.name == (argument.value :: VariableNode).name.value
+						-- ROBLOX FIXME: Luau narrowing workaround
+						or aConfig.test
+							and (aConfig.test :: (RemoveNodeConfig<ArgumentNode>, ArgumentNode) -> boolean)(
+								aConfig,
+								argument
+							)
+					)
+				-- ROBLOX deviation START: add fallback to satisfy return type of boolean
+				or false
+			-- ROBLOX deviation END
 		end)
 	end
 end
