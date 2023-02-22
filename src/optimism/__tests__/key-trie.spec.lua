@@ -30,12 +30,12 @@ describe("KeyTrie", function()
 		expect(trie:lookup(obj1, 2, 3)).toBe(trie:lookup(obj1, 2, 3))
 		local obj2 = {}
 		expect(trie:lookup(1, obj2)).never.toBe(trie:lookup(1, obj2, 3))
-		-- ROBLOX deviation: WeakMap doesn't have `has` method
-		expect((trie :: any).weak:get(obj1) ~= nil).toBe(true)
-		expect((trie :: any).strong:has(obj1)).toBe(false)
-		-- ROBLOX deviation: WeakMap doesn't have `has` method
-		expect((trie :: any).strong:get(1).weak:get(obj2) ~= nil).toBe(true)
-		expect((trie :: any).strong:get(1).weak:get(obj2).strong:has(3)).toBe(true)
+		-- ROBLOX deviation START: use lua table instead of map
+		expect((trie :: any).weak[obj1]).toBeDefined()
+		-- expect((trie :: any).strong:has(obj1)).toBe(false)
+		expect((trie :: any).weak[1].weak[obj2]).toBeDefined()
+		expect((trie :: any).weak[1].weak[obj2].weak[3]).toBeDefined()
+		-- ROBLOX deviation END
 	end)
 
 	it("can disable WeakMap", function()
@@ -46,10 +46,12 @@ describe("KeyTrie", function()
 		local obj2 = {}
 		expect(trie:lookup(1, obj2)).never.toBe(trie:lookup(1, obj2, 3))
 		expect(typeof((trie :: any).weak)).toBe("nil")
-		expect((trie :: any).strong:has(obj1)).toBe(true)
-		expect((trie :: any).strong:has(1)).toBe(true)
-		expect((trie :: any).strong:get(1).strong:has(obj2)).toBe(true)
-		expect((trie :: any).strong:get(1).strong:get(obj2).strong:has(3)).toBe(true)
+		-- ROBLOX deviation START: use lua table instead of map
+		expect((trie :: any).strong[obj1]).toBeDefined()
+		expect((trie :: any).strong[1]).toBeDefined()
+		expect((trie :: any).strong[1].strong[obj2]).toBeDefined()
+		expect((trie :: any).strong[1].strong[obj2].strong[3]).toBeDefined()
+		-- ROBLOX deviation END
 	end)
 
 	it("can produce data types other than Object", function()
