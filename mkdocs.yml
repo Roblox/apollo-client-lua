@@ -1,0 +1,47 @@
+site_name: Apollo Client Luau Documentation
+site_url: https://roblox.github.io/apollo-client-lua/
+repo_name: Roblox/apollo-client-lua
+repo_url: https://github.com/Roblox/apollo-client-lua
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      primary: indigo
+      scheme: default
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      primary: indigo
+      scheme: slate
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+
+plugins:
+  - search:
+      separator: '[\s\-\.]'
+
+nav:
+  - Home: index.md
+  - Deviations: deviations.md
+  - Migrating From Rodux:
+    - Minimum Requirements: migrating-from-rodux/minimum-requirements.md
+  - API Reference:
+    - Apollo Client: api-reference/apollo-client.md
+  - Benchmarks: bench.md
+
+extra_css:
+  - extra.css
+
+markdown_extensions:
+  - admonition
+  - codehilite:
+      guess_lang: false
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  # FIXME: Add this back when the tabbed extension is supported by docs-deploy
+  # - pymdownx.tabbed:
+  #     alternate_style: false
