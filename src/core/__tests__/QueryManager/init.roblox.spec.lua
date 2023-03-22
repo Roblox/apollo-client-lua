@@ -5591,9 +5591,9 @@ describe("QueryManager", function()
 						return resolve()
 					end)
 					:catch(function(error_: Error)
-						local isRefetchError: boolean = awaitRefetchQueries
+						local isRefetchError: boolean = not not awaitRefetchQueries
 							and testQueryError
-							and refetchError
+							and refetchError ~= nil
 							and string.find(error_.message, refetchError.message, 1, true) ~= nil
 
 						if isRefetchError then
