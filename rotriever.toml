@@ -19,3 +19,7 @@ RobloxRequests = "github.com/thisdot/roblox-requests@0.1.0"
 JestGlobals = { git = "https://github.com/roblox/jest-roblox", rev = "v3.2.2", package = "JestGlobals" }
 Jest = { git = "https://github.com/roblox/jest-roblox", rev = "v3.2.2", package = "Jest" }
 ReactTestingLibrary = { git = "https://github.com/roblox/react-testing-library-lua.git", rev = "main" }
+
+[config.patch."https://github.com/roblox/jest-roblox"]
+JestGlobals = { git = "https://github.com/roblox/jest-roblox", rev = "v3.2.2", package = "JestGlobals" }
+Jest = { git = "https://github.com/roblox/jest-roblox", rev = "v3.2.2", package = "Jest" }

@@ -1,14 +1,11 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/cache/inmemory/__tests__/__snapshots__/roundtrip.ts.snap
-
-local snapshots = {}
-
--- ROBLOX deviation START: convert Object and Array to Table
-snapshots["roundtrip fragments should throw an error on two of the same inline fragment types 1"] = [[
+-- Jest Roblox Snapshot v1, http://roblox.github.io/jest-roblox/snapshot-testing
+local exports = {}
+exports[ [=[roundtrip fragments should throw an error on two of the same inline fragment types 1]=] ] = [=[
 
 [MockFunction] {
   "calls": Table {
     Table {
-      "Missing field 'rank' while writing result {\"name\":\"Luke Skywalker\",\"side\":\"bright\",\"__typename\":\"Jedi\"}",
+      "Missing field 'rank' while writing result {\"__typename\":\"Jedi\",\"name\":\"Luke Skywalker\",\"side\":\"bright\"}",
     },
   },
   "results": Table {
@@ -17,14 +14,14 @@ snapshots["roundtrip fragments should throw an error on two of the same inline f
     },
   },
 }
-]]
+]=]
 
-snapshots["roundtrip fragments should throw on error on two of the same spread fragment types 1"] = [[
+exports[ [=[roundtrip fragments should throw on error on two of the same spread fragment types 1]=] ] = [=[
 
 [MockFunction] {
   "calls": Table {
     Table {
-      "Missing field 'rank' while writing result {\"name\":\"Luke Skywalker\",\"side\":\"bright\",\"__typename\":\"Jedi\"}",
+      "Missing field 'rank' while writing result {\"__typename\":\"Jedi\",\"name\":\"Luke Skywalker\",\"side\":\"bright\"}",
     },
   },
   "results": Table {
@@ -33,7 +30,6 @@ snapshots["roundtrip fragments should throw on error on two of the same spread f
     },
   },
 }
-]]
--- ROBLOX deviation END
+]=]
 
-return snapshots
+return exports

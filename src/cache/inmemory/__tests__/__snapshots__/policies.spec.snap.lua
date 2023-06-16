@@ -1,12 +1,11 @@
--- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/cache/inmemory/__tests__/__snapshots__/policies.ts.snap
-
-local snapshots = {}
-snapshots["type policies complains about missing key fields 1"] = [[
+-- Jest Roblox Snapshot v1, http://roblox.github.io/jest-roblox/snapshot-testing
+local exports = {}
+exports[ [=[type policies complains about missing key fields 1]=] ] = [=[
 
 [MockFunction] {
   "calls": Table {
     Table {
-      "Missing field 'title' while writing result {\"theInformationBookData\":{\"subtitle\":\"A History, a Theory, a Flood\",\"author\":{\"name\":\"James Gleick\"},\"title\":\"The Information\",\"isbn\":\"1400096235\",\"__typename\":\"Book\"},\"year\":2011}",
+      "Missing field 'title' while writing result {\"year\":2011,\"theInformationBookData\":{\"__typename\":\"Book\",\"title\":\"The Information\",\"isbn\":\"1400096235\",\"author\":{\"name\":\"James Gleick\"},\"subtitle\":\"A History, a Theory, a Flood\"}}",
     },
   },
   "results": Table {
@@ -15,10 +14,9 @@ snapshots["type policies complains about missing key fields 1"] = [[
     },
   },
 }
-]]
+]=]
 
--- ROBLOX deviation START: convert Object and Array to Table
-snapshots[ [=[type policies field policies assumes keyArgs:false when read and merge function present 1]=] ] = [=[
+exports[ [=[type policies field policies assumes keyArgs:false when read and merge function present 1]=] ] = [=[
 
 [MockFunction] {
   "calls": Table {
@@ -34,7 +32,7 @@ snapshots[ [=[type policies field policies assumes keyArgs:false when read and m
 }
 ]=]
 
-snapshots[ [=[type policies field policies can handle Relay-style pagination 1]=] ] = [=[
+exports[ [=[type policies field policies can handle Relay-style pagination 1]=] ] = [=[
 
 Table {
   "Artist:{\"href\":\"/artist/jean-michel-basquiat\"}": Table {
@@ -86,7 +84,7 @@ Table {
 }
 ]=]
 
-snapshots[ [=[type policies field policies can handle Relay-style pagination 2]=] ] = [=[
+exports[ [=[type policies field policies can handle Relay-style pagination 2]=] ] = [=[
 
 Table {
   "Artist:{\"href\":\"/artist/jean-michel-basquiat\"}": Table {
@@ -169,7 +167,7 @@ Table {
 }
 ]=]
 
-snapshots[ [=[type policies field policies can handle Relay-style pagination 3]=] ] = [=[
+exports[ [=[type policies field policies can handle Relay-style pagination 3]=] ] = [=[
 
 Table {
   "Artist:{\"href\":\"/artist/jean-michel-basquiat\"}": Table {
@@ -245,7 +243,7 @@ Table {
 }
 ]=]
 
-snapshots[ [=[type policies field policies can handle Relay-style pagination 4]=] ] = [=[
+exports[ [=[type policies field policies can handle Relay-style pagination 4]=] ] = [=[
 
 Table {
   "Artist:{\"href\":\"/artist/jean-michel-basquiat\"}": Table {
@@ -328,7 +326,7 @@ Table {
 }
 ]=]
 
-snapshots[ [=[type policies field policies can handle Relay-style pagination 5]=] ] = [=[
+exports[ [=[type policies field policies can handle Relay-style pagination 5]=] ] = [=[
 
 Table {
   "Artist:{\"href\":\"/artist/jean-michel-basquiat\"}": Table {
@@ -420,7 +418,7 @@ Table {
 }
 ]=]
 
-snapshots[ [=[type policies field policies can handle Relay-style pagination 6]=] ] = [=[
+exports[ [=[type policies field policies can handle Relay-style pagination 6]=] ] = [=[
 
 Table {
   "Artist:{\"href\":\"/artist/james-turrell\"}": Table {
@@ -537,7 +535,7 @@ Table {
 }
 ]=]
 
-snapshots[ [=[type policies field policies can handle Relay-style pagination 7]=] ] = [=[
+exports[ [=[type policies field policies can handle Relay-style pagination 7]=] ] = [=[
 
 Table {
   "Artist:{\"href\":\"/artist/james-turrell\"}": Table {
@@ -648,7 +646,7 @@ Table {
 }
 ]=]
 
-snapshots[ [=[type policies field policies can handle Relay-style pagination 8]=] ] = [=[
+exports[ [=[type policies field policies can handle Relay-style pagination 8]=] ] = [=[
 
 Table {
   "Artist:{\"href\":\"/artist/james-turrell\"}": Table {
@@ -767,9 +765,8 @@ Table {
   },
 }
 ]=]
--- ROBLOX deviation END
 
-snapshots["type policies field policies can handle Relay-style pagination without args 1"] = [[
+exports[ [=[type policies field policies can handle Relay-style pagination without args 1]=] ] = [=[
 
 Table {
   "ROOT_QUERY": Table {
@@ -804,10 +801,47 @@ Table {
     },
   },
 }
-]]
+]=]
 
--- ROBLOX deviation START: convert Object and Array to Table
-snapshots[ [=[type policies field policies can include optional arguments in keyArgs 1]=] ] = [=[
+exports[ [=[type policies field policies can handle Relay-style pagination without args 2]=] ] = [=[
+
+Table {
+  "ROOT_QUERY": Table {
+    "__typename": "Query",
+    "todos": Table {
+      "edges": Table {
+        Table {
+          "__ref": "TodoEdge:edge1",
+          "cursor": "YXJyYXljb25uZWN0aW9uOjI=",
+        },
+      },
+      "extraMetaData": "extra",
+      "pageInfo": Table {
+        "__typename": "PageInfo",
+        "endCursor": "YXJyYXljb25uZWN0aW9uOjI=",
+        "hasNextPage": true,
+        "hasPreviousPage": false,
+        "startCursor": "YXJyYXljb25uZWN0aW9uOjI=",
+      },
+      "totalCount": 1293,
+    },
+  },
+  "Todo:1": Table {
+    "__typename": "Todo",
+    "id": "1",
+    "title": "Fix the tests",
+  },
+  "TodoEdge:edge1": Table {
+    "__typename": "TodoEdge",
+    "id": "edge1",
+    "node": Table {
+      "__ref": "Todo:1",
+    },
+  },
+}
+]=]
+
+exports[ [=[type policies field policies can include optional arguments in keyArgs 1]=] ] = [=[
 
 Table {
   "Author:{\"name\":\"Nadia Eghbal\"}": Table {
@@ -830,7 +864,7 @@ Table {
 }
 ]=]
 
-snapshots[ [=[type policies field policies can include optional arguments in keyArgs 2]=] ] = [=[
+exports[ [=[type policies field policies can include optional arguments in keyArgs 2]=] ] = [=[
 
 Table {
   "Author:{\"name\":\"Nadia Eghbal\"}": Table {
@@ -860,7 +894,7 @@ Table {
 }
 ]=]
 
-snapshots[ [=[type policies field policies can include optional arguments in keyArgs 3]=] ] = [=[
+exports[ [=[type policies field policies can include optional arguments in keyArgs 3]=] ] = [=[
 
 Table {
   "Author:{\"name\":\"Nadia Eghbal\"}": Table {
@@ -897,7 +931,7 @@ Table {
 }
 ]=]
 
-snapshots[ [=[type policies field policies can include optional arguments in keyArgs 4]=] ] = [=[
+exports[ [=[type policies field policies can include optional arguments in keyArgs 4]=] ] = [=[
 
 Table {
   "Author:{\"name\":\"Nadia Eghbal\"}": Table {
@@ -941,7 +975,7 @@ Table {
 }
 ]=]
 
-snapshots[ [=[type policies field policies can include optional arguments in keyArgs 5]=] ] = [=[
+exports[ [=[type policies field policies can include optional arguments in keyArgs 5]=] ] = [=[
 
 Table {
   "Author:{\"name\":\"Nadia Eghbal\"}": Table {
@@ -992,7 +1026,7 @@ Table {
 }
 ]=]
 
-snapshots[ [=[type policies field policies can include optional arguments in keyArgs 6]=] ] = [=[
+exports[ [=[type policies field policies can include optional arguments in keyArgs 6]=] ] = [=[
 
 Table {
   "Author:{\"name\":\"Nadia Eghbal\"}": Table {
@@ -1050,7 +1084,7 @@ Table {
 }
 ]=]
 
-snapshots[ [=[type policies field policies can include optional arguments in keyArgs 7]=] ] = [=[
+exports[ [=[type policies field policies can include optional arguments in keyArgs 7]=] ] = [=[
 
 Table {
   "Author:{\"name\":\"Nadia Eghbal\"}": Table {
@@ -1115,7 +1149,7 @@ Table {
 }
 ]=]
 
-snapshots[ [=[type policies field policies can include optional arguments in keyArgs 8]=] ] = [=[
+exports[ [=[type policies field policies can include optional arguments in keyArgs 8]=] ] = [=[
 
 Table {
   "Author:{\"name\":\"Nadia Eghbal\"}": Table {
@@ -1186,58 +1220,19 @@ Table {
   },
 }
 ]=]
--- ROBLOX deviation END
 
-snapshots["type policies field policies can handle Relay-style pagination without args 2"] = [[
-
-Table {
-  "ROOT_QUERY": Table {
-    "__typename": "Query",
-    "todos": Table {
-      "edges": Table {
-        Table {
-          "__ref": "TodoEdge:edge1",
-          "cursor": "YXJyYXljb25uZWN0aW9uOjI=",
-        },
-      },
-      "extraMetaData": "extra",
-      "pageInfo": Table {
-        "__typename": "PageInfo",
-        "endCursor": "YXJyYXljb25uZWN0aW9uOjI=",
-        "hasNextPage": true,
-        "hasPreviousPage": false,
-        "startCursor": "YXJyYXljb25uZWN0aW9uOjI=",
-      },
-      "totalCount": 1293,
-    },
-  },
-  "Todo:1": Table {
-    "__typename": "Todo",
-    "id": "1",
-    "title": "Fix the tests",
-  },
-  "TodoEdge:edge1": Table {
-    "__typename": "TodoEdge",
-    "id": "edge1",
-    "node": Table {
-      "__ref": "Todo:1",
-    },
-  },
-}
-]]
-
-snapshots["type policies field policies read and merge can cooperate through options.storage 1"] = [[
+exports[ [=[type policies field policies read and merge can cooperate through options.storage 1]=] ] = [=[
 
 [MockFunction] {
   "calls": Table {
     Table {
-      "Missing field 'result' while writing result {\"__typename\":\"Job\",\"name\":\"Job #1\"}",
+      "Missing field 'result' while writing result {\"name\":\"Job #1\",\"__typename\":\"Job\"}",
     },
     Table {
-      "Missing field 'result' while writing result {\"__typename\":\"Job\",\"name\":\"Job #2\"}",
+      "Missing field 'result' while writing result {\"name\":\"Job #2\",\"__typename\":\"Job\"}",
     },
     Table {
-      "Missing field 'result' while writing result {\"__typename\":\"Job\",\"name\":\"Job #3\"}",
+      "Missing field 'result' while writing result {\"name\":\"Job #3\",\"__typename\":\"Job\"}",
     },
   },
   "results": Table {
@@ -1252,14 +1247,14 @@ snapshots["type policies field policies read and merge can cooperate through opt
     },
   },
 }
-]]
+]=]
 
-snapshots["type policies field policies readField helper function calls custom read functions 1"] = [[
+exports[ [=[type policies field policies readField helper function calls custom read functions 1]=] ] = [=[
 
 [MockFunction] {
   "calls": Table {
     Table {
-      "Missing field 'blockers' while writing result {\"description\":\"grandchild task\",\"__typename\":\"Task\",\"id\":4}",
+      "Missing field 'blockers' while writing result {\"id\":4,\"__typename\":\"Task\",\"description\":\"grandchild task\"}",
     },
   },
   "results": Table {
@@ -1268,20 +1263,20 @@ snapshots["type policies field policies readField helper function calls custom r
     },
   },
 }
-]]
+]=]
 
-snapshots["type policies field policies runs nested merge functions as well as ancestors 1"] = [[
+exports[ [=[type policies field policies runs nested merge functions as well as ancestors 1]=] ] = [=[
 
 [MockFunction] {
   "calls": Table {
     Table {
-      "Missing field 'time' while writing result {\"__typename\":\"Event\",\"id\":123}",
+      "Missing field 'time' while writing result {\"id\":123,\"__typename\":\"Event\"}",
     },
     Table {
-      "Missing field 'time' while writing result {\"name\":\"Rooftop dog party\",\"__typename\":\"Event\",\"attendees\":[{\"name\":\"Inspector Beckett\",\"__typename\":\"Attendee\",\"id\":456},{\"__typename\":\"Attendee\",\"id\":234}],\"id\":345}",
+      "Missing field 'time' while writing result {\"id\":345,\"__typename\":\"Event\",\"name\":\"Rooftop dog party\",\"attendees\":[{\"id\":456,\"__typename\":\"Attendee\",\"name\":\"Inspector Beckett\"},{\"id\":234,\"__typename\":\"Attendee\"}]}",
     },
     Table {
-      "Missing field 'name' while writing result {\"__typename\":\"Attendee\",\"id\":234}",
+      "Missing field 'name' while writing result {\"id\":234,\"__typename\":\"Attendee\"}",
     },
   },
   "results": Table {
@@ -1296,14 +1291,14 @@ snapshots["type policies field policies runs nested merge functions as well as a
     },
   },
 }
-]]
+]=]
 
-snapshots["type policies readField warns if explicitly passed undefined `from` option 1"] = [[
+exports[ [=[type policies readField warns if explicitly passed undefined `from` option 1]=] ] = [=[
 
 [MockFunction] {
   "calls": Table {
     Table {
-      "Undefined 'from' passed to readField with arguments [{\"from\":\"<Object.None>\",\"fieldName\":\"firstName\"}]",
+      "Undefined 'from' passed to readField with arguments [{\"fieldName\":\"firstName\",\"from\":\"<Object.None>\"}]",
     },
     Table {
       "Undefined 'from' passed to readField with arguments [\"lastName\",\"<nil>\"]",
@@ -1318,9 +1313,9 @@ snapshots["type policies readField warns if explicitly passed undefined `from` o
     },
   },
 }
-]]
+]=]
 
-snapshots[ [=[type policies support inheritance 1]=] ] = [=[
+exports[ [=[type policies support inheritance 1]=] ] = [=[
 
 Table {
   "Cobra:{\"tagId\":\"Egypt30BC\"}": Table {
@@ -1365,4 +1360,5 @@ Table {
   },
 }
 ]=]
-return snapshots
+
+return exports
