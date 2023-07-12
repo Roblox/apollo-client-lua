@@ -1217,9 +1217,10 @@ function makeMergeObjectsFunction(store: NormalizedCache): MergeObjectsFunction
 end
 
 -- ROBLOX deviation: preserve order of keyFieldsFn when encoding
-local function keyObjEncode(object: Record<string, any>, specifier): string
+local function keyObjEncode(object: Record<string, any>, specifier: { any }): string
 	-- ROBLOX deviation START: check if this is an empty array in constant time
-	if type(specifier) == "table" and not next(specifier) then
+	assert(typeof(specifier) == "table", "specifier must be an array")
+	if not next(specifier) then
 		-- ROBLOX deviation END
 		return "[]"
 	end
