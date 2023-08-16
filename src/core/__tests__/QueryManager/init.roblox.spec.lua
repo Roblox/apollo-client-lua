@@ -1,3 +1,9 @@
+--[[
+ * Copyright (c) 2021 Apollo Graph, Inc. (Formerly Meteor Development Group, Inc.)
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+]]
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/core/__tests__/QueryManager/index.ts
 
 -- ROBLOX deviation: setTimeout currently operates at minimum 30Hz rate. Any lower number seems to be treated as 0
@@ -4717,7 +4723,7 @@ describe("QueryManager", function()
 					using jest.fn instead of jest.spyOn until spyOn is implemented
 					original code:
 					consoleWarnSpy = jest:spyOn(console, "warn"):mockImplementation()
-					
+
 				]]
 			consoleWarnSpy = jest.fn()
 			oldConsoleWarn = console.warn

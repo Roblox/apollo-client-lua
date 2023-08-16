@@ -1,3 +1,9 @@
+--[[
+ * Copyright (c) 2021 Apollo Graph, Inc. (Formerly Meteor Development Group, Inc.)
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+]]
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/utilities/graphql/__tests__/getFromAST.ts
 
 local srcWorkspace = script.Parent.Parent.Parent.Parent
@@ -35,7 +41,7 @@ describe("AST utility functions", function()
 						  lastName
 						}
 					}
-		
+
 					query {
 						author {
 						  address
@@ -53,7 +59,7 @@ describe("AST utility functions", function()
 						  ...authorDetails
 						}
 					}
-		
+
 					fragment authorDetails on Author {
 						firstName
 						lastName
@@ -102,12 +108,12 @@ describe("AST utility functions", function()
 						...moreAuthorDetails
 					}
 				  }
-	
+
 				fragment authorDetails on Author {
 					firstName
 					lastName
 				}
-	
+
 				fragment moreAuthorDetails on Author {
 					address
 				}
@@ -118,7 +124,7 @@ describe("AST utility functions", function()
 					firstName
 					lastName
 				}
-	
+
 				fragment moreAuthorDetails on Author {
 					address
 				}
@@ -138,11 +144,11 @@ describe("AST utility functions", function()
 					firstName
 					lastName
 				}
-	
+
 				fragment moreAuthorDetails on Author {
 					address
 				}
-	
+
 				query {
 					author {
 						...authorDetails
@@ -172,7 +178,7 @@ describe("AST utility functions", function()
 					firstName
 					lastName
 				}
-	
+
 				mutation {
 					createAuthor(firstName: "John", lastName: "Smith") {
 						...authorDetails
@@ -224,13 +230,13 @@ describe("AST utility functions", function()
 					firstName
 					lastName
 					}
-		
+
 					query($search: AuthorSearchInputType) {
 					author(search: $search) {
 						...authorDetails
 					}
 					}
-		
+
 					input AuthorSearchInputType {
 					firstName: String
 					}

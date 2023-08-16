@@ -1,3 +1,9 @@
+--[[
+ * Copyright (c) 2017 Kent C. Dodds
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+]]
 -- ROBLOX upstream: https://github.com/testing-library/dom-testing-library/blob/v6.11.0/src/wait.js
 
 local srcWorkspace = script.Parent.Parent

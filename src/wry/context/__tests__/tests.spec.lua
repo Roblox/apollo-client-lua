@@ -1,3 +1,9 @@
+--[[
+ * Copyright (c) 2019-2021 Ben Newman <ben@eloper.dev>
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+]]
 -- ROBLOX upstream: https://github.com/benjamn/wryware/blob/91655122045a99ad445aa330e88905feb3775db6/packages/context/src/tests.ts
 
 local rootWorkspace = script.Parent.Parent.Parent.Parent.Parent
@@ -390,7 +396,7 @@ describe("setTimeout", function()
 				--[[
 						ROBLOX deviation:
 						because Luau implementation of Promise resolves synchronously
-						we need to delay the execution on andThen callback to the next tick 
+						we need to delay the execution on andThen callback to the next tick
 						so that the bound context is restored
 					]]
 				return Promise.delay(0)

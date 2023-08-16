@@ -1,3 +1,9 @@
+--[[
+ * Copyright (c) 2021 Apollo Graph, Inc. (Formerly Meteor Development Group, Inc.)
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+]]
 local exports = {}
 local QueryManagerModule = require(script.Parent.Parent.Parent.Parent.core.QueryManager)
 local QueryManager = QueryManagerModule.QueryManager

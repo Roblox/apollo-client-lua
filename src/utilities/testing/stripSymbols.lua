@@ -1,3 +1,9 @@
+--[[
+ * Copyright (c) 2021 Apollo Graph, Inc. (Formerly Meteor Development Group, Inc.)
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+]]
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/utilities/testing/stripSymbols.ts
 
 local exports = {}
@@ -23,7 +29,7 @@ type Object = { [any]: any }
 
 local function stripSymbols<T>(data: T): T
 	--[[
-		ROBLOX deviation: 
+		ROBLOX deviation:
 		HTTPService will throw an error when trying to encode "userdata"
 		original code:
 		return JSON.parse(JSON.stringify(data));

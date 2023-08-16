@@ -1,3 +1,9 @@
+--[[
+ * Copyright (c) 2016 Ben Newman
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+]]
 -- ROBLOX upstream: https://github.com/benjamn/optimism/blob/v0.16.1/src/tests/api.ts
 
 local rootWorkspace = script.Parent.Parent.Parent.Parent
@@ -322,7 +328,7 @@ describe("optimism", function()
 		expect(callCount).toBe(2)
 
 		--[[
-				ROBLOX deviation: 
+				ROBLOX deviation:
 				there is no distinction between null and undefined in Lua
 				artificially triggering call of wrapped function to retail callCount
 			]]

@@ -1,3 +1,9 @@
+--[[
+ * Copyright (c) 2021 Apollo Graph, Inc. (Formerly Meteor Development Group, Inc.)
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+]]
 -- Jest Roblox Snapshot v1, http://roblox.github.io/jest-roblox/snapshot-testing
 local exports = {}
 exports[ [=[General use should allow querying with the typename 1]=] ] = [=[
@@ -31,7 +37,7 @@ exports[ [=[General use should error if the variables do not deep equal 1]=] ] =
 }
 
 Expected variables: {\"username\":\"some_user\",\"age\":42}
-  
+
 Failed to match 1 mock for this query, which had the following variables:
 	  {\"age\":13,\"username\":\"some_user\"}
 "
@@ -47,7 +53,7 @@ exports[ [=[General use should error if the variables in the mock and component 
 }
 
 Expected variables: {\"username\":\"other_user\"}
-  
+
 Failed to match 1 mock for this query, which had the following variables:
 	  {\"username\":\"mock_username\"}
 "

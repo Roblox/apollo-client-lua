@@ -1,3 +1,9 @@
+--[[
+ * Copyright (c) 2018 The Brain Software House
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+]]
 -- ROBLOX upstream: https://github.com/TheBrainFamily/wait-for-expect/blob/v3.0.0/src/index.ts
 
 local srcWorkspace = script.Parent.Parent

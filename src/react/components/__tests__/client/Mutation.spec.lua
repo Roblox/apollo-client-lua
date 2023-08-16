@@ -1,3 +1,9 @@
+--[[
+ * Copyright (c) 2021 Apollo Graph, Inc. (Formerly Meteor Development Group, Inc.)
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+]]
 -- ROBLOX upstream: https://github.com/apollographql/apollo-client/blob/v3.4.2/src/react/components/__tests__/client/Mutation.test.tsx
 
 local srcWorkspace = script.Parent.Parent.Parent.Parent.Parent
@@ -897,7 +903,7 @@ describe("General Mutation testing", function()
 	it("allows a refetchQueries prop", function()
 		Promise.new(function(resolve, reject)
 			local query = gql([[
-  
+
         query getTodo {
           todo {
             id
@@ -966,7 +972,7 @@ describe("General Mutation testing", function()
 	it("allows a refetchQueries prop as string and variables have updated", function()
 		Promise.new(function(resolve, reject)
 			local query = gql([[
-  
+
         query people($first: Int) {
           allPeople(first: $first) {
             people {
@@ -1070,7 +1076,7 @@ describe("General Mutation testing", function()
 	it("allows refetchQueries to be passed to the mutate function", function()
 		Promise.new(function(resolve, reject)
 			local query = gql([[
-  
+
         query getTodo {
           todo {
             id
@@ -1390,7 +1396,7 @@ describe("General Mutation testing", function()
 
 	it("errors when changing from mutation to a query", function(_, done)
 		local query = gql([[
-  
+
         query todos {
           todos {
             id
