@@ -10,7 +10,7 @@ module.exports = {
     },
     downstream: {
         owner: "roblox",
-        repo: "apollo-client-lua",
+        repo: "apollo-client-lua-internal",
         primaryBranch: "main",
         patterns: [
             "src/**/*.lua"

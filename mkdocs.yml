@@ -1,7 +1,7 @@
 site_name: Apollo Client Luau Documentation
-site_url: https://roblox.github.io/apollo-client-lua/
-repo_name: Roblox/apollo-client-lua
-repo_url: https://github.com/Roblox/apollo-client-lua
+site_url: https://roblox.github.io/apollo-client-lua-internal/
+repo_name: Roblox/apollo-client-lua-internal
+repo_url: https://github.com/Roblox/apollo-client-lua-internal
 
 theme:
   name: material
