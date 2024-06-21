@@ -378,7 +378,7 @@ describe("useQuery Hook", function()
 
 				local queryResult = useQuery(CAR_QUERY_BY_ID, {
 					variables = { id = id },
-					skip,
+					skip = skip,
 				})
 
 				local data, loading, error_ = queryResult.data, queryResult.loading, queryResult.error

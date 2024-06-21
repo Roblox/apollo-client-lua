@@ -1054,7 +1054,9 @@ describe("Query component", function()
 						self:setState({ variables = { first = 2 } })
 					end,
 					-- ROBLOX deviation: min interval
-					50 * TICK / 10
+					50
+						* TICK
+						/ 10
 				)
 			end
 
