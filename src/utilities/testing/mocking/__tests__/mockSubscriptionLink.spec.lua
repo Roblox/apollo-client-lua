@@ -82,19 +82,18 @@ describe.skip("mockSubscriptionLink", function()
 			return nil
 		end
 
-		render(
+		render(React.createElement(
+			ApolloProvider,
+			{ client = client },
 			React.createElement(
-				ApolloProvider,
-				{ client = client },
-				React.createElement(
-					"div",
-					nil,
-					React.createElement(Component, nil),
-					React.createElement(ComponentA, nil),
-					React.createElement(ComponentB, nil)
-				)
+				-- ROBLOX deviation: `div` is not a valid instance type:
+				React.Fragment,
+				nil,
+				React.createElement(Component, nil),
+				React.createElement(ComponentA, nil),
+				React.createElement(ComponentB, nil)
 			)
-		)
+		))
 
 		return wait_(function()
 			expect(renderCountA).toBe(#results + 1)

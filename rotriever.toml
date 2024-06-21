@@ -1,6 +1,6 @@
 [package]
 name = "ApolloClient"
-version = "0.3.8"
+version = "0.3.9"
 author = "Roblox"
 content_root = "src"
 files = ["*", "!**/__tests__/**", "!testUtils/", "!**/testing/**"]
@@ -13,7 +13,7 @@ LuauPolyfill = "github.com/roblox/luau-polyfill@1"
 ZenObservable = "github.com/roblox/zen-observable-lua@0.8.16-roblox.0"
 Promise = "github.com/roblox/roblox-lua-promise@3.3.0"
 LuauRegExp = "github.com/Roblox/luau-regexp@0.2.0"
-RobloxRequests = "github.com/roblox/roblox-requests@0.1.0"
+RobloxRequests = "github.com/Roblox/roblox-requests@0.1.0"
 
 [dev_dependencies]
 JestGlobals = { git = "https://github.com/roblox/jest-roblox", rev = "v3.2.2", package = "JestGlobals" }
