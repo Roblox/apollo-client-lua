@@ -5,6 +5,9 @@ author = "Roblox"
 content_root = "src"
 files = ["*", "!**/__tests__/**", "!testUtils/", "!**/testing/**"]
 
+[config]
+registry_index = true
+
 [dependencies]
 React = "github.com/roblox/roact-alignment@17.0.1-rc.16"
 GraphQL = "github.com/Roblox/graphql-lua@15.6.0"
@@ -12,7 +15,7 @@ GraphQLTag = { target = "https://github.com/Roblox/graphql-tag-lua", version = "
 LuauPolyfill = "github.com/roblox/luau-polyfill@1"
 ZenObservable = "github.com/roblox/zen-observable-lua@0.8.16-roblox.0"
 Promise = "github.com/roblox/roblox-lua-promise@3.3.0"
-LuauRegExp = "github.com/Roblox/luau-regexp@0.2.0"
+LuauRegExp = { target = "github.com/Roblox/luau-regexp", version = "0.2.0", package = "RegExp" }
 RobloxRequests = "github.com/Roblox/roblox-requests@0.1.0"
 
 [dev_dependencies]
