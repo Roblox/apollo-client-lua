@@ -1,6 +1,6 @@
 [package]
 name = "ApolloClient"
-version = "0.3.12"
+version = "0.3.13"
 author = "Roblox"
 content_root = "src"
 files = ["*", "!**/__tests__/**", "!testUtils/", "!**/testing/**"]
@@ -15,14 +15,14 @@ GraphQLTag = { target = "https://github.com/Roblox/graphql-tag-lua", version = "
 LuauPolyfill = "github.com/roblox/luau-polyfill@1"
 ZenObservable = "github.com/roblox/zen-observable-lua@0.8.16-roblox.2"
 Promise = "github.com/roblox/roblox-lua-promise@3.3.0"
-LuauRegExp = { target = "github.com/Roblox/luau-regexp", version = "0.2.0", package = "RegExp" }
+LuauRegExp = { target = "github.com/Roblox/luau-regexp-internal", version = "0.3.0", package = "RegExp" }
 RobloxRequests = "github.com/Roblox/roblox-requests@0.1.0"
 
 [dev_dependencies]
-JestGlobals = { git = "https://github.com/roblox/jest-roblox", rev = "v3.2.2", package = "JestGlobals" }
-Jest = { git = "https://github.com/roblox/jest-roblox", rev = "v3.2.2", package = "Jest" }
+JestGlobals = "3.20.1"
+Jest = "3.20.1"
 ReactTestingLibrary = { git = "https://github.com/roblox/react-testing-library-lua.git", rev = "main" }
 
-[config.patch."https://github.com/roblox/jest-roblox"]
-JestGlobals = { git = "https://github.com/roblox/jest-roblox", rev = "v3.2.2", package = "JestGlobals" }
-Jest = { git = "https://github.com/roblox/jest-roblox", rev = "v3.2.2", package = "Jest" }
+[config.patch."https://github.com/roblox/jest-roblox-internal"]
+JestGlobals = "3.20.1"
+Jest = "3.20.1"

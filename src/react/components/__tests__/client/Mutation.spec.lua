@@ -1525,7 +1525,7 @@ describe("General Mutation testing", function()
 					success = true
 					expect(onCompletedFn).toHaveBeenCalledWith(data)
 					done()
-				end, 200)
+				end, 100)
 			end
 
 			local Component = React.Component:extend("Component")
